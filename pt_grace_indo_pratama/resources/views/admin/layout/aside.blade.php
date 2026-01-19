@@ -18,7 +18,7 @@
     <div class="menu space-y-2 text-slate-700">
 
         {{-- Dashboard --}}
-        <a href=""
+        <a href="{{ route('admin.dashboard') }}"
             class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
                    @yield('menu-dashboard')">
             <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
@@ -44,19 +44,36 @@
         {{-- Gudang (dropdown no JS) --}}
         <details class="group" @yield('open-gudang')>
             <summary
-                class="list-none cursor-pointer flex items-center justify-between px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
-                       @yield('menu-gudang')">
+                class="list-none cursor-pointer flex items-center justify-between px-3 py-2 rounded-xl
+               duration-300 ease-in-out hover:bg-slate-100
+               group-open:bg-gradient-to-r group-open:from-[#53BF6A]/80 group-open:to-[#275931]/80
+               group-open:text-white
+               @yield('menu-gudang')">
+
                 <div class="flex items-center gap-3">
-                    <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
-                        <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                    <span
+                        class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center
+                       transition
+                       group-open:bg-white/20">
+
+                        {{-- ICON GUDANG --}}
+                        <svg class="fill-slate-600 transition
+                           group-open:fill-white"
+                            width="18" height="18" viewBox="0 0 24 24">
                             <path d="M3 10l9-7 9 7v11H3V10zm2 2v7h14v-7H5z" />
                         </svg>
                     </span>
-                    <span class="font-semibold text-[14px]">Gudang</span>
+
+                    <span class="font-semibold text-[14px]">
+                        Gudang
+                    </span>
                 </div>
 
-                <svg class="h-4 w-4 text-slate-700 transition group-open:rotate-180" viewBox="0 0 20 20"
-                    fill="currentColor">
+                {{-- PANAH --}}
+                <svg class="h-4 w-4 text-slate-700 transition
+                   group-open:text-white
+                   group-open:rotate-180"
+                    viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd"
                         d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z"
                         clip-rule="evenodd" />
@@ -64,44 +81,85 @@
             </summary>
 
             <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
-                <a href=""
+                <a href="{{ route('admin.pengadaan-barang') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pengadaan')">
                     Pengadaan Barang
                 </a>
 
-                <a href=""
+                <a href="{{ route('admin.barang-masuk') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-barang-masuk')">
                     Barang Masuk
                 </a>
 
-                <a href=""
+                <a href="{{ route('admin.laporan-produksi') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-laporan-produksi')">
                     Laporan Produksi
                 </a>
 
-                <a href=""
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-permintaan-pengiriman')">
+                <a href="{{ route('admin.permintaan-pengiriman-gudang') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-permintaan-pengiriman-gudang')">
                     Permintaan Pengiriman
                 </a>
 
-                <a href=""
+                <a href="{{ route('admin.bahan-baku') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-bahan-baku')">
                     Bahan Baku
                 </a>
             </div>
         </details>
 
+
         {{-- Pemasaran --}}
-        <a href=""
-            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
-                   @yield('menu-pemasaran')">
-            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
-                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
-                    <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z" />
+        <details class="group" @yield('open-pemasaran')>
+            <summary
+                class="list-none cursor-pointer flex items-center justify-between px-3 py-2 rounded-xl
+               duration-300 ease-in-out hover:bg-slate-100
+               group-open:bg-gradient-to-r group-open:from-[#53BF6A]/80 group-open:to-[#275931]/80
+               group-open:text-white
+               @yield('menu-pemasaran')">
+
+                <div class="flex items-center gap-3">
+                    <span
+                        class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center
+                       transition
+                       group-open:bg-white/20">
+
+                        {{-- ICON Pemasaran --}}
+                        <svg class="fill-slate-600 transition
+                           group-open:fill-white"
+                            width="18" height="18" viewBox="0 0 24 24">
+                            <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z" />
+                        </svg>
+                    </span>
+
+                    <span class="font-semibold text-[14px]">
+                        Pemasaran
+                    </span>
+                </div>
+
+                {{-- PANAH --}}
+                <svg class="h-4 w-4 text-slate-700 transition
+                   group-open:text-white
+                   group-open:rotate-180"
+                    viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z"
+                        clip-rule="evenodd" />
                 </svg>
-            </span>
-            <span class="font-semibold text-[14px]">Pemasaran</span>
-        </a>
+            </summary>
+
+            <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
+                <a href="{{ route('admin.permintaan-pengiriman-pemasaran') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-permintaan-pengiriman-pemasaran')">
+                    Permintaan Pengiriman
+                </a>
+
+                <a href="{{ route('admin.laporan-penjualan-pemasaran') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-laporan-penjualan-pemasaran')">
+                    Laporan Penjualan
+                </a>
+            </div>
+        </details>
 
         {{-- Karyawan --}}
         <a href=""
@@ -205,7 +263,7 @@
             </summary>
 
             <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
-                <a href=""
+                <a href="{{ route('admin.pengadaan-barang') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pengadaan')">
                     Pengadaan Barang
                 </a>
@@ -215,33 +273,73 @@
                     Barang Masuk
                 </a>
 
-                <a href=""
+                <a href="{{ route('admin.laporan-produksi') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-laporan-produksi')">
                     Laporan Produksi
                 </a>
 
-                <a href=""
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-permintaan-pengiriman')">
+                <a href="{{ route('admin.permintaan-pengiriman-gudang') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-permintaan-pengiriman-gudang')">
                     Permintaan Pengiriman
-                </a>
+                    </>
 
-                <a href=""
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-bahan-baku')">
-                    Bahan Baku
-                </a>
+                    <a href="{{ route('admin.bahan-baku') }}"
+                        class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-bahan-baku')">
+                        Bahan Baku
+                    </a>
             </div>
         </details>
 
-        <a href=""
-            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
-                   @yield('menu-pemasaran')">
-            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
-                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
-                    <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z" />
+        <details class="group" @yield('open-pemasaran')>
+            <summary
+                class="list-none cursor-pointer flex items-center justify-between px-3 py-2 rounded-xl
+               duration-300 ease-in-out hover:bg-slate-100
+               group-open:bg-gradient-to-r group-open:from-[#53BF6A]/80 group-open:to-[#275931]/80
+               group-open:text-white
+               @yield('menu-pemasaran')">
+
+                <div class="flex items-center gap-3">
+                    <span
+                        class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center
+                       transition
+                       group-open:bg-white/20">
+
+                        {{-- ICON Pemasaran --}}
+                        <svg class="fill-slate-600 transition
+                           group-open:fill-white"
+                            width="18" height="18" viewBox="0 0 24 24">
+                            <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z" />
+                        </svg>
+                    </span>
+
+                    <span class="font-semibold text-[14px]">
+                        Pemasaran
+                    </span>
+                </div>
+
+                {{-- PANAH --}}
+                <svg class="h-4 w-4 text-slate-700 transition
+                   group-open:text-white
+                   group-open:rotate-180"
+                    viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z"
+                        clip-rule="evenodd" />
                 </svg>
-            </span>
-            <span class="font-semibold text-[14px]">Pemasaran</span>
-        </a>
+            </summary>
+
+            <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
+                <a href="{{ route('admin.permintaan-pengiriman-pemasaran') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-permintaan-pengiriman-pemasaran')">
+                    Permintaan Pengiriman
+                </a>
+
+                <a href="{{ route('admin.laporan-penjualan-pemasaran') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-laporan-penjualan')">
+                    Laporan Penjualan
+                </a>
+            </div>
+        </details>
 
         <a href=""
             class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
