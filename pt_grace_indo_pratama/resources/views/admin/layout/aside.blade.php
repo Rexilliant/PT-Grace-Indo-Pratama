@@ -1,0 +1,280 @@
+{{-- desktop --}}
+<aside
+    class="hidden lg:block bg-white lg:w-[432px] 2xl:w-[350px] h-screen z-[100] lg:sticky left-0 top-0 shadow-[0_4px_4px_rgba(0,0,0,0.25)] p-5">
+
+    <div class="flex items-center mb-6">
+        <div class="flex items-center mr-4">
+            {{-- BHOS TECHNOLOGY = GAMBAR --}}
+            <img src="{{ asset('build/image/bhos-logo.png') }}" alt="BHOS Technology" class="h-12 w-auto">
+        </div>
+
+        <div class="text-left leading-tight">
+            <div class="text-[20px] font-black tracking-wide">PT</div>
+            <div class="text-[10px] font-semibold text-slate-500">GRACE INDO</div>
+            <div class="text-[10px] font-semibold text-slate-500">PRATAMA</div>
+        </div>
+    </div>
+
+    <div class="menu space-y-2 text-slate-700">
+
+        {{-- Dashboard --}}
+        <a href=""
+            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                   @yield('menu-dashboard')">
+            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M4 4h16v4H4V4zm0 6h16v10H4V10z" />
+                </svg>
+            </span>
+            <span class="font-semibold text-[14px]">Dashboard</span>
+        </a>
+
+        {{-- Public Page --}}
+        <a href=""
+            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                   @yield('menu-public')">
+            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M12 2l10 6-10 6L2 8l10-6zm0 13l10-6v11H2V9l10 6z" />
+                </svg>
+            </span>
+            <span class="font-semibold text-[14px]">Public Page</span>
+        </a>
+
+        {{-- Gudang (dropdown no JS) --}}
+        <details class="group" @yield('open-gudang')>
+            <summary
+                class="list-none cursor-pointer flex items-center justify-between px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                       @yield('menu-gudang')">
+                <div class="flex items-center gap-3">
+                    <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                        <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                            <path d="M3 10l9-7 9 7v11H3V10zm2 2v7h14v-7H5z" />
+                        </svg>
+                    </span>
+                    <span class="font-semibold text-[14px]">Gudang</span>
+                </div>
+
+                <svg class="h-4 w-4 text-slate-700 transition group-open:rotate-180" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z"
+                        clip-rule="evenodd" />
+                </svg>
+            </summary>
+
+            <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
+                <a href=""
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pengadaan')">
+                    Pengadaan Barang
+                </a>
+
+                <a href=""
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-barang-masuk')">
+                    Barang Masuk
+                </a>
+
+                <a href=""
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-laporan-produksi')">
+                    Laporan Produksi
+                </a>
+
+                <a href=""
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-permintaan-pengiriman')">
+                    Permintaan Pengiriman
+                </a>
+
+                <a href=""
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-bahan-baku')">
+                    Bahan Baku
+                </a>
+            </div>
+        </details>
+
+        {{-- Pemasaran --}}
+        <a href=""
+            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                   @yield('menu-pemasaran')">
+            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z" />
+                </svg>
+            </span>
+            <span class="font-semibold text-[14px]">Pemasaran</span>
+        </a>
+
+        {{-- Karyawan --}}
+        <a href=""
+            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                   @yield('menu-karyawan')">
+            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M12 12a5 5 0 100-10 5 5 0 000 10zm-8 10a8 8 0 0116 0H4z" />
+                </svg>
+            </span>
+            <span class="font-semibold text-[14px]">Karyawan</span>
+        </a>
+
+        {{-- Profile --}}
+        <a href=""
+            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                   @yield('menu-profile')">
+            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M12 2a7 7 0 00-7 7v3a7 7 0 0014 0V9a7 7 0 00-7-7zm-7 19a7 7 0 0114 0H5z" />
+                </svg>
+            </span>
+            <span class="font-semibold text-[14px]">Profile</span>
+        </a>
+
+        {{-- Logout --}}
+        <a href=""
+            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                   @yield('menu-keluar')">
+            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M10 17l1.41-1.41L8.83 13H20v-2H8.83l2.58-2.59L10 7l-7 7 7 3z" />
+                </svg>
+            </span>
+            <span class="font-semibold text-[14px]">Logout</span>
+        </a>
+
+    </div>
+</aside>
+
+{{-- mobile --}}
+<aside id="navbar-default"
+    class="hidden bg-white w-[280px] lg:w-[432px] 2xl:w-[500px] h-screen z-[100] fixed left-0 top-0 shadow-[0_4px_4px_rgba(0,0,0,0.25)] p-5">
+
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            {{-- BHOS TECHNOLOGY = GAMBAR --}}
+            <img src="{{ asset('image/logo.png') }}" alt="BHOS Technology" class="h-12 w-auto">
+        </div>
+
+        <div class="text-right leading-tight">
+            <div class="text-[18px] font-black tracking-wide">PT</div>
+            <div class="text-[10px] font-semibold text-slate-500">GRACE INDO</div>
+            <div class="text-[10px] font-semibold text-slate-500">PRATAMA</div>
+        </div>
+    </div>
+
+    <div class="menu space-y-2 text-slate-700">
+
+        <a href=""
+            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                   @yield('menu-dashboard')">
+            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M4 4h16v4H4V4zm0 6h16v10H4V10z" />
+                </svg>
+            </span>
+            <span class="font-semibold text-[14px]">Dashboard</span>
+        </a>
+
+        <a href=""
+            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                   @yield('menu-public')">
+            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M12 2l10 6-10 6L2 8l10-6zm0 13l10-6v11H2V9l10 6z" />
+                </svg>
+            </span>
+            <span class="font-semibold text-[14px]">Public Page</span>
+        </a>
+
+        <details class="group" @yield('open-gudang')>
+            <summary
+                class="list-none cursor-pointer flex items-center justify-between px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                       @yield('menu-gudang')">
+                <div class="flex items-center gap-3">
+                    <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                        <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                            <path d="M3 10l9-7 9 7v11H3V10zm2 2v7h14v-7H5z" />
+                        </svg>
+                    </span>
+                    <span class="font-semibold text-[14px]">Gudang</span>
+                </div>
+
+                <svg class="h-4 w-4 text-slate-700 transition group-open:rotate-180" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z"
+                        clip-rule="evenodd" />
+                </svg>
+            </summary>
+
+            <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
+                <a href=""
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pengadaan')">
+                    Pengadaan Barang
+                </a>
+
+                <a href=""
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-barang-masuk')">
+                    Barang Masuk
+                </a>
+
+                <a href=""
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-laporan-produksi')">
+                    Laporan Produksi
+                </a>
+
+                <a href=""
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-permintaan-pengiriman')">
+                    Permintaan Pengiriman
+                </a>
+
+                <a href=""
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-bahan-baku')">
+                    Bahan Baku
+                </a>
+            </div>
+        </details>
+
+        <a href=""
+            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                   @yield('menu-pemasaran')">
+            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z" />
+                </svg>
+            </span>
+            <span class="font-semibold text-[14px]">Pemasaran</span>
+        </a>
+
+        <a href=""
+            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                   @yield('menu-karyawan')">
+            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M12 12a5 5 0 100-10 5 5 0 000 10zm-8 10a8 8 0 0116 0H4z" />
+                </svg>
+            </span>
+            <span class="font-semibold text-[14px]">Karyawan</span>
+        </a>
+
+        <a href=""
+            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                   @yield('menu-profile')">
+            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M12 2a7 7 0 00-7 7v3a7 7 0 0014 0V9a7 7 0 00-7-7zm-7 19a7 7 0 0114 0H5z" />
+                </svg>
+            </span>
+            <span class="font-semibold text-[14px]">Profile</span>
+        </a>
+
+        <a href=""
+            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
+                   @yield('menu-keluar')">
+            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                    <path d="M10 17l1.41-1.41L8.83 13H20v-2H8.83l2.58-2.59L10 7l-7 7 7 3z" />
+                </svg>
+            </span>
+            <span class="font-semibold text-[14px]">Logout</span>
+        </a>
+
+    </div>
+</aside>
