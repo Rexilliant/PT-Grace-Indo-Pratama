@@ -17,7 +17,7 @@
 
 <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
     {{-- top bar: search + actions --}}
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-4">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-3">
         <div class="w-full lg:max-w-[560px]">
             <div class="relative">
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -41,7 +41,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
                 </svg>
-                Export xls.
+                Export .xlsx
             </a>
 
             <a href="#"

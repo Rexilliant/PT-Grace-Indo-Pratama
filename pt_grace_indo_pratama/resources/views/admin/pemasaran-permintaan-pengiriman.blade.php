@@ -3,7 +3,7 @@
 {{-- sidebar active --}}
 @section('open-pemasaran', 'open')
 @section('menu-pemasaran', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
-@section('menu-laporan-pengiriman-pemasaran', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-pemasaran-permintaan-pengiriman', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
 
@@ -13,7 +13,7 @@
         <div class="mb-4 text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Pemasaran</span>
             <span class="mx-1 text-gray-400">›</span>
-            <a href="#" class="text-blue-600 hover:underline">Laporan Penjualan</a>
+            <a href="#" class="text-blue-600 hover:underline">Permintaan Pengiriman</a>
         </div>
     </section>
 
@@ -43,7 +43,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
                     </svg>
-                    Export xls.
+                    Export .xlsx
                 </a>
 
                 <a href="#"
@@ -60,10 +60,10 @@
                 <table class="w-full text-sm text-left text-gray-900">
                     <thead class="bg-[#5aba6f]/70 text-gray-900">
                         <tr class="[&>th]:border-b [&>th]:border-gray-500">
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Laporan</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Penjualan</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Penanggung Jawab</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Provinsi</th>
+                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Pemesanan</th>
+                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Pengiriman</th>
+                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Nama Pemesan</th>
+                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Tujuan</th>
                             <th scope="col" class="px-6 py-3 font-extrabold text-left">Aksi</th>
                             <th scope="col" class="px-6 py-3 font-extrabold text-left">Status</th>
                         </tr>
@@ -75,40 +75,40 @@
                                 '30/11/2025',
                                 '01/12/2025',
                                 'Bambang Pratama Putra Hadi',
-                                'Kalimantan Tengah',
-                                'Terhutang',
+                                'PT Pamor Ganda',
+                                'Menunggu',
+                                'text-gray-600',
+                            ],
+                            [
+                                '30/11/2025',
+                                '01/12/2025',
+                                'Bambang Pratama Putra Hadi',
+                                'PT Pamor Ganda',
+                                'Ditolak',
                                 'text-[#EC0000]',
                             ],
                             [
                                 '30/11/2025',
                                 '01/12/2025',
                                 'Bambang Pratama Putra Hadi',
-                                'Bengkulu',
-                                'Terhutang',
-                                'text-[#EC0000]',
-                            ],
-                            [
-                                '30/11/2025',
-                                '01/12/2025',
-                                'Bambang Pratama Putra Hadi',
-                                'Riau',
-                                'Lunas',
+                                'PT Pamor Ganda',
+                                'Dikirim',
                                 'text-[#2E7E3F]',
                             ],
                             [
                                 '30/11/2025',
                                 '01/12/2025',
                                 'Bambang Pratama Putra Hadi',
-                                'Medan',
-                                'Lunas',
+                                'PT Pamor Ganda',
+                                'Dikirim',
                                 'text-[#2E7E3F]',
                             ],
                             [
                                 '30/11/2025',
                                 '01/12/2025',
                                 'Bambang Pratama Putra Hadi',
-                                'Kalimantan Barat',
-                                'Lunas',
+                                'PT Pamor Ganda',
+                                'Dikirim',
                                 'text-[#2E7E3F]',
                             ],
                         ];
@@ -121,14 +121,12 @@
                                 <td class="px-6 py-4 font-semibold">{{ $r[1] }}</td>
                                 <td class="px-6 py-4 font-semibold leading-tight">{{ $r[2] }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $r[3] }}</td>
-
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-start gap-6 font-semibold">
                                         <a href="#" class="text-[#2D2ACD] hover:underline">Lihat</a>
                                         <a href="#" class="text-[#EC0000] hover:underline">Hapus</a>
                                     </div>
                                 </td>
-
                                 <td class="px-6 py-4 font-semibold {{ $r[5] }}">{{ $r[4] }}</td>
                             </tr>
                         @endforeach

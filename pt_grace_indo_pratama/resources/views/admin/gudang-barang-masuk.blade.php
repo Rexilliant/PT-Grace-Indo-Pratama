@@ -3,7 +3,7 @@
 {{-- sidebar active --}}
 @section('open-gudang', 'open')
 @section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
-@section('menu-laporan-produksi', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-gudang-barang-masuk', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
 
@@ -13,17 +13,17 @@
         <div class="mb-4 text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Gudang</span>
             <span class="mx-1 text-gray-400">›</span>
-            <a href="#" class="text-blue-600 hover:underline">Laporan Produksi</a>
+            <a href="#" class="text-blue-600 hover:underline">Barang Masuk</a>
         </div>
     </section>
 
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         {{-- top bar --}}
-        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-4">
-            <div class="w-full lg:max-w-[520px]">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-3">
+            <div class="w-full lg:max-w-[560px]">
                 <div class="relative">
                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -43,7 +43,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
                     </svg>
-                    Export xls.
+                    Export .xlsx
                 </a>
 
                 <a href="#"
@@ -57,33 +57,21 @@
         {{-- table --}}
         <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm">
             <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-900">
+                <table class="w-full text-sm text-left text-gray-800">
                     <thead class="bg-[#5aba6f]/70 text-gray-900">
-                        <tr class="[&>th]:border-b [&>th]:border-gray-500">
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Produksi</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">ID Barang</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Penanggung Jawab</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Aksi</th>
+                        <tr>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Masuk</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama Penerima</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
                         </tr>
                     </thead>
 
                     <tbody class="bg-gray-200 divide-y divide-gray-500">
-                        @php
-                            $rows = [
-                                ['30/11/2025', 'BHOS0001', 'Bambang Pratama Putra Hadi'],
-                                ['30/11/2025', 'BHOS0002', 'Bambang Pratama Putra Hadi'],
-                                ['30/11/2025', 'BHOS0003', 'Bambang Pratama Putra Hadi'],
-                                ['30/11/2025', 'BHOS0004', 'Bambang Pratama Putra Hadi'],
-                                ['30/11/2025', 'BHOS0005', 'Bambang Pratama Putra Hadi'],
-                            ];
-                        @endphp
-
-                        @foreach ($rows as $r)
+                        @for ($i = 0; $i < 5; $i++)
                             <tr class="hover:bg-gray-300">
-                                <td class="px-6 py-4 font-semibold">{{ $r[0] }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $r[1] }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $r[2] }}</td>
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 font-semibold">30/11/2025</td>
+                                <td class="px-6 py-4 font-semibold">Bambang Pratama Putra Hadi</td>
+                                <td class="px-6 py-3">
                                     <div class="flex items-center justify-start gap-6 font-semibold">
                                         <a href="#" class="text-[#2E7E3F] hover:underline">Sunting</a>
                                         <a href="#" class="text-[#2D2ACD] hover:underline">Lihat</a>
@@ -91,20 +79,21 @@
                                     </div>
                                 </td>
                             </tr>
-                        @endforeach
+                        @endfor
                     </tbody>
                 </table>
             </div>
 
-            {{-- footer / pagination (mobile + ipad aman) --}}
+            {{-- footer / pagination --}}
             <div
                 class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between
-                       bg-gray-200 px-3 sm:px-4 md:px-5 py-3 sm:py-4 border-t border-gray-400">
+         bg-gray-200 px-3 sm:px-4 md:px-5 py-3 sm:py-4 border-t border-gray-400">
 
-                <div class="text-xs sm:text-sm font-semibold text-gray-800">
+                <div class="text-xs sm:text-sm font-semibold text-gray-700">
                     Showing 1–10 of 100
                 </div>
 
+                <!-- biar pagination gak kepotong di mobile: bisa scroll horizontal -->
                 <div class="w-full sm:w-auto overflow-x-auto">
                     <div class="inline-flex w-max rounded-lg border border-gray-400 overflow-hidden shadow-sm">
                         <a href="#"

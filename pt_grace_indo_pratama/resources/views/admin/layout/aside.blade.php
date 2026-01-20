@@ -81,28 +81,28 @@
             </summary>
 
             <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
-                <a href="{{ route('admin.pengadaan-barang') }}"
+                <a href="{{ route('admin.gudang-pengadaan-barang') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pengadaan')">
                     Pengadaan Barang
                 </a>
 
-                <a href="{{ route('admin.barang-masuk') }}"
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-barang-masuk')">
+                <a href="{{ route('admin.gudang-barang-masuk') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-barang-masuk')">
                     Barang Masuk
                 </a>
 
-                <a href="{{ route('admin.laporan-produksi') }}"
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-laporan-produksi')">
+                <a href="{{ route('admin.gudang-laporan-produksi') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-laporan-produksi')">
                     Laporan Produksi
                 </a>
 
-                <a href="{{ route('admin.permintaan-pengiriman-gudang') }}"
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-permintaan-pengiriman-gudang')">
+                <a href="{{ route('admin.gudang-permintaan-pengiriman') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-permintaan-pengiriman')">
                     Permintaan Pengiriman
                 </a>
 
-                <a href="{{ route('admin.bahan-baku') }}"
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-bahan-baku')">
+                <a href="{{ route('admin.gudang-bahan-baku') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-bahan-baku')">
                     Bahan Baku
                 </a>
             </div>
@@ -149,13 +149,13 @@
             </summary>
 
             <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
-                <a href="{{ route('admin.permintaan-pengiriman-pemasaran') }}"
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-permintaan-pengiriman-pemasaran')">
+                <a href="{{ route('admin.pemasaran-permintaan-pengiriman') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pemasaran-permintaan-pengiriman')">
                     Permintaan Pengiriman
                 </a>
 
-                <a href="{{ route('admin.laporan-penjualan-pemasaran') }}"
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-laporan-penjualan-pemasaran')">
+                <a href="{{ route('admin.pemasaran-laporan-penjualan') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pemasaran-laporan-penjualan')">
                     Laporan Penjualan
                 </a>
             </div>
@@ -263,28 +263,28 @@
             </summary>
 
             <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
-                <a href="{{ route('admin.pengadaan-barang') }}"
+                <a href="{{ route('admin.gudang-pengadaan-barang') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pengadaan')">
                     Pengadaan Barang
                 </a>
 
                 <a href=""
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-barang-masuk')">
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-barang-masuk')">
                     Barang Masuk
                 </a>
 
-                <a href="{{ route('admin.laporan-produksi') }}"
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-laporan-produksi')">
+                <a href="{{ route('admin.gudang-laporan-produksi') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-laporan-produksi')">
                     Laporan Produksi
                 </a>
 
-                <a href="{{ route('admin.permintaan-pengiriman-gudang') }}"
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-permintaan-pengiriman-gudang')">
+                <a href="{{ route('admin.gudang-permintaan-pengiriman') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-permintaan-pengiriman')">
                     Permintaan Pengiriman
                     </>
 
-                    <a href="{{ route('admin.bahan-baku') }}"
-                        class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-bahan-baku')">
+                    <a href="{{ route('admin.gudang-bahan-baku') }}"
+                        class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-bahan-baku')">
                         Bahan Baku
                     </a>
             </div>
@@ -329,13 +329,13 @@
             </summary>
 
             <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
-                <a href="{{ route('admin.permintaan-pengiriman-pemasaran') }}"
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-permintaan-pengiriman-pemasaran')">
+                <a href="{{ route('admin.pemasaran-permintaan-pengiriman') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pemasaran-permintaan-pengiriman')">
                     Permintaan Pengiriman
                 </a>
 
-                <a href="{{ route('admin.laporan-penjualan-pemasaran') }}"
-                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-laporan-penjualan')">
+                <a href="{{ route('admin.pemasaran-laporan-penjualan') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pemasaran-laporan-penjualan')">
                     Laporan Penjualan
                 </a>
             </div>

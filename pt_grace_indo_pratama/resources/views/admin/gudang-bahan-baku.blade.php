@@ -1,9 +1,9 @@
 @extends('admin.layout.master')
 
 {{-- sidebar active --}}
-@section('open-pemasaran', 'open')
-@section('menu-pemasaran', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
-@section('menu-permintaan-pengiriman-pemasaran', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('open-gudang', 'open')
+@section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-gudang-bahan-baku', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
 
@@ -11,9 +11,9 @@
     <section class=mb-5">
         {{-- breadcrumb --}}
         <div class="mb-4 text-xl font-semibold text-gray-700">
-            <span class="text-gray-700">Pemasaran</span>
+            <span class="text-gray-700">Gudang</span>
             <span class="mx-1 text-gray-400">›</span>
-            <a href="#" class="text-blue-600 hover:underline">Permintaan Pengiriman</a>
+            <a href="#" class="text-blue-600 hover:underline">Bahan Baku</a>
         </div>
     </section>
 
@@ -31,7 +31,7 @@
                     </div>
                     <input type="text"
                         class="block w-full rounded-lg border border-gray-400 bg-gray-100 pl-10 pr-3 py-2.5 text-sm text-gray-900 focus:border-gray-500 focus:ring-0"
-                        placeholder="Search for Name and Date">
+                        placeholder="Search for Name and Item Code">
                 </div>
             </div>
 
@@ -43,7 +43,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
                     </svg>
-                    Export xls.
+                    Export .xlsx
                 </a>
 
                 <a href="#"
@@ -60,57 +60,21 @@
                 <table class="w-full text-sm text-left text-gray-900">
                     <thead class="bg-[#5aba6f]/70 text-gray-900">
                         <tr class="[&>th]:border-b [&>th]:border-gray-500">
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Pemesanan</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Pengiriman</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Nama Pemesan</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Tujuan</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Aksi</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Status</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Kode Barang</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Bahan Baku</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Jumlah Stok</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Status</th>
                         </tr>
                     </thead>
 
                     @php
                         $rows = [
-                            [
-                                '30/11/2025',
-                                '01/12/2025',
-                                'Bambang Pratama Putra Hadi',
-                                'PT Pamor Ganda',
-                                'Menunggu',
-                                'text-gray-600',
-                            ],
-                            [
-                                '30/11/2025',
-                                '01/12/2025',
-                                'Bambang Pratama Putra Hadi',
-                                'PT Pamor Ganda',
-                                'Ditolak',
-                                'text-[#EC0000]',
-                            ],
-                            [
-                                '30/11/2025',
-                                '01/12/2025',
-                                'Bambang Pratama Putra Hadi',
-                                'PT Pamor Ganda',
-                                'Dikirim',
-                                'text-[#2E7E3F]',
-                            ],
-                            [
-                                '30/11/2025',
-                                '01/12/2025',
-                                'Bambang Pratama Putra Hadi',
-                                'PT Pamor Ganda',
-                                'Dikirim',
-                                'text-[#2E7E3F]',
-                            ],
-                            [
-                                '30/11/2025',
-                                '01/12/2025',
-                                'Bambang Pratama Putra Hadi',
-                                'PT Pamor Ganda',
-                                'Dikirim',
-                                'text-[#2E7E3F]',
-                            ],
+                            ['S0001', 'Sulful', '200', 'Active', 'text-[#2E7E3F]'],
+                            ['CA0001', 'Calsium', '100', 'Active', 'text-[#2E7E3F]'],
+                            ['CL0001', 'Klorida', '100', 'Active', 'text-[#2E7E3F]'],
+                            ['MG0001', 'Magnesium', '50', 'Inactive', 'text-[#EC0000]'],
+                            ['TN0001', 'T/N', '250', 'Inactive', 'text-[#EC0000]'],
                         ];
                     @endphp
 
@@ -119,15 +83,11 @@
                             <tr class="hover:bg-gray-300">
                                 <td class="px-6 py-4 font-semibold">{{ $r[0] }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $r[1] }}</td>
-                                <td class="px-6 py-4 font-semibold leading-tight">{{ $r[2] }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $r[3] }}</td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center justify-start gap-6 font-semibold">
-                                        <a href="#" class="text-[#2D2ACD] hover:underline">Lihat</a>
-                                        <a href="#" class="text-[#EC0000] hover:underline">Hapus</a>
-                                    </div>
+                                <td class="px-6 py-4 font-semibold">{{ $r[2] }}</td>
+                                <td class="px-6 py-4 font-semibold">
+                                    <a href="#" class="text-[#2E7E3F] hover:underline">Sunting</a>
                                 </td>
-                                <td class="px-6 py-4 font-semibold {{ $r[5] }}">{{ $r[4] }}</td>
+                                <td class="px-6 py-4 font-semibold {{ $r[4] }}">{{ $r[3] }}</td>
                             </tr>
                         @endforeach
                     </tbody>

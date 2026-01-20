@@ -12,33 +12,33 @@ Route::prefix('admin')->group(function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
 
-    Route::get('/pengadaan-barang', function () {
-        return view('admin.pengadaan-barang');
-    })->name('admin.pengadaan-barang');
+    Route::get('/gudang-pengadaan-barang', function () {
+        return view('admin.gudang-pengadaan-barang');
+    })->name('admin.gudang-pengadaan-barang');
 
-    Route::get('/barang-masuk', function () {
-        return view('admin.barang-masuk');
-    })->name('admin.barang-masuk');
+    Route::get('/gudang-barang-masuk', function () {
+        return view('admin.gudang-barang-masuk');
+    })->name('admin.gudang-barang-masuk');
 
-    Route::get('/laporan-produksi', function () {
-        return view('admin.laporan-produksi');
-    })->name('admin.laporan-produksi');
+    Route::get('/gudang-laporan-produksi', function () {
+        return view('admin.gudang-laporan-produksi');
+    })->name('admin.gudang-laporan-produksi');
 
-    Route::get('/permintaan-pengiriman-gudang', function () {
-        return view('admin.permintaan-pengiriman-gudang');
-    })->name('admin.permintaan-pengiriman-gudang');
+    Route::get('/gudang-permintaan-pengiriman', function () {
+        return view('admin.gudang-permintaan-pengiriman');
+    })->name('admin.gudang-permintaan-pengiriman');
 
-    Route::get('/bahan-baku', function () {
-        return view('admin.bahan-baku');
-    })->name('admin.bahan-baku');
+    Route::get('/gudang-bahan-baku', function () {
+        return view('admin.gudang-bahan-baku');
+    })->name('admin.gudang-bahan-baku');
 
-    Route::get('/permintaan-pengiriman-pemasaran', function () {
-        return view('admin.permintaan-pengiriman-pemasaran');
-    })->name('admin.permintaan-pengiriman-pemasaran');
+    Route::get('/pemasaran-permintaan-pengiriman', function () {
+        return view('admin.pemasaran-permintaan-pengiriman');
+    })->name('admin.pemasaran-permintaan-pengiriman');
 
-    Route::get('/laporan-penjualan-pemasaran', function () {
-        return view('admin.laporan-penjualan-pemasaran');
-    })->name('admin.laporan-penjualan-pemasaran');
+    Route::get('/pemasaran-laporan-penjualan', function () {
+        return view('admin.pemasaran-laporan-penjualan');
+    })->name('admin.pemasaran-laporan-penjualan');
 });
 
 

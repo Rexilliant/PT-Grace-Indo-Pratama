@@ -3,7 +3,7 @@
 {{-- sidebar active --}}
 @section('open-gudang', 'open')
 @section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
-@section('menu-permintaan-pengiriman-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-gudang-permintaan-pengiriman', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
 
@@ -43,7 +43,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
                     </svg>
-                    Export xls.
+                    Export .xlsx
                 </a>
 
                 <a href="#"
@@ -60,13 +60,13 @@
                 <table class="w-full text-sm text-left text-gray-900">
                     <thead class="bg-[#5aba6f]/70 text-gray-900">
                         <tr class="[&>th]:border-b [&>th]:border-gray-500">
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Pemesanan</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Pengiriman</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Nama Pemesan</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Tujuan</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Provinsi</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Aksi</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Status</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Pemesanan</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Pengiriman</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama Pemesan</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Tujuan</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Status</th>
                         </tr>
                     </thead>
 
