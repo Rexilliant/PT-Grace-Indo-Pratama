@@ -41,12 +41,12 @@
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
+                            d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
                     </svg>
                     Export .xlsx
                 </a>
 
-                <a href="#"
+                <a href="{{ route('admin.add-bahan-baku') }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
                     <span class="text-lg leading-none">+</span>
                     Tambah Baru
@@ -85,7 +85,8 @@
                                 <td class="px-6 py-4 font-semibold">{{ $r[1] }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $r[2] }}</td>
                                 <td class="px-6 py-4 font-semibold">
-                                    <a href="#" class="text-[#2E7E3F] hover:underline">Sunting</a>
+                                    <a href="{{ route('admin.edit-bahan-baku') }}"
+                                        class="text-[#2E7E3F] hover:underline">Sunting</a>
                                 </td>
                                 <td class="px-6 py-4 font-semibold {{ $r[4] }}">{{ $r[3] }}</td>
                             </tr>

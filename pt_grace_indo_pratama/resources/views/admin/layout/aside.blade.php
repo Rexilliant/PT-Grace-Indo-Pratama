@@ -174,7 +174,7 @@
         </a>
 
         {{-- Profile --}}
-        <a href=""
+        <a href="{{ route('admin.profile') }}"
             class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
                    @yield('menu-profile')">
             <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
@@ -207,7 +207,7 @@
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
             {{-- BHOS TECHNOLOGY = GAMBAR --}}
-            <img src="{{ asset('image/logo.png') }}" alt="BHOS Technology" class="h-12 w-auto">
+            <img src="{{ asset('image/bhos-logo.png') }}" alt="BHOS Technology" class="h-12 w-auto">
         </div>
 
         <div class="text-right leading-tight">
@@ -352,7 +352,7 @@
             <span class="font-semibold text-[14px]">Karyawan</span>
         </a>
 
-        <a href=""
+        <a href="{{ route('admin.profile') }}"
             class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100
                    @yield('menu-profile')">
             <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
