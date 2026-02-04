@@ -10,9 +10,10 @@
         // dummy data untuk modal "Lihat"
         $detail = (object) [
             'pesanan_no' => 'PSN0001',
+            'tanggal' => '30/11/2025',
             'nama_pemesan' => 'Bambang Pratama Putra Hadi',
             'provinsi' => 'Riau',
-            'tanggal' => '30/11/2025',
+            'total_pesanan' => 'Rp6.000.000',
             // dummy invoice image (nanti ganti ke storage/url kamu)
             'invoice_img' => asset('build/image/bhos-logo.png'),
             'status' => 'Selesai',
@@ -80,7 +81,8 @@
                         <tr>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Masuk</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama Penerima</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th> {{-- ✅ tambah kolom --}}
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th>
+                            {{-- ✅ tambah kolom --}}
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
                         </tr>
                     </thead>
@@ -188,22 +190,28 @@
                 </div>
 
                 {{-- top fields --}}
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mb-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-5">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Tanggal Pemesanan</label>
+                        <input value="{{ $detail->tanggal }}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900" />
+                    </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-2">Nama Pemesan</label>
                         <input value="{{ $detail->nama_pemesan }}" readonly
                             class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900" />
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">Nama Pemesan</label>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Provinsi</label>
                         <input value="{{ $detail->provinsi }}" readonly
                             class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900" />
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">Tanggal Pemesanan</label>
-                        <input value="{{ $detail->tanggal }}" readonly
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Total Pesanan</label>
+                        <input value="{{ $detail->total_pesanan }}" readonly
                             class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900" />
                     </div>
+
                 </div>
 
                 {{-- items container (sama kayak template pengadaan) --}}
