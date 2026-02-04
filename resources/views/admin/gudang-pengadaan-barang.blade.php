@@ -322,10 +322,10 @@
 
         function hintHTML(status) {
             if (status === 'Disetujui') {
-                return `Pesanan sudah <span class="font-extrabold text-green-800">Disetujui</span> oleh manajer.`;
+                return `Pesanan sudah <span class="font-extrabold text-green-800">Disetujui</span> oleh manajer Thahirudin.`;
             }
             if (status === 'Ditolak') {
-                return `Pesanan <span class="font-extrabold text-red-800">Ditolak</span> oleh manajer.`;
+                return `Pesanan <span class="font-extrabold text-red-800">Ditolak</span> oleh manajer Thahirudin.`;
             }
             return `Status pesanan masih <span class="font-extrabold">Menunggu</span> persetujuan manajer.`;
         }

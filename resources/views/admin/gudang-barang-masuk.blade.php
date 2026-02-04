@@ -188,10 +188,15 @@
                 </div>
 
                 {{-- top fields --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-5">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mb-5">
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-2">Nama Pemesan</label>
                         <input value="{{ $detail->nama_pemesan }}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Nama Pemesan</label>
+                        <input value="{{ $detail->provinsi }}" readonly
                             class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900" />
                     </div>
                     <div>

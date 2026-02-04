@@ -89,6 +89,10 @@ Route::prefix('admin')->group(function () {
     Route::get('/add-executive-produk-baru', function () {
         return view('admin.add-executive-produk-baru');
     })->name('admin.add-executive-produk-baru');
+    
+    Route::get('/add-executive-pengadaan-barang', function () {
+        return view('admin.add-executive-pengadaan-barang');
+    })->name('admin.add-executive-pengadaan-barang');
 
     // Edit
     Route::get('/edit-bahan-baku', function () {
