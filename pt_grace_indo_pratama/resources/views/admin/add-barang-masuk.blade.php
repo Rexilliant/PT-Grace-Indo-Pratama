@@ -30,7 +30,19 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">Tanggal Produksi</label>
+                    <label class="block text-sm font-bold text-gray-800 mb-2">Provinsi</label>
+                    <input type="text" name="provinsi" value="" placeholder="Contoh: Sumatera Utara"
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-800 mb-2">Total Pesanan</label>
+                    <input type="text" name="total_pesanan" value="-" placeholder="Contoh: Rp6.000.000"
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-800 mb-2">Tanggal Barang Masuk</label>
                     <input type="date" name="tanggal_produksi" value="2025-11-30"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500">
                 </div>
@@ -254,7 +266,4 @@
             showFileName(file);
         });
     </script>
-
-
-
 @endsection

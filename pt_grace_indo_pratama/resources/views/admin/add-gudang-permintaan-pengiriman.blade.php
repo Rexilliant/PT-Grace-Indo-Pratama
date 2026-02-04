@@ -25,7 +25,8 @@
             'catatan' => '',
         ];
 
-        $items = [['BHOS001', 'BHOS Ekstra', '150 Ltr'], ['BHOS002', 'BHOS Turbo', '150 Kg']];
+        // items: [id_produk, sku, nama_produk, jumlah]
+        $items = [['BHOS001', 'SKU-001', 'BHOS Ekstra', '150 Ltr'], ['BHOS002', 'SKU-002', 'BHOS Turbo', '150 Kg']];
 
         // dummy bagian dikirim
         $detailKirim = (object) [
@@ -110,21 +111,54 @@
                 </div>
             </div>
 
+            {{-- ITEMS (RESPONSIVE: mobile stacked, iPad+ table grid) --}}
             <div class="mt-4">
-                <div class="grid grid-cols-3 gap-4 text-xs font-bold text-gray-800 mb-2.5">
+                {{-- header grid hanya tampil iPad+ --}}
+                <div class="hidden md:grid grid-cols-4 gap-4 text-xs font-bold text-gray-800 mb-2.5">
                     <div>ID Produk</div>
+                    <div>Stock Keeping Unit</div>
                     <div>Nama Produk</div>
                     <div>Jumlah Permintaan</div>
                 </div>
 
-                <div class="space-y-2">
+                <div class="space-y-3">
                     @foreach ($items as $row)
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {{-- MOBILE: card --}}
+                        <div class="md:hidden rounded-xl border border-gray-300 bg-white p-4 space-y-3">
+                            <div>
+                                <div class="text-[11px] font-bold text-gray-600 mb-1">ID Produk</div>
+                                <input value="{{ $row[0] }}" readonly
+                                    class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
+                            </div>
+
+                            <div>
+                                <div class="text-[11px] font-bold text-gray-600 mb-1">Stock Keeping Unit</div>
+                                <input value="{{ $row[1] }}" readonly
+                                    class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
+                            </div>
+
+                            <div>
+                                <div class="text-[11px] font-bold text-gray-600 mb-1">Nama Produk</div>
+                                <input value="{{ $row[2] }}" readonly
+                                    class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
+                            </div>
+
+                            <div>
+                                <div class="text-[11px] font-bold text-gray-600 mb-1">Jumlah Permintaan</div>
+                                <input value="{{ $row[3] }}" readonly
+                                    class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
+                            </div>
+                        </div>
+
+                        {{-- iPad+ : grid row --}}
+                        <div class="hidden md:grid grid-cols-4 gap-3">
                             <input value="{{ $row[0] }}" readonly
                                 class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
                             <input value="{{ $row[1] }}" readonly
                                 class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
                             <input value="{{ $row[2] }}" readonly
+                                class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
+                            <input value="{{ $row[3] }}" readonly
                                 class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
                         </div>
                     @endforeach
@@ -210,21 +244,53 @@
                     </div>
                 </div>
 
+                {{-- ITEMS (RESPONSIVE: mobile stacked, iPad+ table grid) --}}
                 <div class="mt-4">
-                    <div class="grid grid-cols-3 gap-4 text-xs font-bold text-gray-800 mb-2.5">
+                    <div class="hidden md:grid grid-cols-4 gap-4 text-xs font-bold text-gray-800 mb-2.5">
                         <div>ID Produk</div>
+                        <div>Stock Keeping Unit</div>
                         <div>Nama Produk</div>
                         <div>Jumlah Permintaan</div>
                     </div>
 
-                    <div class="space-y-2">
+                    <div class="space-y-3">
                         @foreach ($items as $row)
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            {{-- MOBILE: card --}}
+                            <div class="md:hidden rounded-xl border border-gray-300 bg-white p-4 space-y-3">
+                                <div>
+                                    <div class="text-[11px] font-bold text-gray-600 mb-1">ID Produk</div>
+                                    <input value="{{ $row[0] }}" readonly
+                                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
+                                </div>
+
+                                <div>
+                                    <div class="text-[11px] font-bold text-gray-600 mb-1">Stock Keeping Unit</div>
+                                    <input value="{{ $row[1] }}" readonly
+                                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
+                                </div>
+
+                                <div>
+                                    <div class="text-[11px] font-bold text-gray-600 mb-1">Nama Produk</div>
+                                    <input value="{{ $row[2] }}" readonly
+                                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
+                                </div>
+
+                                <div>
+                                    <div class="text-[11px] font-bold text-gray-600 mb-1">Jumlah Permintaan</div>
+                                    <input value="{{ $row[3] }}"
+                                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0">
+                                </div>
+                            </div>
+
+                            {{-- iPad+ : grid row --}}
+                            <div class="hidden md:grid grid-cols-4 gap-3">
                                 <input value="{{ $row[0] }}" readonly
                                     class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
                                 <input value="{{ $row[1] }}" readonly
                                     class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
-                                <input value="{{ $row[2] }}"
+                                <input value="{{ $row[2] }}" readonly
+                                    class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
+                                <input value="{{ $row[3] }}"
                                     class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0">
                             </div>
                         @endforeach
@@ -327,7 +393,6 @@
             // tampil/sembunyi blok ditolak
             if (val === 'Ditolak') {
                 blokDitolak.classList.remove('hidden');
-                // optional: bikin wajib isi saat ditolak
                 if (alasanDitolak) alasanDitolak.setAttribute('required', 'required');
             } else {
                 blokDitolak.classList.add('hidden');
@@ -365,7 +430,6 @@
         function showDropzoneFileName(file) {
             if (!dropzoneContent) return;
 
-            // ganti seluruh isi dropzone jadi nama file
             dropzoneContent.innerHTML = `
                 <div class="text-sm font-bold text-gray-800 break-all">
                     ${file.name}
@@ -382,7 +446,6 @@
         }
 
         if (invoiceInput && dropzone) {
-            // klik pilih file
             invoiceInput.addEventListener('change', () => {
                 const file = invoiceInput.files && invoiceInput.files[0] ? invoiceInput.files[0] : null;
                 if (!file) {
@@ -399,7 +462,6 @@
                 showDropzoneFileName(file);
             });
 
-            // highlight saat drag
             ['dragenter', 'dragover'].forEach(evt => {
                 dropzone.addEventListener(evt, (e) => {
                     e.preventDefault();
@@ -408,14 +470,12 @@
                 });
             });
 
-            // leave
             dropzone.addEventListener('dragleave', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 resetDropzoneBorderIfEmpty();
             });
 
-            // drop: set file ke input (wajib pakai DataTransfer)
             dropzone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -441,5 +501,4 @@
             });
         }
     </script>
-
 @endsection

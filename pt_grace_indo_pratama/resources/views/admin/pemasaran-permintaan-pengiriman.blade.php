@@ -31,7 +31,11 @@
                     'kontak' => '0812-0000-0000',
                     'alamat' => '',
                     'catatan' => '',
-                    'items' => [['BHOS001', 'BHOS Ekstra', '150 Ltr'], ['BHOS002', 'BHOS Turbo', '150 Kg']],
+                    // items: [id_produk, sku, nama_produk, jumlah]
+                    'items' => [
+                        ['BHOS001', 'SKU-001', 'BHOS Ekstra', '150 Ltr'],
+                        ['BHOS002', 'SKU-002', 'BHOS Turbo', '150 Kg'],
+                    ],
                 ],
 
                 'alasan_ditolak' => '',
@@ -59,7 +63,8 @@
                     'kontak' => '0812-0000-0000',
                     'alamat' => '',
                     'catatan' => '',
-                    'items' => [['BHOS001', 'BHOS Ekstra', '150 Ltr']],
+                    // items: [id_produk, sku, nama_produk, jumlah]
+                    'items' => [['BHOS001', 'SKU-001', 'BHOS Ekstra', '150 Ltr']],
                 ],
                 'alasan_ditolak' => 'Stok tidak mencukupi.',
                 'tgl_kirim' => '',
@@ -86,7 +91,11 @@
                     'kontak' => '0812-0000-0000',
                     'alamat' => '',
                     'catatan' => '',
-                    'items' => [['BHOS001', 'BHOS Ekstra', '150 Ltr'], ['BHOS002', 'BHOS Turbo', '150 Kg']],
+                    // items: [id_produk, sku, nama_produk, jumlah]
+                    'items' => [
+                        ['BHOS001', 'SKU-001', 'BHOS Ekstra', '150 Ltr'],
+                        ['BHOS002', 'SKU-002', 'BHOS Turbo', '150 Kg'],
+                    ],
                 ],
                 'alasan_ditolak' => '',
                 'tgl_kirim' => '27/12/2025',
@@ -97,13 +106,13 @@
                     'status' => 'Dikirimkan',
                     'tgl_pengiriman' => '27/12/2025',
                     'jasa' => 'Bus',
-                    'items' => [['BHOS001', 'BHOS Turbo', '150 Kg'], ['BHOS002', 'BHOS Turbo', '150 Kg']],
-                    'bukti' => [
-                        ['PM2.5', 331, -0.2, 0.4, -1.0, -0.6, -0.3, 0.0, 1.0, 0, 0.0],
-                        ['RHUI', 331, 0.0, 0.4, -1.0, -0.2, 0.0, 0.3, 1.0, 0, 0.0],
-                        ['TEMP', 331, 0.1, 0.4, -1.0, -0.2, 0.2, 0.4, 1.0, 0, 0.0],
-                        ['PRE', 331, -0.0, 0.4, -1.0, -0.2, -0.0, 0.2, 1.0, 0, 0.0],
+                    // items: [id_produk, sku, nama_produk, jumlah]
+                    'items' => [
+                        ['BHOS001', 'SKU-001', 'BHOS Turbo', '150 Kg'],
+                        ['BHOS002', 'SKU-002', 'BHOS Turbo', '150 Kg'],
                     ],
+                    // ✅ ganti bukti pengiriman jadi gambar (dummy path)
+                    'bukti_gambar' => 'build/image/bukti-pengiriman.jpg',
                 ],
             ],
         ];
@@ -352,12 +361,16 @@
                 </div>
 
                 <div class="mt-4">
-                    <div class="grid grid-cols-3 gap-4 text-xs font-bold text-gray-700 mb-2.5">
+                    {{-- HEADER DESKTOP/iPAD --}}
+                    <div class="hidden md:grid grid-cols-4 gap-4 text-xs font-bold text-gray-700 mb-2.5">
                         <div>ID Produk</div>
+                        <div>Stock Keeping Unit</div>
                         <div>Nama Produk</div>
                         <div>Jumlah Permintaan</div>
                     </div>
-                    <div id="vm_items" class="space-y-2"></div>
+
+                    {{-- ITEMS --}}
+                    <div id="vm_items" class="space-y-3"></div>
                 </div>
 
                 <div class="mt-4">
@@ -481,36 +494,25 @@
                 </div>
 
                 <div class="mt-4">
-                    <div class="grid grid-cols-3 gap-4 text-xs font-bold text-gray-700 mb-2.5">
+                    {{-- HEADER DESKTOP/iPAD --}}
+                    <div class="hidden md:grid grid-cols-4 gap-4 text-xs font-bold text-gray-700 mb-2.5">
                         <div>ID Produk</div>
+                        <div>Stock Keeping Unit</div>
                         <div>Nama Produk</div>
                         <div>Jumlah Dikirimkan</div>
                     </div>
-                    <div id="km_items" class="space-y-2"></div>
+
+                    {{-- ITEMS --}}
+                    <div id="km_items" class="space-y-3"></div>
                 </div>
 
                 <div class="mt-5">
                     <div class="text-xs font-bold text-gray-700 mb-2.5">Bukti Pengiriman</div>
 
-                    <div class="overflow-x-auto bg-white border border-gray-400 rounded-lg">
-                        <table class="w-full text-xs text-left text-gray-900">
-                            <thead class="bg-gray-100 border-b border-gray-400">
-                                <tr>
-                                    <th class="px-3 py-2 font-extrabold border-r border-gray-300">feature</th>
-                                    <th class="px-3 py-2 font-extrabold border-r border-gray-300">count</th>
-                                    <th class="px-3 py-2 font-extrabold border-r border-gray-300">mean</th>
-                                    <th class="px-3 py-2 font-extrabold border-r border-gray-300">std</th>
-                                    <th class="px-3 py-2 font-extrabold border-r border-gray-300">min</th>
-                                    <th class="px-3 py-2 font-extrabold border-r border-gray-300">Q1</th>
-                                    <th class="px-3 py-2 font-extrabold border-r border-gray-300">Q2</th>
-                                    <th class="px-3 py-2 font-extrabold border-r border-gray-300">Q3</th>
-                                    <th class="px-3 py-2 font-extrabold border-r border-gray-300">max</th>
-                                    <th class="px-3 py-2 font-extrabold border-r border-gray-300">missing count</th>
-                                    <th class="px-3 py-2 font-extrabold">missing pct</th>
-                                </tr>
-                            </thead>
-                            <tbody id="km_bukti" class="divide-y divide-gray-300"></tbody>
-                        </table>
+                    {{-- ✅ bukti pengiriman jadi gambar (mobile/ipad aman) --}}
+                    <div class="bg-white border border-gray-400 rounded-lg p-3">
+                        <img id="km_bukti_img" src="" alt="Bukti Pengiriman"
+                            class="w-full h-auto max-h-[70vh] object-contain rounded-md">
                     </div>
                 </div>
 
@@ -578,17 +580,48 @@
             return 'bg-gray-100 text-gray-700 border-gray-300';
         }
 
+        // ✅ sekarang items: [id, sku, nama, jumlah]
         function renderVmItems(items) {
             vmItems.innerHTML = '';
             (items || []).forEach((v) => {
+                // MOBILE CARD
+                const mobile = document.createElement('div');
+                mobile.className = 'md:hidden rounded-xl border border-gray-300 bg-white p-4 space-y-3';
+                mobile.innerHTML = `
+                    <div>
+                        <div class="text-[11px] font-bold text-gray-600 mb-1">ID Produk</div>
+                        <input value="${v[0] ?? ''}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900" />
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold text-gray-600 mb-1">Stock Keeping Unit</div>
+                        <input value="${v[1] ?? ''}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900" />
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold text-gray-600 mb-1">Nama Produk</div>
+                        <input value="${v[2] ?? ''}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900" />
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold text-gray-600 mb-1">Jumlah Permintaan</div>
+                        <input value="${v[3] ?? ''}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900" />
+                    </div>
+                `;
+                vmItems.appendChild(mobile);
+
+                // iPad+ GRID ROW
                 const row = document.createElement('div');
-                row.className = 'grid grid-cols-1 sm:grid-cols-3 gap-3';
+                row.className = 'hidden md:grid grid-cols-4 gap-3';
                 row.innerHTML = `
                     <input value="${v[0] ?? ''}" readonly
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900" />
                     <input value="${v[1] ?? ''}" readonly
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900" />
                     <input value="${v[2] ?? ''}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900" />
+                    <input value="${v[3] ?? ''}" readonly
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900" />
                 `;
                 vmItems.appendChild(row);
@@ -665,13 +698,42 @@
         const kmJasa = document.getElementById('km_jasa');
 
         const kmItems = document.getElementById('km_items');
-        const kmBukti = document.getElementById('km_bukti');
+        const kmBuktiImg = document.getElementById('km_bukti_img');
 
+        // ✅ sekarang kirim items: [id, sku, nama, jumlah]
         function renderKirimItems(items) {
             kmItems.innerHTML = '';
             (items || []).forEach((v) => {
+                // MOBILE CARD
+                const mobile = document.createElement('div');
+                mobile.className = 'md:hidden rounded-xl border border-gray-300 bg-white p-4 space-y-3';
+                mobile.innerHTML = `
+                    <div>
+                        <div class="text-[11px] font-bold text-gray-600 mb-1">ID Produk</div>
+                        <input value="${v[0] ?? ''}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900" />
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold text-gray-600 mb-1">Stock Keeping Unit</div>
+                        <input value="${v[1] ?? ''}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900" />
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold text-gray-600 mb-1">Nama Produk</div>
+                        <input value="${v[2] ?? ''}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900" />
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold text-gray-600 mb-1">Jumlah Dikirimkan</div>
+                        <input value="${v[3] ?? ''}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900" />
+                    </div>
+                `;
+                kmItems.appendChild(mobile);
+
+                // iPad+ GRID ROW
                 const row = document.createElement('div');
-                row.className = 'grid grid-cols-1 sm:grid-cols-3 gap-3';
+                row.className = 'hidden md:grid grid-cols-4 gap-3';
                 row.innerHTML = `
                     <input value="${v[0] ?? ''}" readonly
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900" />
@@ -679,30 +741,10 @@
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900" />
                     <input value="${v[2] ?? ''}" readonly
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900" />
+                    <input value="${v[3] ?? ''}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900" />
                 `;
                 kmItems.appendChild(row);
-            });
-        }
-
-        function renderBuktiTable(rows) {
-            kmBukti.innerHTML = '';
-            (rows || []).forEach((r) => {
-                const tr = document.createElement('tr');
-                tr.className = 'bg-white';
-                tr.innerHTML = `
-                    <td class="px-3 py-2 border-r border-gray-300">${r[0]}</td>
-                    <td class="px-3 py-2 border-r border-gray-300">${r[1]}</td>
-                    <td class="px-3 py-2 border-r border-gray-300">${r[2]}</td>
-                    <td class="px-3 py-2 border-r border-gray-300">${r[3]}</td>
-                    <td class="px-3 py-2 border-r border-gray-300">${r[4]}</td>
-                    <td class="px-3 py-2 border-r border-gray-300">${r[5]}</td>
-                    <td class="px-3 py-2 border-r border-gray-300">${r[6]}</td>
-                    <td class="px-3 py-2 border-r border-gray-300">${r[7]}</td>
-                    <td class="px-3 py-2 border-r border-gray-300">${r[8]}</td>
-                    <td class="px-3 py-2 border-r border-gray-300">${r[9]}</td>
-                    <td class="px-3 py-2">${r[10]}</td>
-                `;
-                kmBukti.appendChild(tr);
             });
         }
 
@@ -716,7 +758,11 @@
             kmJasa.value = data.jasa ?? '';
 
             renderKirimItems(data.items ?? []);
-            renderBuktiTable(data.bukti ?? []);
+
+            // ✅ bukti pengiriman gambar
+            const img = data.bukti_gambar ?? '';
+            kmBuktiImg.src = img ? `{{ asset('') }}${img}` : '';
+            kmBuktiImg.classList.toggle('hidden', !img);
 
             kirimModal.classList.remove('hidden');
             kirimModal.classList.add('flex');

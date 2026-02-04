@@ -8,8 +8,8 @@
 @section('content')
     @php
         // ===== DUMMY ITEM (ganti dari DB nanti) =====
-        // ini boleh tetap dummy karena produk biasanya datang dari "pilih produk"
-        $items = [['BHOS001', 'BHOS Ekstra'], ['BHOS002', 'BHOS Turbo']];
+        // items: [id_produk, sku, nama_produk]
+        $items = [['BHOS001', 'SKU-001', 'BHOS Ekstra'], ['BHOS002', 'SKU-002', 'BHOS Turbo']];
 
         $armadaList = ['Bus', 'Truk', 'Ekspedisi'];
         $jenisList = ['Perseorangan', 'Pesanan', 'Instansi'];
@@ -136,7 +136,13 @@
         <section class="space-y-4">
             @foreach ($items as $i => $row)
                 <section class="bg-[#a7dfb2] p-5 shadow border border-[#68b97a] rounded-xl">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {{-- 
+                        RESPONSIVE GRID:
+                        - mobile: 1 kolom
+                        - iPad (md): 2 kolom
+                        - desktop (lg): 4 kolom
+                    --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-800 mb-2.5">ID Produk</label>
                             <input name="items[{{ $i }}][id_produk]" value="{{ $row[0] }}" readonly
@@ -144,8 +150,14 @@
                         </div>
 
                         <div>
+                            <label class="block text-xs font-bold text-gray-800 mb-2.5">Stock Keeping Unit</label>
+                            <input name="items[{{ $i }}][sku]" value="{{ $row[1] }}" readonly
+                                class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
+                        </div>
+
+                        <div>
                             <label class="block text-xs font-bold text-gray-800 mb-2.5">Nama Produk</label>
-                            <input name="items[{{ $i }}][nama_produk]" value="{{ $row[1] }}" readonly
+                            <input name="items[{{ $i }}][nama_produk]" value="{{ $row[2] }}" readonly
                                 class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
                         </div>
 

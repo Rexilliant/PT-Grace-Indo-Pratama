@@ -9,11 +9,11 @@
     @php
         // ===== DUMMY LIST (TABLE) =====
         $rows = [
-            ['30/11/2025', 'BHOS0001', 'BHOS Ekstra', 'Bambang Pratama Putra Hadi'],
-            ['30/11/2025', 'BHOS0002', 'BHOS Turbo', 'Bambang Pratama Putra Hadi'],
-            ['30/11/2025', 'BHOS0003', 'BHOS Ekstra', 'Bambang Pratama Putra Hadi'],
-            ['30/11/2025', 'BHOS0004', 'BHOS Ekstra', 'Bambang Pratama Putra Hadi'],
-            ['30/11/2025', 'BHOS0005', 'BHOS Turbo', 'Bambang Pratama Putra Hadi'],
+            ['30/11/2025', 'BHOS0001', 'BHOS Ekstra', 'Bambang Pratama Putra Hadi', 'Riau'],
+            ['30/11/2025', 'BHOS0002', 'BHOS Turbo', 'Bambang Pratama Putra Hadi', 'Riau'],
+            ['30/11/2025', 'BHOS0003', 'BHOS Ekstra', 'Bambang Pratama Putra Hadi', 'Riau'],
+            ['30/11/2025', 'BHOS0004', 'BHOS Ekstra', 'Bambang Pratama Putra Hadi', 'Riau'],
+            ['30/11/2025', 'BHOS0005', 'BHOS Turbo', 'Bambang Pratama Putra Hadi', 'Riau'],
         ];
 
         // helper SKU (dummy)
@@ -31,6 +31,7 @@
             'BHOS0001' => [
                 'laporan_no' => 'BRMS0001',
                 'pj' => 'Bambang Pratama Putra Hadi',
+                'provinsi' => 'Riau',
                 'tanggal_masuk' => '30/11/2025',
                 'id_produksi' => 'BHOS0001',
                 'sku' => 'BHOSEK1000',
@@ -46,54 +47,46 @@
             'BHOS0002' => [
                 'laporan_no' => 'BRMS0002',
                 'pj' => 'Bambang Pratama Putra Hadi',
+                'provinsi' => 'Riau',
                 'tanggal_masuk' => '30/11/2025',
                 'id_produksi' => 'BHOS0002',
                 'sku' => 'BHOSTB1000',
                 'nama_produk' => 'BHOS Turbo',
                 'jumlah_produksi' => '150 Kg',
-                'items' => [
-                    ['CA001', 'Kalsium', '200 Kg', '150 Kg'],
-                    ['K001', 'Kalium', '200 Kg', '150 Kg'],
-                ],
+                'items' => [['CA001', 'Kalsium', '200 Kg', '150 Kg'], ['K001', 'Kalium', '200 Kg', '150 Kg']],
             ],
             'BHOS0003' => [
                 'laporan_no' => 'BRMS0003',
                 'pj' => 'Bambang Pratama Putra Hadi',
+                'provinsi' => 'Riau',
                 'tanggal_masuk' => '30/11/2025',
                 'id_produksi' => 'BHOS0003',
                 'sku' => 'BHOSEK1000',
                 'nama_produk' => 'BHOS Ekstra',
                 'jumlah_produksi' => '150 Ltr',
-                'items' => [
-                    ['CL001', 'Klorida', '200 Kg', '150 Kg'],
-                    ['MG001', 'Magnesium', '200 Kg', '150 Kg'],
-                ],
+                'items' => [['CL001', 'Klorida', '200 Kg', '150 Kg'], ['MG001', 'Magnesium', '200 Kg', '150 Kg']],
             ],
             'BHOS0004' => [
                 'laporan_no' => 'BRMS0004',
                 'pj' => 'Bambang Pratama Putra Hadi',
+                'provinsi' => 'Riau',
                 'tanggal_masuk' => '30/11/2025',
                 'id_produksi' => 'BHOS0004',
                 'sku' => 'BHOSEK1000',
                 'nama_produk' => 'BHOS Ekstra',
                 'jumlah_produksi' => '150 Ltr',
-                'items' => [
-                    ['CA001', 'Kalsium', '200 Kg', '150 Kg'],
-                    ['CL001', 'Klorida', '200 Kg', '150 Kg'],
-                ],
+                'items' => [['CA001', 'Kalsium', '200 Kg', '150 Kg'], ['CL001', 'Klorida', '200 Kg', '150 Kg']],
             ],
             'BHOS0005' => [
                 'laporan_no' => 'BRMS0005',
                 'pj' => 'Bambang Pratama Putra Hadi',
+                'provinsi' => 'Riau',
                 'tanggal_masuk' => '30/11/2025',
                 'id_produksi' => 'BHOS0005',
                 'sku' => 'BHOSTB1000',
                 'nama_produk' => 'BHOS Turbo',
                 'jumlah_produksi' => '150 Kg',
-                'items' => [
-                    ['K001', 'Kalium', '200 Kg', '150 Kg'],
-                    ['MG001', 'Magnesium', '200 Kg', '150 Kg'],
-                ],
+                'items' => [['K001', 'Kalium', '200 Kg', '150 Kg'], ['MG001', 'Magnesium', '200 Kg', '150 Kg']],
             ],
         ];
     @endphp
@@ -157,6 +150,7 @@
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">SKU</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Jenis Barang</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Penanggung Jawab</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
                         </tr>
                     </thead>
@@ -170,6 +164,7 @@
                                 <td class="px-6 py-4 font-semibold">{{ $sku }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $r[2] }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $r[3] }}</td>
+                                <td class="px-6 py-4 font-semibold">{{ $r[4] }}</td>
 
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-start gap-6 font-semibold">
@@ -177,8 +172,7 @@
                                             class="text-[#2E7E3F] hover:underline">Sunting</a>
 
                                         {{-- ✅ LIHAT: buka modal --}}
-                                        <button type="button"
-                                            onclick='openLaporanModal(@json($details[$r[1]] ?? null))'
+                                        <button type="button" onclick='openLaporanModal(@json($details[$r[1]] ?? null))'
                                             class="text-[#2D2ACD] hover:underline">
                                             Lihat
                                         </button>
@@ -256,18 +250,24 @@
             {{-- body scroll --}}
             <div class="p-6 overflow-y-auto">
                 {{-- top fields --}}
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div class="md:col-span-2">
+                <div class="grid grid-cols-1 mb-6 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-1">
                         <label class="block text-xs font-bold text-gray-700 mb-1.5">Nama Penanggung Jawab</label>
                         <input id="lm_pj" readonly
                             class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900">
                     </div>
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-1">
+                        <label class="block text-xs font-bold text-gray-700 mb-1.5">Provinsi</label>
+                        <input id="lm_provinsi" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900">
+                    </div>
+                    <div class="md:col-span-1">
                         <label class="block text-xs font-bold text-gray-700 mb-1.5">Tanggal Masuk</label>
                         <input id="lm_tanggal" readonly
                             class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900">
                     </div>
-
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-1.5">ID Produksi</label>
                         <input id="lm_id_produksi" readonly
@@ -338,6 +338,7 @@
 
         const lmNo = document.getElementById('lm_no');
         const lmPj = document.getElementById('lm_pj');
+        const lmProvinsi = document.getElementById('lm_provinsi');
         const lmTanggal = document.getElementById('lm_tanggal');
         const lmIdProduksi = document.getElementById('lm_id_produksi');
         const lmSku = document.getElementById('lm_sku');
@@ -370,6 +371,7 @@
 
             lmNo.textContent = data.laporan_no ?? '-';
             lmPj.value = data.pj ?? '';
+            lmProvinsi.value = data.provinsi ?? '';
             lmTanggal.value = data.tanggal_masuk ?? '';
             lmIdProduksi.value = data.id_produksi ?? '';
             lmSku.value = data.sku ?? '';

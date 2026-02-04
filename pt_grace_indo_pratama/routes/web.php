@@ -45,6 +45,14 @@ Route::prefix('admin')->group(function () {
         return view('admin.profile');
     })->name('admin.profile');
 
+    Route::get('/executive-produk', function () {
+        return view('admin.executive-produk');
+    })->name('admin.executive-produk');
+
+    Route::get('/executive-pengadaan-barang', function () {
+        return view('admin.executive-pengadaan-barang');
+    })->name('admin.executive-pengadaan-barang');
+
     // Add
     Route::get('/add-gudang-pengadaan-barang', function () {
         return view('admin.add-gudang-pengadaan-barang');
@@ -66,6 +74,10 @@ Route::prefix('admin')->group(function () {
         return view('admin.add-pemasaran-permintaan-pengiriman');
     })->name('admin.add-pemasaran-permintaan-pengiriman');
 
+    Route::get('/add-laporan-penjualan', function () {
+        return view('admin.add-laporan-penjualan');
+    })->name('admin.add-laporan-penjualan');
+
     Route::get('/add-pilih-produk', function () {
         return view('admin.add-pilih-produk');
     })->name('admin.add-pilih-produk');
@@ -73,6 +85,10 @@ Route::prefix('admin')->group(function () {
     Route::get('/add-produk', function () {
         return view('admin.add-produk');
     })->name('admin.add-produk');
+
+    Route::get('/add-executive-produk-baru', function () {
+        return view('admin.add-executive-produk-baru');
+    })->name('admin.add-executive-produk-baru');
 
     // Edit
     Route::get('/edit-bahan-baku', function () {
@@ -90,4 +106,8 @@ Route::prefix('admin')->group(function () {
     Route::get('/edit-produk', function () {
         return view('admin.edit-produk');
     })->name('admin.edit-produk');
+
+    Route::get('/edit-executive-produk', function () {
+        return view('admin.edit-executive-produk');
+    })->name('admin.edit-executive-produk');
 });

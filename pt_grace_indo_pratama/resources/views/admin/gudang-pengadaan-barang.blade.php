@@ -12,7 +12,9 @@
                 'order_no' => 'PSN0001',
                 'date' => '30/12/2025',
                 'name' => 'Bambang Pratama Putra Hadi',
+                'provinsi' => 'Kalimantan Barat',
                 'status' => 'Menunggu',
+                'alasan_penolakan' => '',
                 'items' => [
                     ['CA001', 'Kalsium', '200 Kg', '150 Kg'],
                     ['K001', 'Kalium', '200 Kg', '150 Kg'],
@@ -24,14 +26,18 @@
                 'order_no' => 'PSN0002',
                 'date' => '30/11/2025',
                 'name' => 'Bambang Pratama Putra Hadi',
+                'provinsi' => 'Riau',
                 'status' => 'Ditolak',
+                'alasan_penolakan' => 'Barang masih tersedia.',
                 'items' => [['CA001', 'Kalsium', '200 Kg', '150 Kg'], ['K001', 'Kalium', '200 Kg', '150 Kg']],
             ],
             [
                 'order_no' => 'PSN0003',
                 'date' => '30/11/2025',
                 'name' => 'Bambang Pratama Putra Hadi',
+                'provinsi' => 'Sumatera Barat',
                 'status' => 'Disetujui',
+                'alasan_penolakan' => '',
                 'items' => [['CL001', 'Klorida', '200 Kg', '150 Kg'], ['MG001', 'Magnesium', '200 Kg', '150 Kg']],
             ],
         ];
@@ -99,6 +105,7 @@
                         <tr>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Pemesanan</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama Pemesan</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Status</th>
                         </tr>
@@ -109,6 +116,7 @@
                             <tr class="hover:bg-gray-300">
                                 <td class="px-6 py-4 text-left font-semibold">{{ $o['date'] }}</td>
                                 <td class="px-6 py-4 text-left font-semibold">{{ $o['name'] }}</td>
+                                <td class="px-6 py-4 text-left font-semibold">{{ $o['provinsi'] }}</td>
 
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-start gap-6 font-semibold">
@@ -216,10 +224,15 @@
                 </div>
 
                 {{-- top fields --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-5">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mb-5">
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-2">Nama Pemesan</label>
                         <input id="vm_name" value="" readonly
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Provinsi</label>
+                        <input id="vm_provinsi" value="" readonly
                             class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900" />
                     </div>
                     <div>
@@ -242,6 +255,17 @@
                     {{-- rows --}}
                     <div id="vm_items" class="space-y-3">
                         {{-- injected by JS --}}
+                    </div>
+                </div>
+
+                {{-- ✅ BLOK ALASAN PENOLAKAN (MUNCUL HANYA JIKA DITOLAK) --}}
+                <div id="vm_reject_wrap" class="hidden mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 mt-6">
+                    <div class="text-sm font-semibold text-red-800">
+                        Catatan
+                    </div>
+                    <div class="mt-2">
+                        <textarea id="vm_reject_note" rows="3" readonly
+                            class="w-full rounded-md border border-red-300 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900"></textarea>
                     </div>
                 </div>
 
@@ -282,8 +306,13 @@
         const vmStatusBadge = document.getElementById('vm_status_badge');
         const vmHint = document.getElementById('vm_hint');
         const vmName = document.getElementById('vm_name');
+        const vmProvinsi = document.getElementById('vm_provinsi');
         const vmDate = document.getElementById('vm_date');
         const vmItems = document.getElementById('vm_items');
+
+        // ✅ alasan penolakan
+        const vmRejectWrap = document.getElementById('vm_reject_wrap');
+        const vmRejectNote = document.getElementById('vm_reject_note');
 
         function badgeClass(status) {
             if (status === 'Disetujui') return 'bg-green-100 text-green-800 border-green-300';
@@ -340,6 +369,7 @@
         function openViewModal(order) {
             vmOrderNo.textContent = order.order_no ?? '-';
             vmName.value = order.name ?? '';
+            vmProvinsi.value = order.provinsi ?? '';
             vmDate.value = order.date ?? '';
 
             const status = order.status ?? 'Menunggu';
@@ -349,6 +379,15 @@
 
             vmHint.innerHTML = hintHTML(status);
             renderItems(order.items ?? []);
+
+            // ✅ tampilkan alasan penolakan hanya kalau Ditolak
+            if (status === 'Ditolak') {
+                vmRejectWrap.classList.remove('hidden');
+                vmRejectNote.value = order.alasan_penolakan ?? '';
+            } else {
+                vmRejectWrap.classList.add('hidden');
+                vmRejectNote.value = '';
+            }
 
             viewModal.classList.remove('hidden');
             viewModal.classList.add('flex');

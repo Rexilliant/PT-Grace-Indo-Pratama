@@ -11,9 +11,10 @@
         $detail = (object) [
             'pesanan_no' => 'PSN0001',
             'nama_pemesan' => 'Bambang Pratama Putra Hadi',
+            'provinsi' => 'Riau',
             'tanggal' => '30/11/2025',
             // dummy invoice image (nanti ganti ke storage/url kamu)
-            'invoice_img' => asset('images/dummy-invoice.jpg'),
+            'invoice_img' => asset('build/image/bhos-logo.png'),
             'status' => 'Selesai',
         ];
 
@@ -43,7 +44,7 @@
                         <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 0 0114 0z" />
                         </svg>
                     </div>
                     <input type="text"
@@ -79,6 +80,7 @@
                         <tr>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Masuk</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama Penerima</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th> {{-- ✅ tambah kolom --}}
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
                         </tr>
                     </thead>
@@ -88,6 +90,7 @@
                             <tr class="hover:bg-gray-300">
                                 <td class="px-6 py-4 font-semibold">30/11/2025</td>
                                 <td class="px-6 py-4 font-semibold">Bambang Pratama Putra Hadi</td>
+                                <td class="px-6 py-4 font-semibold">{{ $detail->provinsi }}</td> {{-- ✅ isi provinsi --}}
                                 <td class="px-6 py-3">
                                     <div class="flex items-center justify-start gap-6 font-semibold">
                                         <a href="{{ route('admin.edit-barang-masuk') }}"

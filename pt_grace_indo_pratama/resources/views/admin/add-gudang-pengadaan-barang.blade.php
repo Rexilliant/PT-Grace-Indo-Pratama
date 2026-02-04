@@ -21,18 +21,24 @@
 
         {{-- BARIS ATAS --}}
         <section class="bg-white p-5 shadow border border-gray-300 rounded-lg">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-2">Nama Pemesan</label>
                     <input type="text" name="customer_name" value="Bambang Pratama Putra Hadi" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500 " />
                 </div>
 
+                {{-- ✅ PROVINSI (ditambahkan setelah Nama Pemesan) --}}
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-2">Provinsi</label>
+                    <input type="text" name="provinsi" placeholder="Contoh: Sumatera Utara"
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
+                </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-2">Tanggal Pemesanan</label>
                     <input type="date" name="order_date" value="{{ old('order_date', now()->format('Y-m-d')) }}"
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
                 </div>
 
             </div>
