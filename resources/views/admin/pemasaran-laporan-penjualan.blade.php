@@ -43,13 +43,14 @@
                             'sku' => 'SKU-002',
                             'nama' => 'BHOS Turbo',
                             'jumlah' => '150 Kg',
-                            'harga' => 'Rp 500.000',
-                            'diskon' => 'Rp 50.000',
-                            'total' => 'Rp 67.500.000',
+                            'harga' => 'Rp500.000',
+                            'diskon' => 'Rp50.000',
+                            'total' => 'Rp67.500.000',
                         ],
                     ],
-                    'total_keseluruhan' => 'Rp. 135.000.000',
-                    'jumlah_terhutang' => 'Rp. 900.000', // tampil hanya jika Terhutang
+                    'total_keseluruhan' => 'Rp135.000.000',
+                    'down_payment' => 'Rp134.100.000',
+                    'jumlah_terhutang' => 'Rp900.000', // tampil hanya jika Terhutang
                     'catatan' => '',
                     // dummy invoice (ganti sesuai aset kamu)
                     'invoice_img' => asset('build/image/bhos-logo.png'),
@@ -78,12 +79,12 @@
                             'sku' => 'SKU-001',
                             'nama' => 'BHOS Ekstra',
                             'jumlah' => '150 Ltr',
-                            'harga' => 'Rp 500.000',
-                            'diskon' => 'Rp 0',
-                            'total' => 'Rp 75.000.000',
+                            'harga' => 'Rp500.000',
+                            'diskon' => 'Rp50.000',
+                            'total' => 'Rp75.000.000',
                         ],
                     ],
-                    'total_keseluruhan' => 'Rp. 75.000.000',
+                    'total_keseluruhan' => 'Rp75.000.000',
                     'jumlah_terhutang' => '',
                     'catatan' => '',
                     'invoice_img' => asset('build/image/bhos-logo.png'),
@@ -125,7 +126,7 @@
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 0 0014.9 3" />
+                            d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
                     </svg>
                     Export .xlsx
                 </a>
@@ -326,9 +327,24 @@
                             class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold">
                     </div>
 
+                    {{-- ✅ TERHUTANG: DP --}}
+                    <div id="dm_dp_wrap" class="hidden">
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Down Payment</label>
+                        <input id="dm_down_payment" value="" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold">
+                    </div>
+
+                    {{-- ✅ TERHUTANG: Status Terhutang --}}
                     <div id="dm_terhutang_wrap" class="hidden">
                         <label class="block text-xs font-bold text-gray-700 mb-2">Jumlah Terhutang</label>
                         <input id="dm_jumlah_terhutang" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold">
+                    </div>
+
+                    {{-- ✅ LUNAS: Status Lunas --}}
+                    <div id="dm_lunas_wrap" class="hidden">
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Status Lunas</label>
+                        <input id="dm_status_lunas" readonly
                             class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold">
                     </div>
                 </div>
@@ -419,8 +435,14 @@
         const dmItems = document.getElementById('dm_items');
         const dmTotalKeseluruhan = document.getElementById('dm_total_keseluruhan');
 
+        const dmDpWrap = document.getElementById('dm_dp_wrap');
+        const dmDownPayment = document.getElementById('dm_down_payment');
+
         const dmTerhutangWrap = document.getElementById('dm_terhutang_wrap');
         const dmJumlahTerhutang = document.getElementById('dm_jumlah_terhutang');
+
+        const dmLunasWrap = document.getElementById('dm_lunas_wrap');
+        const dmStatusLunas = document.getElementById('dm_status_lunas');
 
         const dmCatatan = document.getElementById('dm_catatan');
         const dmStatusBadge = document.getElementById('dm_status_badge');
@@ -518,13 +540,26 @@
             dmStatusBadge.className =
                 `inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${statusBadgeClass(st)}`;
 
-            // jumlah terhutang only if Terhutang
+            // reset blok tambahan
+            dmDpWrap.classList.add('hidden');
+            dmTerhutangWrap.classList.add('hidden');
+            dmLunasWrap.classList.add('hidden');
+
+            if (dmDownPayment) dmDownPayment.value = '';
+            if (dmJumlahTerhutang) dmJumlahTerhutang.value = '';
+            if (dmStatusLunas) dmStatusLunas.value = '';
+
+            // ✅ jika Terhutang: tampilkan DP + Status Terhutang
             if (st === 'Terhutang') {
+                dmDpWrap.classList.remove('hidden');
                 dmTerhutangWrap.classList.remove('hidden');
+
+                dmDownPayment.value = detail.down_payment ?? '';
                 dmJumlahTerhutang.value = detail.jumlah_terhutang ?? '';
             } else {
-                dmTerhutangWrap.classList.add('hidden');
-                dmJumlahTerhutang.value = '';
+                // ✅ jika Lunas: tampilkan Total + Status Lunas
+                dmLunasWrap.classList.remove('hidden');
+                dmStatusLunas.value = 'Lunas';
             }
 
             // invoice image set

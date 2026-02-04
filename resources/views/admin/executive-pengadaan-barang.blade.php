@@ -78,9 +78,9 @@
                                 'text-gray-600',
                             ],
                             ['30/11/2025', 'Bambang Pratama Putra Hadi', 'Riau', 'Ditolak', 'text-[#EC0000]'],
-                            ['30/11/2025', 'Bambang Pratama Putra Hadi', 'Bengkulu', 'Dikirim', 'text-[#2E7E3F]'],
-                            ['30/11/2025', 'Bambang Pratama Putra Hadi', 'Medan', 'Dikirim', 'text-[#2E7E3F]'],
-                            ['30/11/2025', 'Bambang Pratama Putra Hadi', 'Sumatera Barat', 'Dikirim', 'text-[#2E7E3F]'],
+                            ['30/11/2025', 'Bambang Pratama Putra Hadi', 'Bengkulu', 'Diterima', 'text-[#2E7E3F]'],
+                            ['30/11/2025', 'Bambang Pratama Putra Hadi', 'Medan', 'Diterima', 'text-[#2E7E3F]'],
+                            ['30/11/2025', 'Bambang Pratama Putra Hadi', 'Sumatera Barat', 'Diterima', 'text-[#2E7E3F]'],
                         ];
                     @endphp
 

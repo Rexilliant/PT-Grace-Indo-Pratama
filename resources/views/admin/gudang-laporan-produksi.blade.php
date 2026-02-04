@@ -296,7 +296,7 @@
                         <div>ID Barang</div>
                         <div>Nama Barang</div>
                         <div>Stok Tersedia</div>
-                        <div>Input Barang Masuk</div>
+                        <div>Jumlah Stok Digunakan</div>
                     </div>
 
                     <div id="lm_items" class="space-y-2">

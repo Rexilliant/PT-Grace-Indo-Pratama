@@ -20,11 +20,11 @@
     {{-- breadcrumb --}}
     <section class="mb-5">
         <div class="mb-4 text-xl font-semibold text-gray-700">
-            <span class="text-gray-700">Gudang</span>
+            <span class="text-gray-700">Executive</span>
             <span class="mx-1 text-gray-400">›</span>
             <span class="text-gray-700">Pengadaan Barang</span>
             <span class="mx-1 text-gray-400">›</span>
-            <a href="#" class="text-blue-600 hover:underline">Tambah Pemesanan</a>
+            <a href="#" class="text-blue-600 hover:underline">Lihat Pemesanan</a>
         </div>
     </section>
 
@@ -168,7 +168,7 @@
                     Tetap di Halaman
                 </button>
 
-                <a href="{{ route('admin.gudang-pengadaan-barang') }}"
+                <a href="{{ route('admin.executive-pengadaan-barang') }}"
                     class="px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700">
                     Ya, Batalkan
                 </a>

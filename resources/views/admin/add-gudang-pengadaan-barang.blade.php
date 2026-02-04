@@ -25,7 +25,7 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-2">Nama Pemesan</label>
                     <input type="text" name="customer_name" value="Bambang Pratama Putra Hadi" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500 " />
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500 cursor-not-allowed" />
                 </div>
 
                 {{-- ✅ PROVINSI (ditambahkan setelah Nama Pemesan) --}}
@@ -63,15 +63,15 @@
                         <label class="block text-xs font-bold text-gray-700 mb-2">ID Barang</label>
                         <input name="items[{{ $i }}][id_barang]" value="{{ $it[0] }}" readonly
                             class="w-full rounded-md border border-gray-400 bg-gray-100
-                           px-3 py-2.5 text-sm font-semibold text-gray-900" />
+                           px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                     </div>
 
                     {{-- Nama Barang --}}
                     <div>
                         <label class="block text-xs font-bold text-gray-700 mb-2">Nama Barang</label>
-                        <input name="items[{{ $i }}][nama_barang]" value="{{ $it[1] }}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100
-                           px-3 py-2.5 text-sm font-semibold text-gray-900" />
+                        <input name="items[{{ $i }}][nama_barang]" value="{{ $it[1] }}" readonly 
+                            class="cursor-not-allowed w-full rounded-md border border-gray-400 bg-gray-100
+                           px-3 py-2.5 text-sm font-semibold text-gray-900"  />
                     </div>
 
                     {{-- Stok Tersedia --}}
@@ -79,7 +79,7 @@
                         <label class="block text-xs font-bold text-gray-700 mb-2">Stok Tersedia</label>
                         <input name="items[{{ $i }}][stok]" value="{{ $it[2] }}" readonly
                             class="w-full rounded-md border border-gray-400 bg-gray-100
-                           px-3 py-2.5 text-sm font-semibold text-gray-900" />
+                           px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                     </div>
 
                     {{-- Jumlah Pesanan (MANUAL INPUT) --}}

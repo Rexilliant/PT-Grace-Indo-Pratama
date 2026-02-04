@@ -41,24 +41,28 @@
 
         {{-- ROW 1 --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Nama Penerima</label>
-                    <input type="text" name="customer_name"
-                        value="{{ old('customer_name', $barangMasuk->customer_name) }}" readonly
+                    <input type="text" name="customer_name" value="Bambang Pratama Putra Hadi" readonly
                         class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500 cursor-not-allowed" />
                 </div>
+
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Provinsi</label>
-                    <input type="text" name="provinsi"
-                        value="" placeholder="Contoh: Sumatera Utara"
+                    <input type="text" name="provinsi" value="Sumatera Utara"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">Tanggal Produksi</label>
-                    <input type="date" name="tanggal_produksi"
-                        value="{{ old('tanggal_produksi', $barangMasuk->tanggal_produksi) }}"
+                    <label class="block text-sm font-bold text-gray-800 mb-2">Total Pesanan</label>
+                    <input type="text" name="total_pesanan" value="Rp6.000.000"
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-800 mb-2">Tanggal Barang Masuk</label>
+                    <input type="date" name="tanggal_produksi" value="2025-11-30"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500">
                 </div>
             </div>

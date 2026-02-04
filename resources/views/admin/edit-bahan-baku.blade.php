@@ -2,7 +2,7 @@
 
 @section('open-gudang', 'open')
 @section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
-@section('menu-bahan-baku', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-gudang-bahan-baku', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
 
@@ -57,9 +57,8 @@
                 {{-- Stok Tersedia --}}
                 <div>
                     <label class="block text-sm font-bold mb-2">Stok Tersedia</label>
-                    <input name="stok_tersedia" type="text" placeholder="Contoh: 200 Kg"
-                        value="{{ old('stok_tersedia', $isEdit ? $dummy->stok_tersedia : '') }}"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
+                    <input name="stok_tersedia" type="text" placeholder="" value="200 Kg"
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 cursor-not-allowed px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
                 </div>
 
                 {{-- Status --}}

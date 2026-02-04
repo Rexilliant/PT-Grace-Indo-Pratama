@@ -118,7 +118,7 @@
                     <div>ID Produk</div>
                     <div>Stock Keeping Unit</div>
                     <div>Nama Produk</div>
-                    <div>Jumlah Permintaan</div>
+                    <div>Jumlah Pengiriman</div>
                 </div>
 
                 <div class="space-y-3">
@@ -276,7 +276,7 @@
                                 </div>
 
                                 <div>
-                                    <div class="text-[11px] font-bold text-gray-600 mb-1">Jumlah Permintaan</div>
+                                    <div class="text-[11px] font-bold text-gray-600 mb-1">Jumlah Pengiriman</div>
                                     <input value="{{ $row[3] }}"
                                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0">
                                 </div>

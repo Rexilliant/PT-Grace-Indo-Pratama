@@ -111,7 +111,7 @@
 
                     <div>
                         <label class="block text-sm font-bold mb-2">Jumlah Barang Masuk</label>
-                        <input name="items[{{ $i }}][stok_digunakan]" value="{{ $it[3] }}"
+                        <input name="items[{{ $i }}][stok_digunakan]" value="" placeholder="Contoh: 150 Kg"
                             class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
                     </div>
 

@@ -222,12 +222,21 @@
                 </div>
 
                 {{-- MUNCUL HANYA JIKA TERHUTANG --}}
+                {{-- MUNCUL HANYA JIKA TERHUTANG --}}
                 <div id="blokTerhutang" class="{{ old('status', $status) === 'Terhutang' ? '' : 'hidden' }}">
+                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Down Payment</label>
+                    <input name="down_payment" id="downPayment" value="{{ old('down_payment') }}"
+                        placeholder="Contoh: Rp400.000"
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500">
+                </div>
+
+                <div id="blokTerhutang2" class="{{ old('status', $status) === 'Terhutang' ? '' : 'hidden' }}">
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Jumlah Terhutang</label>
                     <input name="jumlah_terhutang" id="jumlahTerhutang" value="{{ $jumlahTerhutang }}"
                         placeholder="Masukkan jumlah terhutang"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500">
                 </div>
+
 
                 <div class="md:col-span-2">
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Catatan</label>
@@ -353,15 +362,22 @@
         // =========================
         const statusSelect = document.getElementById('statusSelect');
         const blokTerhutang = document.getElementById('blokTerhutang');
+        const blokTerhutang2 = document.getElementById('blokTerhutang2');
         const jumlahTerhutang = document.getElementById('jumlahTerhutang');
+        const downPayment = document.getElementById('downPayment');
 
         function syncTerhutang() {
             const val = statusSelect.value;
+
             if (val === 'Terhutang') {
                 blokTerhutang.classList.remove('hidden');
+                blokTerhutang2.classList.remove('hidden');
             } else {
                 blokTerhutang.classList.add('hidden');
+                blokTerhutang2.classList.add('hidden');
+
                 if (jumlahTerhutang) jumlahTerhutang.value = '';
+                if (downPayment) downPayment.value = '';
             }
         }
 

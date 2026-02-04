@@ -21,7 +21,7 @@
         @csrf
 
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-5">
 
                 {{-- Kode Barang --}}
                 <div>
@@ -42,13 +42,13 @@
                 </div>
 
                 {{-- Stok Tersedia --}}
-                <div>
+                {{-- <div>
                     <label class="block text-sm font-bold mb-2">Stok Tersedia</label>
                     <input name="stok_tersedia" type="text" placeholder="Contoh: 200 Kg"
                         class="w-full rounded-md border border-gray-400 bg-white
                                px-3 py-2.5 text-sm font-semibold text-gray-900
                                focus:border-blue-600 focus:ring-0">
-                </div>
+                </div> --}}
 
                 {{-- Status --}}
                 <div>
