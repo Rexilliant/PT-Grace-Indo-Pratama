@@ -65,7 +65,7 @@
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
+                            d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 0 0014.9 3" />
                     </svg>
                     Export .xlsx
                 </a>
@@ -78,29 +78,29 @@
             </div>
         </div>
 
-        {{-- table --}}
+        {{-- table (desktop-style, works for mobile/ipad via horizontal scroll) --}}
         <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-gray-800">
                     <thead class="bg-[#5aba6f]/70 text-gray-900">
                         <tr class="[&>th]:border-b [&>th]:border-gray-500">
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">ID Produk</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Stock Keeping Unit</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama Produk</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Stok Tersedia</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left whitespace-nowrap">ID Produk</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left whitespace-nowrap">Stock Keeping Unit</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left whitespace-nowrap">Nama Produk</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left whitespace-nowrap">Stok Tersedia</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left whitespace-nowrap">Aksi</th>
                         </tr>
                     </thead>
 
                     <tbody class="bg-gray-200 divide-y divide-gray-500">
                         @foreach ($products as $p)
                             <tr class="hover:bg-gray-300">
-                                <td class="px-6 py-4 text-left font-semibold">{{ $p['id_produk'] }}</td>
-                                <td class="px-6 py-4 text-left font-semibold">{{ $p['sku'] }}</td>
-                                <td class="px-6 py-4 text-left font-semibold leading-tight">{{ $p['nama_produk'] }}</td>
-                                <td class="px-6 py-4 text-left font-semibold">{{ $p['stok_tersedia'] }}</td>
+                                <td class="px-6 py-4 text-left font-semibold whitespace-nowrap">{{ $p['id_produk'] }}</td>
+                                <td class="px-6 py-4 text-left font-semibold whitespace-nowrap">{{ $p['sku'] }}</td>
+                                <td class="px-6 py-4 text-left font-semibold leading-tight min-w-[220px]">{{ $p['nama_produk'] }}</td>
+                                <td class="px-6 py-4 text-left font-semibold whitespace-nowrap">{{ $p['stok_tersedia'] }}</td>
 
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center justify-start gap-6 font-semibold">
                                         <a href="{{ route('admin.edit-executive-produk') }}"
                                             class="text-[#2D2ACD] hover:underline">Sunting</a>
@@ -152,47 +152,6 @@
                 </div>
             </div>
 
-        </div>
-
-        {{-- ✅ MOBILE + iPAD CARD LIST (biar ga cuma scroll table) --}}
-        {{-- table tetap ada untuk desktop/tablet yang nyaman scroll, tapi ini bikin pengalaman mobile lebih enak --}}
-        <div class="mt-4 space-y-3 lg:hidden">
-            @foreach ($products as $p)
-                <section class="rounded-xl border border-gray-400 bg-gray-200 p-4 shadow-sm">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <div class="text-[11px] font-extrabold text-gray-700">ID Produk</div>
-                            <div class="text-sm font-semibold text-gray-900 break-all">{{ $p['id_produk'] }}</div>
-                        </div>
-
-                        <div>
-                            <div class="text-[11px] font-extrabold text-gray-700">Stock Keeping Unit</div>
-                            <div class="text-sm font-semibold text-gray-900 break-all">{{ $p['sku'] }}</div>
-                        </div>
-
-                        <div class="sm:col-span-2">
-                            <div class="text-[11px] font-extrabold text-gray-700">Nama Produk</div>
-                            <div class="text-sm font-semibold text-gray-900">{{ $p['nama_produk'] }}</div>
-                        </div>
-
-                        <div>
-                            <div class="text-[11px] font-extrabold text-gray-700">Stok Tersedia</div>
-                            <div class="text-sm font-semibold text-gray-900 break-all">{{ $p['stok_tersedia'] }}</div>
-                        </div>
-                    </div>
-
-                    <div class="mt-3 flex items-center justify-end gap-3">
-                        <a href="#"
-                            class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-4 py-2 text-xs font-bold text-white hover:bg-blue-800">
-                            Sunting
-                        </a>
-                        <a href="#"
-                            class="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700">
-                            Hapus
-                        </a>
-                    </div>
-                </section>
-            @endforeach
         </div>
     </section>
 @endsection

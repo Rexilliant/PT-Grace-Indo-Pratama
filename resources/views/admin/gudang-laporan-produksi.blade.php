@@ -237,69 +237,65 @@
                    max-h-[calc(100dvh-16px)] sm:max-h-[calc(100dvh-32px)] flex flex-col border border-gray-300">
 
             {{-- header --}}
-            <div class="px-6 py-4 border-b border-gray-300 bg-[#f3f3f3] flex items-center justify-between">
-                <div class="text-sm font-bold text-gray-800">
+            <div
+                class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-300 bg-[#f3f3f3] flex items-center justify-between
+                       sticky top-0 z-10">
+                <div class="text-sm sm:text-base font-bold text-gray-800">
                     Laporan Produksi Nomor: <span id="lm_no" class="font-extrabold">-</span>
                 </div>
                 <button type="button" onclick="closeLaporanModal()"
-                    class="inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-700 hover:bg-gray-200">
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-full text-gray-700 hover:bg-gray-200">
                     <span class="text-2xl leading-none">×</span>
                 </button>
             </div>
 
             {{-- body scroll --}}
-            <div class="p-6 overflow-y-auto">
+            <div class="px-4 sm:px-6 py-4 overflow-y-auto overscroll-contain">
                 {{-- top fields --}}
-                <div class="grid grid-cols-1 mb-6 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 mb-5 md:grid-cols-3 gap-4 sm:gap-5">
                     <div class="md:col-span-1">
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">Nama Penanggung Jawab</label>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Nama Penanggung Jawab</label>
                         <input id="lm_pj" readonly
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900">
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
                     </div>
                     <div class="md:col-span-1">
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">Provinsi</label>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Provinsi</label>
                         <input id="lm_provinsi" readonly
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900">
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
                     </div>
                     <div class="md:col-span-1">
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">Tanggal Masuk</label>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Tanggal Masuk</label>
                         <input id="lm_tanggal" readonly
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900">
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">ID Produksi</label>
-                        <input id="lm_id_produksi" readonly
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900">
+
+                {{-- PRODUK UTAMA (RESPONSIVE: mobile card, iPad+ table grid) --}}
+                <div class="rounded-lg border border-gray-300 bg-gray-50 p-3 sm:p-4">
+                    {{-- header row (md+) --}}
+                    <div class="hidden md:grid grid-cols-4 gap-4 text-xs font-bold text-gray-700 mb-3">
+                        <div>ID Produksi</div>
+                        <div>Stock Keeping Unit</div>
+                        <div>Nama Produk</div>
+                        <div>Jumlah Produksi</div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">Stock Keeping Unit</label>
-                        <input id="lm_sku" readonly
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">Nama Produk</label>
-                        <input id="lm_produk" readonly
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1.5">Jumlah Produksi</label>
-                        <input id="lm_jumlah" readonly
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900">
+
+                    {{-- rows --}}
+                    <div id="lm_produk_row" class="space-y-3">
+                        {{-- injected by JS --}}
                     </div>
                 </div>
 
                 {{-- item list --}}
-                <div class="mt-5">
-                    <div class="grid grid-cols-4 gap-4 text-xs font-bold text-gray-700 mb-2">
+                <div class="mt-5 rounded-lg border border-gray-300 bg-gray-50 p-3 sm:p-4">
+                    <div class="hidden md:grid grid-cols-4 gap-4 text-xs font-bold text-gray-700 mb-3">
                         <div>ID Barang</div>
                         <div>Nama Barang</div>
                         <div>Stok Tersedia</div>
                         <div>Jumlah Stok Digunakan</div>
                     </div>
 
-                    <div id="lm_items" class="space-y-2">
+                    <div id="lm_items" class="space-y-3">
                         {{-- injected --}}
                     </div>
                 </div>
@@ -340,29 +336,117 @@
         const lmPj = document.getElementById('lm_pj');
         const lmProvinsi = document.getElementById('lm_provinsi');
         const lmTanggal = document.getElementById('lm_tanggal');
-        const lmIdProduksi = document.getElementById('lm_id_produksi');
-        const lmSku = document.getElementById('lm_sku');
-        const lmProduk = document.getElementById('lm_produk');
-        const lmJumlah = document.getElementById('lm_jumlah');
+
+        const lmProdukRow = document.getElementById('lm_produk_row');
         const lmItems = document.getElementById('lm_items');
+
+        function esc(str) {
+            return String(str ?? '').replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function renderProdukUtamaRow(data) {
+            if (!lmProdukRow) return;
+
+            lmProdukRow.innerHTML = `
+                {{-- MOBILE: card --}}
+                <div class="md:hidden rounded-xl border border-gray-300 bg-white p-4 space-y-3">
+                    <div>
+                        <div class="text-[11px] font-bold text-gray-600 mb-1">ID Produksi</div>
+                        <input value="${esc(data?.id_produksi)}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                    </div>
+
+                    <div>
+                        <div class="text-[11px] font-bold text-gray-600 mb-1">Stock Keeping Unit</div>
+                        <input value="${esc(data?.sku)}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                    </div>
+
+                    <div>
+                        <div class="text-[11px] font-bold text-gray-600 mb-1">Nama Produk</div>
+                        <input value="${esc(data?.nama_produk)}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                    </div>
+
+                    <div>
+                        <div class="text-[11px] font-bold text-gray-600 mb-1">Jumlah Produksi</div>
+                        <input value="${esc(data?.jumlah_produksi)}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                    </div>
+                </div>
+
+                {{-- iPad+ : grid row --}}
+                <div class="hidden md:grid grid-cols-4 gap-3">
+                    <input value="${esc(data?.id_produksi)}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                    <input value="${esc(data?.sku)}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                    <input value="${esc(data?.nama_produk)}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                    <input value="${esc(data?.jumlah_produksi)}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                </div>
+            `;
+        }
 
         function renderLaporanItems(items) {
             lmItems.innerHTML = '';
-            (items || []).forEach((v) => {
-                const row = document.createElement('div');
-                row.className = 'grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4';
 
-                row.innerHTML = `
-                    <input value="${v[0] ?? ''}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900" />
-                    <input value="${v[1] ?? ''}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900" />
-                    <input value="${v[2] ?? ''}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900" />
-                    <input value="${v[3] ?? ''}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold text-gray-900" />
+            (items || []).forEach((v) => {
+                const idBarang = esc(v[0]);
+                const namaBarang = esc(v[1]);
+                const stok = esc(v[2]);
+                const digunakan = esc(v[3]);
+
+                const wrap = document.createElement('div');
+                wrap.className = 'space-y-0';
+
+                wrap.innerHTML = `
+                    {{-- MOBILE: card --}}
+                    <div class="md:hidden rounded-xl border border-gray-300 bg-white p-4 space-y-3">
+                        <div>
+                            <div class="text-[11px] font-bold text-gray-600 mb-1">ID Barang</div>
+                            <input value="${idBarang}" readonly
+                                class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                        </div>
+
+                        <div>
+                            <div class="text-[11px] font-bold text-gray-600 mb-1">Nama Barang</div>
+                            <input value="${namaBarang}" readonly
+                                class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                        </div>
+
+                        <div>
+                            <div class="text-[11px] font-bold text-gray-600 mb-1">Stok Tersedia</div>
+                            <input value="${stok}" readonly
+                                class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                        </div>
+
+                        <div>
+                            <div class="text-[11px] font-bold text-gray-600 mb-1">Jumlah Stok Digunakan</div>
+                            <input value="${digunakan}" readonly
+                                class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                        </div>
+                    </div>
+
+                    {{-- iPad+ : grid row --}}
+                    <div class="hidden md:grid grid-cols-4 gap-3">
+                        <input value="${idBarang}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                        <input value="${namaBarang}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                        <input value="${stok}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                        <input value="${digunakan}" readonly
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                    </div>
                 `;
-                lmItems.appendChild(row);
+
+                lmItems.appendChild(wrap);
             });
         }
 
@@ -373,11 +457,8 @@
             lmPj.value = data.pj ?? '';
             lmProvinsi.value = data.provinsi ?? '';
             lmTanggal.value = data.tanggal_masuk ?? '';
-            lmIdProduksi.value = data.id_produksi ?? '';
-            lmSku.value = data.sku ?? '';
-            lmProduk.value = data.nama_produk ?? '';
-            lmJumlah.value = data.jumlah_produksi ?? '';
 
+            renderProdukUtamaRow(data);
             renderLaporanItems(data.items ?? []);
 
             laporanModal.classList.remove('hidden');
