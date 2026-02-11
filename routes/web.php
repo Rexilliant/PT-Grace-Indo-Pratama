@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -16,7 +19,6 @@ use Illuminate\Support\Facades\Route;
 //     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 //     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 // });
-
 
 Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
@@ -124,5 +126,20 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/edit-executive-produk', function () {
         return view('admin.edit-executive-produk');
     })->name('admin.edit-executive-produk');
+
+    // Employee
+    Route::controller(EmployeeController::class)->prefix('employees')->group(function () {
+        Route::get('/create', 'create')->name('admin.create-emplyee');
+    });
+    Route::controller(RoleController::class)->prefix('roles')->group(function () {
+        Route::get('/create', 'create')->name('admin.create-role');
+        Route::post('/create', 'store')->name('admin.store-role');
+        Route::get('/edit/{id}', 'edit')->name('edit.role');
+        Route::put('/edit/{id}', 'update')->name('update.role');
+    });
+    Route::controller(PermissionController::class)->prefix('permissions')->group(function () {
+        Route::get('/create', 'create')->name('create-permission');
+        Route::post('/store', 'store')->name('store-permission');
+    });
 });
 require __DIR__.'/auth.php';

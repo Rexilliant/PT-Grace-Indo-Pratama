@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->integer('nip');
             $table->string('name');
-        $table->date('birthday');   
+            $table->date('birthday');
             $table->string('email')->unique();
             $table->string('phone')->unique();
             $table->string('address');
@@ -23,9 +23,8 @@ return new class extends Migration
             $table->string('province');
             $table->string('postal_code');
             $table->string('country');
-            $table->string('photo');
             $table->timestamps();
-            $table->softDeletes();  
+            $table->softDeletes();
         });
     }
 
