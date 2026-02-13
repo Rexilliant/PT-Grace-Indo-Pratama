@@ -13,18 +13,10 @@ return new class extends Migration
     {
         Schema::create('log_errors', function (Blueprint $table) {
             $table->id();
-
-            $table->string('level', 20);
             $table->text('message');
-            $table->string('exception')->nullable();
-            $table->string('file')->nullable();
-            $table->integer('line')->nullable();
-            $table->text('url')->nullable();
-            $table->string('method', 10)->nullable();
-            $table->string('ip_address', 45)->nullable();
-            $table->unsignedBigInteger('user_id')->nullable();
-            $table->longText('trace')->nullable();
-            $table->longText('request_data')->nullable();
+            $table->text('file');
+            $table->string('line');
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
         });
     }

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('product_stock_movements', function (Blueprint $table) {
             $table->id();
             $table->string('province');
-            $table->foreignId('product_stock_   id')->constrained('product_stocks')->cascadeOnDelete();
+            $table->foreignId('product_stock_id')->constrained('product_stocks')->cascadeOnDelete();
             $table->string('type');
             $table->integer('quantity');
             $table->string('ref_type');

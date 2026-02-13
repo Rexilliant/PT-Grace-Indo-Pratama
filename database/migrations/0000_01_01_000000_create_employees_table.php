@@ -22,7 +22,6 @@ return new class extends Migration {
             $table->string('province');
             $table->string('postal_code');
             $table->string('country');
-            $table->string('photo');
             $table->timestamps();
             $table->softDeletes();
         });

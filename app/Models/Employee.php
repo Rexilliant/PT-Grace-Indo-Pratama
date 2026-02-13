@@ -21,7 +21,6 @@ class Employee extends Model
         'province',
         'postal_code',
         'country',
-        'photo',
     ];
 
     // relasi ke user
