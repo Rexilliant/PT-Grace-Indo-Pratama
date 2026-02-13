@@ -1,14 +1,24 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\RegionController;
 
-Route::get('/', function () {
-    return view('admin.pengadaan-barang');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
-Route::prefix('admin')->group(function () {
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Route::middleware('auth')->group(function () {
+//     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+//     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+//     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+// });
+
+
+Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
@@ -89,7 +99,7 @@ Route::prefix('admin')->group(function () {
     Route::get('/add-executive-produk-baru', function () {
         return view('admin.add-executive-produk-baru');
     })->name('admin.add-executive-produk-baru');
-    
+
     Route::get('/add-executive-pengadaan-barang', function () {
         return view('admin.add-executive-pengadaan-barang');
     })->name('admin.add-executive-pengadaan-barang');
@@ -115,3 +125,4 @@ Route::prefix('admin')->group(function () {
         return view('admin.edit-executive-produk');
     })->name('admin.edit-executive-produk');
 });
+require __DIR__.'/auth.php';
