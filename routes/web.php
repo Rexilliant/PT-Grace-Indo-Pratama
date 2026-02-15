@@ -4,6 +4,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -19,6 +20,9 @@ use Illuminate\Support\Facades\Route;
 //     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 //     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 // });
+Route::get('/phpinfo', function () {
+    phpinfo();
+});
 
 Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
@@ -129,17 +133,42 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     // Employee
     Route::controller(EmployeeController::class)->prefix('employees')->group(function () {
-        Route::get('/create', 'create')->name('admin.create-emplyee');
+        Route::get('/', 'index')->name('employees');
+        Route::get('/create', 'create')->name('admin.create-employee');
+        Route::post('/create', 'store')->name('admin.store-employee');
+        Route::get('/get-provinces/{countryCode}', 'getProvinces');
+        Route::get('/get-cities/{countryCode}', 'getCities');
+        Route::get('/edit/{id}', 'edit')->name('edit.employee');
+        Route::put('/edit/{id}', 'update')->name('update.employee');
+        Route::delete('/delete/{id}', 'destroy')->name('delete.employee');
+        Route::put('/restore/{id}', 'restore')->name('restore.employee');
+
     });
     Route::controller(RoleController::class)->prefix('roles')->group(function () {
+        Route::get('/', 'index')->name('roles');
         Route::get('/create', 'create')->name('admin.create-role');
         Route::post('/create', 'store')->name('admin.store-role');
         Route::get('/edit/{id}', 'edit')->name('edit.role');
         Route::put('/edit/{id}', 'update')->name('update.role');
     });
     Route::controller(PermissionController::class)->prefix('permissions')->group(function () {
+        Route::get('/', 'index')->name('permissions');
         Route::get('/create', 'create')->name('create-permission');
         Route::post('/store', 'store')->name('store-permission');
+        Route::get('/edit/{id}', 'edit')->name('edit-permission');
+        Route::put('/edit/{id}', 'update')->name('update-permission');
+        Route::delete('/delete/{id}', 'destroy')->name('delete-permission');
     });
+    Route::controller(UserController::class)->prefix('users')->group(function () {
+        Route::get('/', 'index')->name('users');
+        Route::get('/create', 'create')->name('create-user');
+        Route::post('/create', 'store')->name('store-user');
+        Route::get('/edit/{id}', 'edit')->name('edit-user');
+        Route::put('/edit/{id}', 'update')->name('update-user');
+        Route::delete('/delete/{id}', 'destroy')->name('delete-user');
+        Route::put('/restore/{id}', 'restore')->name('restore-user');
+    });
+
 });
+
 require __DIR__.'/auth.php';

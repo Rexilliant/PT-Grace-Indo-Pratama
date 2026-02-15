@@ -52,6 +52,32 @@ npm run serve
 
 ---
 
+# 🔁 Workflow Development (Setelah Selesai Coding)
+
+Setelah melakukan perubahan pada project:
+
+## 1️⃣ Cek perubahan
+```bash
+git status
+```
+
+## 2️⃣ Tambahkan file yang berubah
+```bash
+git add .
+```
+
+## 3️⃣ Commit perubahan
+```bash
+git commit -m "Deskripsi perubahan yang jelas"
+```
+
+Contoh:
+```bash
+git commit -m "Fix validation login form"
+```
+
+---
+
 # 🔁 Workflow Sebelum Push
 
 Sebelum melakukan `git push`, **WAJIB** pastikan branch kamu sudah update dengan `main`.
@@ -62,6 +88,8 @@ Sebelum melakukan `git push`, **WAJIB** pastikan branch kamu sudah update dengan
 ```bash
 git pull origin main
 ```
+
+Jika ada conflict, selesaikan terlebih dahulu.
 
 ### 2️⃣ Setelah tidak ada conflict, lakukan push
 ```bash
@@ -75,7 +103,7 @@ git push origin feature-login
 
 ---
 
-# 📌 Ringkasan Workflow Development
+# 📌 Ringkasan Workflow Lengkap
 
 ```bash
 git pull origin main
@@ -85,9 +113,11 @@ php artisan migrate:fresh
 npm run serve
 ```
 
-Sebelum push:
+Setelah selesai coding:
 
 ```bash
+git add .
+git commit -m "Deskripsi perubahan"
 git pull origin main
 git push origin nama-branch-kamu
 ```
@@ -99,4 +129,5 @@ git push origin nama-branch-kamu
 - Selalu pull sebelum mulai kerja
 - Selalu pull sebelum push
 - Gunakan branch masing-masing (jangan langsung ke `main`)
+- Tulis commit message yang jelas
 - Resolve conflict sebelum melakukan push
