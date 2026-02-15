@@ -6,19 +6,6 @@
 
 @section('content')
 
-    @php
-        // toggle mode (true = edit, false = tambah)
-        $isEdit = true;
-
-        // dummy data untuk edit
-        $dummy = (object) [
-            'kode_barang' => 'CA0001',
-            'bahan_baku' => 'Kalsium',
-            'stok_tersedia' => '200 Kg',
-            'status' => 'active',
-        ];
-    @endphp
-
     {{-- breadcrumb --}}
     <section class="mb-5">
         <div class="text-xl font-semibold text-gray-700">
@@ -27,13 +14,15 @@
             <a href="#" class="text-gray-700 hover:underline">Bahan Baku</a>
             <span class="mx-1 text-gray-400">›</span>
             <span class="text-blue-600">
-                {{ $isEdit ? 'Edit' : 'Tambah' }} Bahan Baku
+                Edit Bahan Baku
             </span>
         </div>
     </section>
 
-    <form action="#" method="POST">
+    {{-- FORM EDIT --}}
+    <form action="{{ route('admin.update-bahan-baku', $material->id) }}" method="POST">
         @csrf
+        @method('PUT')
 
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -42,7 +31,7 @@
                 <div>
                     <label class="block text-sm font-bold mb-2">Kode Barang</label>
                     <input name="kode_barang" type="text" placeholder="Contoh: CA0001"
-                        value="{{ old('kode_barang', $isEdit ? $dummy->kode_barang : '') }}"
+                        value="{{ old('kode_barang', $material->code) }}"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
                 </div>
 
@@ -50,15 +39,18 @@
                 <div>
                     <label class="block text-sm font-bold mb-2">Bahan Baku</label>
                     <input name="bahan_baku" type="text" placeholder="Contoh: Kalsium"
-                        value="{{ old('bahan_baku', $isEdit ? $dummy->bahan_baku : '') }}"
+                        value="{{ old('bahan_baku', $material->name) }}"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
                 </div>
 
                 {{-- Stok Tersedia --}}
                 <div>
-                    <label class="block text-sm font-bold mb-2">Stok Tersedia</label>
-                    <input name="stok_tersedia" type="text" placeholder="" value="200 Kg"
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 cursor-not-allowed px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
+                    <label class="block text-sm font-bold mb-2">Unit</label>
+                    <input name="unit" type="text" placeholder="Contoh: Kg / Liter / Box"
+                        value="{{ old('bahan_baku', $material->unit) }}"
+                        class="w-full rounded-md border border-gray-400 bg-white
+                               px-3 py-2.5 text-sm font-semibold text-gray-900
+                               focus:border-blue-600 focus:ring-0">
                 </div>
 
                 {{-- Status --}}
@@ -66,14 +58,15 @@
                     <label class="block text-sm font-bold mb-2">Status</label>
                     <select name="status"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
-                        <option value="active"
-                            {{ old('status', $isEdit ? $dummy->status : '') == 'active' ? 'selected' : '' }}>
+
+                        <option value="active" {{ old('status', $material->status) == 'active' ? 'selected' : '' }}>
                             Active
                         </option>
-                        <option value="inactive"
-                            {{ old('status', $isEdit ? $dummy->status : '') == 'inactive' ? 'selected' : '' }}>
+
+                        <option value="inactive" {{ old('status', $material->status) == 'inactive' ? 'selected' : '' }}>
                             Inactive
                         </option>
+
                     </select>
                 </div>
 
@@ -133,4 +126,5 @@
             modal.classList.remove('flex');
         }
     </script>
+
 @endsection
