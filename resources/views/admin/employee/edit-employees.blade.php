@@ -1,5 +1,9 @@
 @extends('admin.layout.master')
 
+@section('open-executive', 'open')
+@section('menu-executive', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-executive-karyawan', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+
 @section('addCss')
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
 
@@ -32,31 +36,37 @@
         <div class="text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Karyawan</span>
             <span class="mx-1 text-gray-400">/</span>
-            <span class="text-blue-600">Tambah Karyawan</span>
+            <span class="text-blue-600">Update Karyawan</span>
         </div>
     </section>
 
     <section x-data="employeeForm()" class="p-5 rounded-md shadow-sm border border-slate-200 bg-white">
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-900 mb-5">Tambah Karyawan</h1>
+        <div class="flex items-center justify-between gap-3 mb-5">
+            <div>
+                <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Update Karyawan</h1>
+                <p class="text-sm text-slate-500 mt-1">NIP : {{ $employee->nip }}</p>
+            </div>
+        </div>
 
-        <form action="{{ route('admin.store-employee') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('update.employee', ['id' => $employee->id]) }}" method="POST" enctype="multipart/form-data">
             @csrf
+            @method('PUT')
 
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 mb-5">
                 {{-- Profile Image --}}
                 <div class="lg:row-span-3 block">
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Foto Profil</label>
-
                     <input type="file" name="profile_image" id="profile_image" accept="image/*" class="block h-full" />
 
                     @error('profile_image')
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                     @enderror
                 </div>
+
                 {{-- Name --}}
                 <div>
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Nama</label>
-                    <input type="text" name="name" value="{{ old('name') }}"
+                    <input type="text" name="name" value="{{ old('name', $employee->name) }}"
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300" />
                     @error('name')
@@ -67,7 +77,7 @@
                 {{-- Birthday --}}
                 <div>
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Tanggal Lahir</label>
-                    <input type="date" name="birthday" value="{{ old('birthday') }}"
+                    <input type="date" name="birthday" value="{{ old('birthday', $employee->birthday) }}"
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300" />
                     @error('birthday')
@@ -78,7 +88,7 @@
                 {{-- Email --}}
                 <div>
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Email</label>
-                    <input type="email" name="email" value="{{ old('email') }}"
+                    <input type="email" name="email" value="{{ old('email', $employee->email) }}"
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300" />
                     @error('email')
@@ -89,24 +99,24 @@
                 {{-- Phone --}}
                 <div>
                     <label class="mb-2 block text-sm font-semibold text-slate-800">No. Hp</label>
-                    <input type="text" name="phone" value="{{ old('phone') }}"
+                    <input type="text" name="phone" value="{{ old('phone', $employee->phone) }}"
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300" />
                     @error('phone')
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                     @enderror
                 </div>
+
                 {{-- Position --}}
                 <div>
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Jabatan</label>
-                    <input type="text" name="position" value="{{ old('position') }}"
+                    <input type="text" name="position" value="{{ old('position', $employee->position) }}"
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300" />
                     @error('position')
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                     @enderror
                 </div>
-
 
                 {{-- Country --}}
                 <div>
@@ -116,7 +126,7 @@
                         <option value="">-- Select Country --</option>
                         @foreach ($countries as $country)
                             <option value="{{ $country['countryName'] }}" data-code="{{ $country['countryCode'] }}"
-                                {{ old('country', 'Indonesia') == $country['countryName'] ? 'selected' : '' }}>
+                                {{ old('country', $employee->country ?? 'Indonesia') == $country['countryName'] ? 'selected' : '' }}>
                                 {{ $country['countryName'] }}
                             </option>
                         @endforeach
@@ -149,22 +159,24 @@
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                     @enderror
                 </div>
+
                 {{-- Postal Code --}}
                 <div>
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Kode Pos</label>
-                    <input type="text" name="postal_code" value="{{ old('postal_code') }}"
+                    <input type="text" name="postal_code" value="{{ old('postal_code', $employee->postal_code) }}"
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300" />
                     @error('postal_code')
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                     @enderror
                 </div>
+
                 {{-- Address --}}
                 <div class="lg:col-span-2">
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Alamat Lengkap</label>
                     <textarea name="address" rows="3"
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
-                               focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300">{{ old('address') }}</textarea>
+                               focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300">{{ old('address', $employee->address) }}</textarea>
                     @error('address')
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                     @enderror
@@ -175,7 +187,7 @@
             <div class="flex flex-col gap-3 sm:flex-row">
                 <button type="submit"
                     class="inline-flex items-center justify-center rounded-md bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-600/30">
-                    Simpan
+                    Update
                 </button>
             </div>
         </form>
@@ -192,16 +204,45 @@
     <script>
         FilePond.registerPlugin(FilePondPluginImagePreview);
 
+        const existingImage = @json($profileImage ?? null);
+
         FilePond.create(document.querySelector('#profile_image'), {
-            storeAsFile: true, // wajib untuk submit form biasa
-            instantUpload: false, // jangan upload async
+            storeAsFile: true,
+            instantUpload: false,
             allowMultiple: false,
             credits: false,
             stylePanelLayout: 'compact',
+            imagePreviewHeight: 220,
             styleButtonRemoveItemPosition: 'right',
             labelIdle: 'Drag & Drop foto di sini atau <span class="filepond--label-action">Browse</span>',
+
+            server: {
+                load: (source, load, error, progress, abort) => {
+                    fetch(source, {
+                            credentials: 'same-origin'
+                        })
+                        .then(res => {
+                            if (!res.ok) throw new Error('HTTP ' + res.status);
+                            return res.blob();
+                        })
+                        .then(blob => load(blob))
+                        .catch(err => error(err.message));
+
+                    return {
+                        abort
+                    };
+                }
+            },
+
+            files: existingImage ? [{
+                source: existingImage,
+                options: {
+                    type: 'local'
+                }
+            }] : []
         });
     </script>
+
 
     <script>
         function employeeForm() {
@@ -211,8 +252,11 @@
                 tsCity: null,
                 countryCode: null,
 
+                // untuk prefill province/city dari employee
+                initialProvince: @json(old('province', $employee->province)),
+                initialCity: @json(old('city', $employee->city)),
+
                 init() {
-                    // ⚠️ guard biar tidak double-init
                     if (this.$refs.country.tomselect) return;
 
                     this.tsCountry = new TomSelect(this.$refs.country, {
@@ -237,16 +281,16 @@
 
                     this.tsCountry.on('change', async () => {
                         this.countryCode = this.getSelectedCountryCode();
-                        await this.loadProvinces();
+                        await this.loadProvinces(true);
                         this.resetCities(false);
                     });
 
                     this.tsProvince.on('change', async () => {
-                        await this.loadCities();
+                        await this.loadCities(true);
                     });
 
                     if (this.countryCode) {
-                        this.loadProvinces();
+                        this.loadProvinces(true);
                     }
                 },
 
@@ -278,7 +322,7 @@
                     this.tsCity.refreshOptions(false);
                 },
 
-                async loadProvinces() {
+                async loadProvinces(trySelectInitial = false) {
                     this.resetProvinces(true);
                     this.resetCities(false);
 
@@ -303,17 +347,24 @@
 
                     data.forEach(item => {
                         this.tsProvince.addOption({
-                            value: item.name, // disimpan = nama
+                            value: item.name,
                             text: item.name,
-                            adminCode1: item.adminCode1 // kode untuk API
+                            adminCode1: item.adminCode1
                         });
                     });
 
                     this.tsProvince.refreshOptions(false);
-                    this.tsProvince.setValue('', true);
+
+                    // prefill province
+                    if (trySelectInitial && this.initialProvince) {
+                        this.tsProvince.setValue(this.initialProvince, true);
+                        await this.loadCities(true);
+                    } else {
+                        this.tsProvince.setValue('', true);
+                    }
                 },
 
-                async loadCities() {
+                async loadCities(trySelectInitial = false) {
                     this.resetCities(true);
 
                     const selectedProvince = this.tsProvince.getValue();
@@ -351,11 +402,18 @@
                     });
 
                     this.tsCity.refreshOptions(false);
-                    this.tsCity.setValue('', true);
+
+                    // prefill city
+                    if (trySelectInitial && this.initialCity) {
+                        this.tsCity.setValue(this.initialCity, true);
+                    } else {
+                        this.tsCity.setValue('', true);
+                    }
                 }
             }
         }
     </script>
+
     <script src="{{ asset('assets/js/sweetalert.js') }}"></script>
 
     @if (session('success'))

@@ -1,9 +1,7 @@
 @extends('admin.layout.master')
-
-{{-- sidebar active --}}
-@section('open-gudang', 'open')
-@section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
-@section('menu-gudang-bahan-baku', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('open-executive', 'open')
+@section('menu-executive', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-executive-permission', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
     {{-- breadcrumb --}}
