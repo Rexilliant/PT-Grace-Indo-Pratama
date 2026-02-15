@@ -194,15 +194,19 @@
         </a>
 
         {{-- Logout --}}
-        <a href=""
-            class="cursor-pointer flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100 @yield('menu-keluar')">
-            <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
-                <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
-                    <path d="M10 17l1.41-1.41L8.83 13H20v-2H8.83l2.58-2.59L10 7l-7 7 7 3z" />
-                </svg>
-            </span>
-            <span class="font-semibold text-[14px]">Logout</span>
-        </a>
+        <form action="{{ route('logout') }}" method="post">
+            @csrf
+            <button type="submit"
+                class="w-full text-left flex gap-3 items-center px-3 py-2 rounded-xl duration-300 ease-in-out hover:bg-slate-100">
+                <span class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center">
+                    <svg class="fill-slate-600" width="18" height="18" viewBox="0 0 24 24">
+                        <path
+                            d="M16 13v-2H7V8l-5 4 5 4v-3h9zm3-10H5c-1.1 0-2 .9-2 2v6h2V5h14v14H5v-6H3v6c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" />
+                    </svg>
+                </span>
+                <span class="font-semibold text-[14px]">Logout</span>
+            </button>
+        </form>
 
     </div>
 </aside>

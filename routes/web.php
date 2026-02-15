@@ -4,6 +4,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -139,6 +140,8 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/get-cities/{countryCode}', 'getCities');
         Route::get('/edit/{id}', 'edit')->name('edit.employee');
         Route::put('/edit/{id}', 'update')->name('update.employee');
+        Route::delete('/delete/{id}', 'destroy')->name('delete.employee');
+        Route::put('/restore/{id}', 'restore')->name('restore.employee');
 
     });
     Route::controller(RoleController::class)->prefix('roles')->group(function () {
@@ -155,6 +158,15 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/edit/{id}', 'edit')->name('edit-permission');
         Route::put('/edit/{id}', 'update')->name('update-permission');
         Route::delete('/delete/{id}', 'destroy')->name('delete-permission');
+    });
+    Route::controller(UserController::class)->prefix('users')->group(function () {
+        Route::get('/', 'index')->name('users');
+        Route::get('/create', 'create')->name('create-user');
+        Route::post('/create', 'store')->name('store-user');
+        Route::get('/edit/{id}', 'edit')->name('edit-user');
+        Route::put('/edit/{id}', 'update')->name('update-user');
+        Route::delete('/delete/{id}', 'destroy')->name('delete-user');
+        Route::put('/restore/{id}', 'restore')->name('restore-user');
     });
 
 });

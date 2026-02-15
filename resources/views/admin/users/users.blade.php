@@ -1,38 +1,38 @@
 @extends('admin.layout.master')
 @section('open-executive', 'open')
 @section('menu-executive', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
-@section('menu-executive-karyawan', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-executive-user', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
     {{-- breadcrumb --}}
     <section class="mb-5">
         <div class="text-xl font-semibold text-gray-700">
-            <span class="text-gray-700">Karyawan</span>
+            <span class="text-gray-700">User</span>
             <span class="mx-1 text-gray-400">/</span>
-            <span class="text-blue-600">Daftar Karyawan</span>
+            <span class="text-blue-600">Daftar User</span>
         </div>
     </section>
 
     <section class="p-5 rounded-2xl shadow-lg border border-gray-300">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-2xl font-semibold tracking-tight text-gray-900">Employees</h1>
+                <h1 class="text-2xl font-semibold tracking-tight text-gray-900">Users</h1>
                 <p class="mt-1 text-sm text-gray-500">
                     Menampilkan
-                    <span class="font-medium text-gray-700">{{ $employees->firstItem() ?? 0 }}</span>
+                    <span class="font-medium text-gray-700">{{ $users->firstItem() ?? 0 }}</span>
                     –
-                    <span class="font-medium text-gray-700">{{ $employees->lastItem() ?? 0 }}</span>
+                    <span class="font-medium text-gray-700">{{ $users->lastItem() ?? 0 }}</span>
                     dari
-                    <span class="font-medium text-gray-700">{{ $employees->total() }}</span>
+                    <span class="font-medium text-gray-700">{{ $users->total() }}</span>
                     data • Halaman
-                    <span class="font-medium text-gray-700">{{ $employees->currentPage() }}</span>
-                    / {{ $employees->lastPage() }}
+                    <span class="font-medium text-gray-700">{{ $users->currentPage() }}</span>
+                    / {{ $users->lastPage() }}
                 </p>
             </div>
 
-            <a href="{{ route('admin.create-employee') }}"
+            <a href="{{ route('create-user') }}"
                 class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                + Tambah Karyawan
+                + Tambah User
             </a>
         </div>
 
@@ -43,19 +43,16 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                                NIP
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                                 Nama
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                                Jabatan
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                                 Email
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                                No. Hp
+                                Karyawan
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                                Role
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                                 Status
@@ -67,29 +64,35 @@
                     </thead>
 
                     <tbody class="divide-y divide-gray-100 bg-white">
-                        @forelse ($employees as $employee)
+                        @forelse ($users as $user)
                             <tr class="hover:bg-gray-50/70">
-                                <td class="px-6 py-4 text-sm font-medium text-gray-900">
-                                    {{ $employee->nip }}
-                                </td>
 
                                 <td class="px-6 py-4 text-sm text-gray-900">
-                                    {{ $employee->name }}
+                                    {{ $user->name }}
                                 </td>
 
                                 <td class="px-6 py-4 text-sm text-gray-600">
-                                    {{ $employee->position }}
+                                    {{ $user->email }}
                                 </td>
 
                                 <td class="px-6 py-4 text-sm text-gray-600">
-                                    {{ $employee->email }}
+                                    @if ($user->employee)
+                                        {{ $user->employee->name }}
+                                    @else
+                                        -
+                                    @endif
                                 </td>
 
                                 <td class="px-6 py-4 text-sm text-gray-600">
-                                    {{ $employee->phone }}
+                                    @foreach ($user->roles as $role)
+                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                                            {{ $role->name }}
+                                        </span>
+                                    @endforeach
                                 </td>
+
                                 <td class="px-6 py-4 text-sm text-gray-600">
-                                    @if ($employee->deleted_at == null)
+                                    @if ($user->deleted_at == null)
                                         <span
                                             class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                                             Aktif
@@ -101,26 +104,28 @@
                                         </span>
                                     @endif
                                 </td>
+
                                 <td class="px-6 py-4">
                                     <div class="flex justify-end gap-2">
-                                        <a href="{{ route('edit.employee', $employee->id) }}"
+
+                                        <a href="{{ route('edit-user', $user->id) }}"
                                             class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-500">
                                             Edit
                                         </a>
 
-                                        @if ($employee->deleted_at !== null)
-                                            <form action="{{ route('restore.employee', $employee->id) }}" method="POST"
-                                                onsubmit="return confirm('Kembalikan employee ini?')">
+                                        @if ($user->deleted_at !== null)
+                                            <form action="{{ route('restore-user', $user->id) }}" method="POST"
+                                                onsubmit="return confirm('Kembalikan user ini?')">
                                                 @csrf
                                                 @method('PUT')
                                                 <button type="submit"
                                                     class="inline-flex items-center rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-green-500">
-                                                    Kembalikan
+                                                    Restore
                                                 </button>
                                             </form>
                                         @endif
-                                        <form action="{{ route('delete.employee', $employee->id) }}" method="POST"
-                                            onsubmit="return confirm('Hapus employee ini?')">
+
+                                        <form action="{{ route('delete-user', $user->id) }}" method="POST" onsubmit="return confirm('Hapus user ini?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"
@@ -128,13 +133,14 @@
                                                 Hapus
                                             </button>
                                         </form>
+
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-10 text-center text-sm text-gray-500">
-                                    Belum ada data employee.
+                                <td colspan="7" class="px-6 py-10 text-center text-sm text-gray-500">
+                                    Belum ada data user.
                                 </td>
                             </tr>
                         @endforelse
@@ -146,16 +152,13 @@
             <div
                 class="flex flex-col gap-3 border-t border-gray-200 bg-white px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div class="text-sm text-gray-600">
-                    Total: <span class="font-medium text-gray-900">{{ $employees->total() }}</span> data
+                    Total: <span class="font-medium text-gray-900">{{ $users->total() }}</span> data
                 </div>
 
                 <div class="pagination">
-                    {{ $employees->links() }}
+                    {{ $users->links() }}
                 </div>
             </div>
         </div>
     </section>
-@endsection
-
-@section('addJs')
 @endsection

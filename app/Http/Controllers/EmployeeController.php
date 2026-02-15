@@ -12,7 +12,7 @@ class EmployeeController extends Controller
 {
     public function index()
     {
-        $employees = Employee::latest()->paginate(10);
+        $employees = Employee::withTrashed()->latest()->paginate(10);
 
         return view('admin.employee.employees', compact('employees'));
     }
@@ -187,6 +187,34 @@ class EmployeeController extends Controller
             save_log_error($th);
 
             return back()->with('error', 'Gagal menyimpan data karyawan. Silakan coba lagi.')->withInput();
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $employee = Employee::findOrFail($id);
+            $employee->delete();
+
+            return redirect()->route('employees')->with('success', 'Data karyawan berhasil dihapus.');
+        } catch (\Throwable $th) {
+            save_log_error($th);
+
+            return back()->with('error', 'Gagal menghapus data karyawan. Silakan coba lagi.');
+        }
+    }
+
+    public function restore($id)
+    {
+        try {
+            $employee = Employee::withTrashed()->findOrFail($id);
+            $employee->restore();
+
+            return redirect()->route('employees')->with('success', 'Data karyawan berhasil dikembalikan.');
+        } catch (\Throwable $th) {
+            save_log_error($th);
+
+            return back()->with('error', 'Gagal mengembalikan data karyawan. Silakan coba lagi.');
         }
     }
 }
