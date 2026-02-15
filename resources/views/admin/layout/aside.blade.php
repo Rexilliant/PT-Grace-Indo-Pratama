@@ -156,7 +156,7 @@
             </summary>
 
             <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
-                <a href=""
+                <a href="{{ route('employees') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-karyawan')">
                     Karyawan
                 </a>
@@ -169,6 +169,14 @@
                 <a href="{{ route('admin.executive-pengadaan-barang') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-pengadaan-barang')">
                     Pengadaan Barang
+                </a>
+                <a href="{{ route('permissions') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-permission')">
+                    Permissions
+                </a>
+                <a href="{{ route('roles') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-role')">
+                    Role
                 </a>
             </div>
 
@@ -329,32 +337,25 @@
             </div>
         </details>
 
-        {{-- Executive Team (mobile disamakan dengan web) --}}
+        {{-- Executive Team --}}
         <details class="group" @yield('open-executive')>
             <summary
                 class="list-none cursor-pointer flex items-center justify-between px-3 py-2 rounded-xl
-                       duration-300 ease-in-out hover:bg-slate-100
-                       group-open:bg-gradient-to-r group-open:from-[#53BF6A]/80 group-open:to-[#275931]/80
-                       group-open:text-white
-                       @yield('menu-executive')">
+               duration-300 ease-in-out hover:bg-slate-100
+               group-open:bg-gradient-to-r group-open:from-[#53BF6A]/80 group-open:to-[#275931]/80
+               group-open:text-white
+               @yield('menu-executive')">
 
-                <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
-                    <a href=""
-                        class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-karyawan')">
-                        Karyawan
-                    </a>
-
-                    <a href="{{ route('admin.executive-produk') }}"
-                        class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-produk')">
-                        Produk
-                    </a>
-
-                    <a href="{{ route('admin.executive-pengadaan-barang') }}"
-                        class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-pengadaan-barang')">
-                        Pengadaan Barang
-                    </a>
+                <div class="flex items-center gap-3">
+                    <span
+                        class="h-8 w-8 rounded-full bg-slate-200 grid place-items-center transition group-open:bg-white/20">
+                        <svg class="fill-slate-600 transition group-open:fill-white" width="18" height="18"
+                            viewBox="0 0 24 24">
+                            <path d="M12 12a5 5 0 100-10 5 5 0 000 10zm-8 10a8 8 0 0116 0H4z" />
+                        </svg>
+                    </span>
+                    <span class="font-semibold text-[14px]">Executive Team</span>
                 </div>
-
 
                 <svg class="h-4 w-4 text-slate-700 transition group-open:text-white group-open:rotate-180"
                     viewBox="0 0 20 20" fill="currentColor">
@@ -375,12 +376,18 @@
                     Produk
                 </a>
 
-                <a href=""
+                <a href="{{ route('admin.executive-pengadaan-barang') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-pengadaan-barang')">
-                    Produk
+                    Pengadaan Barang
+                </a>
+
+                <a href="{{ route('permissions') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-permission')">
+                    Permission
                 </a>
             </div>
         </details>
+
 
         {{-- Profile --}}
         <a href="{{ route('admin.profile') }}"
