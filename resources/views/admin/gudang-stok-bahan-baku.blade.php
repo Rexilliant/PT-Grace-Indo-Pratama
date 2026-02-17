@@ -3,7 +3,7 @@
 {{-- sidebar active --}}
 @section('open-gudang', 'open')
 @section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
-@section('menu-gudang-bahan-baku', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-gudang-stok-bahan-baku', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
 
@@ -13,7 +13,7 @@
         <div class="mb-4 text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Gudang</span>
             <span class="mx-1 text-gray-400">›</span>
-            <a href="#" class="text-blue-600 hover:underline">Bahan Baku</a>
+            <a href="#" class="text-blue-600 hover:underline">Stok Bahan Baku</a>
         </div>
     </section>
 
@@ -55,11 +55,11 @@
                     Export .xlsx
                 </a>
 
-                <a href="{{ route('admin.add-bahan-baku') }}"
+                {{-- <a href=""
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
                     <span class="text-lg leading-none">+</span>
                     Tambah Baru
-                </a>
+                </a> --}}
             </div>
         </div>
 
@@ -71,26 +71,33 @@
                         <tr class="[&>th]:border-b [&>th]:border-gray-500">
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Kode Barang</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Bahan Baku</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
+
+                            {{-- ✅ Kolom Baru Provinsi --}}
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th>
+
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Jumlah Stok</th>
+                            {{-- <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th> --}}
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Status</th>
                         </tr>
                     </thead>
 
                     <tbody class="bg-gray-200 divide-y divide-gray-500">
-                        @foreach ($materials as $m)
+                        @foreach ($stocks as $s)
                             <tr class="hover:bg-gray-300">
-                                <td class="px-6 py-4 font-semibold">{{ $m->code }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $m->name }}</td>
+                                <td class="px-6 py-4 font-semibold">{{ $s->code }}</td>
+                                <td class="px-6 py-4 font-semibold">{{ $s->name }}</td>
+                                <td class="px-6 py-4 font-semibold">{{ $s->province }}</td>
+                                <td class="px-6 py-4 font-semibold">{{ $s->stock }}</td>
 
-                                <td class="px-6 py-4 font-semibold">
-                                    <a href="{{ route('admin.edit-bahan-baku', $m->id) }}"
+                                {{-- <td class="px-6 py-4 font-semibold">
+                                    <a href="{{ route('admin.edit-bahan-baku', $s->id) }}"
                                         class="text-[#2E7E3F] hover:underline">
                                         Sunting
                                     </a>
-                                </td>
+                                </td> --}}
 
                                 <td class="px-6 py-4 font-semibold">
-                                    @if ($m->status == 'active')
+                                    @if ($s->status == 'active')
                                         <span class="text-[#2E7E3F]">Active</span>
                                     @else
                                         <span class="text-[#EC0000]">Inactive</span>
@@ -104,7 +111,9 @@
             </div>
 
             {{-- footer / pagination (mobile + ipad aman) --}}
-            {{ $materials->links('vendor.pagination.pagination') }}
+            {{ $stocks->links('vendor.pagination.pagination') }}
+
+
 
         </div>
     </section>
