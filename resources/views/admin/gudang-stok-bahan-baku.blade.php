@@ -8,7 +8,7 @@
 @section('content')
 
     {{-- breadcrumb --}}
-    <section class=mb-5">
+    <section class="mb-5">
         {{-- breadcrumb --}}
         <div class="mb-4 text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Gudang</span>
@@ -82,19 +82,12 @@
                     </thead>
 
                     <tbody class="bg-gray-200 divide-y divide-gray-500">
-                        @foreach ($stocks as $s)
+                        @forelse ($stocks as $s)
                             <tr class="hover:bg-gray-300">
                                 <td class="px-6 py-4 font-semibold">{{ $s->code }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $s->name }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $s->province }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $s->stock }}</td>
-
-                                {{-- <td class="px-6 py-4 font-semibold">
-                                    <a href="{{ route('admin.edit-bahan-baku', $s->id) }}"
-                                        class="text-[#2E7E3F] hover:underline">
-                                        Sunting
-                                    </a>
-                                </td> --}}
 
                                 <td class="px-6 py-4 font-semibold">
                                     @if ($s->status == 'active')
@@ -104,8 +97,15 @@
                                     @endif
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-6 text-center font-semibold text-gray-600">
+                                    Data stok belum ada.
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
+
 
                 </table>
             </div>

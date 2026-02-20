@@ -20,7 +20,7 @@
     </section>
 
     {{-- FORM EDIT --}}
-    <form action="{{ route('admin.update-bahan-baku', $material->id) }}" method="POST">
+    <form action="{{ route('admin.gudang-bahan-baku.update', $material->id) }}" method="POST">
         @csrf
         @method('PUT')
 

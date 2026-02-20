@@ -8,7 +8,7 @@
 @section('content')
 
     {{-- breadcrumb --}}
-    <section class=mb-5">
+    <section class="mb-5">
         {{-- breadcrumb --}}
         <div class="mb-4 text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Gudang</span>
@@ -77,13 +77,13 @@
                     </thead>
 
                     <tbody class="bg-gray-200 divide-y divide-gray-500">
-                        @foreach ($materials as $m)
+                        @forelse ($materials as $m)
                             <tr class="hover:bg-gray-300">
                                 <td class="px-6 py-4 font-semibold">{{ $m->code }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $m->name }}</td>
 
                                 <td class="px-6 py-4 font-semibold">
-                                    <a href="{{ route('admin.edit-bahan-baku', $m->id) }}"
+                                    <a href="{{ route('admin.gudang-bahan-baku.edit', $m->id) }}"
                                         class="text-[#2E7E3F] hover:underline">
                                         Sunting
                                     </a>
@@ -97,8 +97,15 @@
                                     @endif
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="4" class="px-6 py-6 text-center font-semibold text-gray-600">
+                                    Data produk belum ada.
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
+
 
                 </table>
             </div>

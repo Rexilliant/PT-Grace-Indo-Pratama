@@ -31,9 +31,17 @@
 
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Provinsi</label>
-                    <input type="text" name="provinsi" value="" placeholder="Contoh: Sumatera Utara"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
+
+                    <select id="provinsiSelect" name="provinsi"
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500">
+                        <option value="">Memuat provinsi...</option>
+                    </select>
+
+                    <p id="provinsiError" class="mt-1 text-xs text-red-600 hidden">
+                        Gagal memuat data provinsi. Coba refresh halaman.
+                    </p>
                 </div>
+
 
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Total Pesanan</label>
@@ -192,6 +200,45 @@
         const dropzoneContent = document.getElementById('dropzoneContent');
         const modal = document.getElementById('cancelModal');
 
+        // === Tambahan: Provinsi API (EMSIFA) ===
+        const provinsiSelect = document.getElementById('provinsiSelect');
+        const provinsiError = document.getElementById('provinsiError');
+
+        async function loadProvinsi() {
+            try {
+                const res = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+
+                const data = await res.json();
+
+                // reset opsi
+                provinsiSelect.innerHTML = `<option value="">-- Pilih Provinsi --</option>`;
+
+                data.forEach(p => {
+                    const opt = document.createElement('option');
+                    // kamu bisa pilih mau submit id atau nama:
+                    // opt.value = p.id;   // kalau mau kirim ID
+                    opt.value = p.name; // kalau mau kirim NAMA (lebih cocok sama form kamu sekarang)
+                    opt.textContent = p.name;
+                    provinsiSelect.appendChild(opt);
+                });
+
+                provinsiError.classList.add('hidden');
+            } catch (e) {
+                console.error(e);
+                provinsiSelect.innerHTML = `<option value="">-- Gagal memuat provinsi --</option>`;
+                provinsiError.classList.remove('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProvinsi);
+
         function openCancelModal() {
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -203,14 +250,14 @@
         }
 
         function validateInvoiceFile(file) {
-            const allowed = ['image/png', 'image/jpeg', 'application/pdf']; // jpg & jpeg = image/jpeg
+            const allowed = ['image/png', 'image/jpeg', 'application/pdf'];
 
             if (!allowed.includes(file.type)) {
                 alert('File harus PNG / JPG / JPEG / PDF');
                 return false;
             }
 
-            const maxSize = 3 * 1024 * 1024; // 3MB
+            const maxSize = 3 * 1024 * 1024;
             if (file.size > maxSize) {
                 alert('Ukuran file maksimal 3MB');
                 return false;
@@ -221,10 +268,10 @@
 
         function showFileName(file) {
             dropzoneContent.innerHTML = `
-      <div class="text-sm font-bold text-gray-800 break-all">
-        ${file.name}
-      </div>
-    `;
+          <div class="text-sm font-bold text-gray-800 break-all">
+            ${file.name}
+          </div>
+        `;
             dropzone.classList.add('border-blue-600');
         }
 
@@ -233,7 +280,7 @@
             if (!file) return;
 
             if (!validateInvoiceFile(file)) {
-                invoiceInput.value = ''; // reset pilihan kalau tidak valid
+                invoiceInput.value = '';
                 return;
             }
 
@@ -266,4 +313,5 @@
             showFileName(file);
         });
     </script>
+
 @endsection
