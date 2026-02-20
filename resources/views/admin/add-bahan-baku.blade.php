@@ -17,9 +17,8 @@
         </div>
     </section>
 
-    <form action="{{ route('admin.add-bahan-baku-store') }}" method="POST">
+    <form action="{{ route('admin.add-bahan-baku.store') }}" method="POST">
         @csrf
-
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 

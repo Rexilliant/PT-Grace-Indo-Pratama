@@ -5,11 +5,13 @@
 
         {{-- Showing text (hide on mobile, show on tablet+) --}}
         <div class="hidden sm:block text-xs sm:text-sm font-semibold text-gray-800">
-            Showing {{ $paginator->firstItem() }}–{{ $paginator->lastItem() }} of {{ $paginator->total() }}
+            Showing {{ $paginator->firstItem() ?? 0 }}–{{ $paginator->lastItem() ?? 0 }} of {{ $paginator->total() }}
+
         </div>
 
         <div class="sm:hidden text-xs font-semibold text-gray-800">
-            Showing {{ $paginator->firstItem() }}–{{ $paginator->lastItem() }} of {{ $paginator->total() }}
+            Showing {{ $paginator->firstItem() ?? 0 }}–{{ $paginator->lastItem() ?? 0 }} of {{ $paginator->total() }}
+
         </div>
         {{-- Showing text (mobile only, placed below buttons) --}}
 

@@ -6,6 +6,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductVariantController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -47,18 +49,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.gudang-permintaan-pengiriman');
     })->name('admin.gudang-permintaan-pengiriman');
 
-    // Route::get('/gudang-bahan-baku', function () {
-    //     return view('admin.gudang-bahan-baku');
-    // })->name('admin.gudang-bahan-baku');
-
-    Route::get('/gudang-bahan-baku', [RawMaterialController::class, 'index'])
-        ->name('admin.gudang-bahan-baku');
-
-    Route::get('/gudang-stok-bahan-baku', [RawMaterialController::class, 'stockIndex'])
-        ->name('admin.gudang-stok-bahan-baku');
-
-
-
     Route::get('/pemasaran-permintaan-pengiriman', function () {
         return view('admin.pemasaran-permintaan-pengiriman');
     })->name('admin.pemasaran-permintaan-pengiriman');
@@ -71,9 +61,8 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.profile');
     })->name('admin.profile');
 
-    Route::get('/executive-produk', function () {
-        return view('admin.executive-produk');
-    })->name('admin.executive-produk');
+
+
 
     Route::get('/executive-pengadaan-barang', function () {
         return view('admin.executive-pengadaan-barang');
@@ -87,16 +76,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/add-barang-masuk', function () {
         return view('admin.add-barang-masuk');
     })->name('admin.add-barang-masuk');
-
-    // Route::get('/add-bahan-baku', function () {
-    //     return view('admin.add-bahan-baku');
-    // })->name('admin.add-bahan-baku');
-
-    //add bahan baku
-    Route::get('/add-bahan-baku', [RawMaterialController::class, 'create'])
-        ->name('admin.add-bahan-baku');
-    Route::post('/add-bahan-baku/store', [RawMaterialController::class, 'store'])
-        ->name('admin.add-bahan-baku-store');
 
     Route::get('/add-gudang-permintaan-pengiriman', function () {
         return view('admin.add-gudang-permintaan-pengiriman');
@@ -118,23 +97,12 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.add-produk');
     })->name('admin.add-produk');
 
-    Route::get('/add-executive-produk-baru', function () {
-        return view('admin.add-executive-produk-baru');
-    })->name('admin.add-executive-produk-baru');
-
     Route::get('/add-executive-pengadaan-barang', function () {
         return view('admin.add-executive-pengadaan-barang');
     })->name('admin.add-executive-pengadaan-barang');
 
-    // Edit
-    // Route::get('/edit-bahan-baku', function () {
-    //     return view('admin.edit-bahan-baku');
-    // })->name('admin.edit-bahan-baku');
-    Route::get('/edit-bahan-baku/{id}', [RawMaterialController::class, 'edit'])
-        ->name('admin.edit-bahan-baku');
-    Route::put('/edit-bahan-baku/{id}', [RawMaterialController::class, 'update'])
-        ->name('admin.update-bahan-baku');
-
+    Route::get('/gudang-stok-bahan-baku', [RawMaterialController::class, 'stockIndex'])
+        ->name('admin.gudang-stok-bahan-baku');
 
     Route::get('/edit-barang-masuk', function () {
         return view('admin.edit-barang-masuk');
@@ -148,9 +116,49 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.edit-produk');
     })->name('admin.edit-produk');
 
-    Route::get('/edit-executive-produk', function () {
-        return view('admin.edit-executive-produk');
-    })->name('admin.edit-executive-produk');
+    Route::controller(ProductVariantController::class)->group(function () {
+
+        // LIST
+        Route::get('/executive-produk-variant', 'index')
+            ->name('admin.executive-produk-variant');
+
+        // ADD
+        Route::get('/add-executive-produk-variant', 'create')
+            ->name('admin.add-executive-produk-variant');
+
+        Route::post('/add-executive-produk-variant/store', 'store')
+            ->name('admin.add-executive-produk-variant.store');
+
+        // EDIT / UPDATE
+        Route::get('/executive-produk-variant/{id}/edit', 'edit')
+            ->name('admin.executive-produk-variant.edit');
+
+        Route::put('/executive-produk-variant/{id}', 'update')
+            ->name('admin.executive-produk-variant.update');
+
+    });
+
+
+
+    // Gudang Bahan Baku
+    Route::controller(RawMaterialController::class)->group(function () {
+        Route::get('/gudang-bahan-baku', 'index')->name('admin.gudang-bahan-baku');
+        Route::get('/add-bahan-baku', 'create')->name('admin.add-bahan-baku');
+        Route::post('/add-bahan-baku/store', 'store')->name('admin.add-bahan-baku.store');
+        Route::get('/gudang-bahan-baku/{id}/edit', 'edit')->name('admin.gudang-bahan-baku.edit');
+        Route::put('/gudang-bahan-baku/{id}', 'update')->name('admin.gudang-bahan-baku.update');
+    });
+
+    // Executive Produk
+    Route::controller(ProductController::class)->prefix('executive-produk')->group(function () {
+        Route::get('/', 'indexExecutive')->name('admin.executive-produk');
+        Route::get('/create', 'createExecutive')->name('admin.add-executive-produk-baru');
+        Route::post('/store', 'storeExecutive')->name('admin.add-executive-produk-baru.store');
+        Route::get('/edit/{id}', 'editExecutive')->name('admin.edit-executive-produk');
+        Route::put('/edit/{id}', 'updateExecutive')->name('admin.edit-executive-produk.update');
+        Route::delete('/delete/{id}', 'destroyExecutive')->name('admin.executive-produk.destroy');
+    });
+
 
     // Employee
     Route::controller(EmployeeController::class)->prefix('employees')->group(function () {
@@ -192,4 +200,4 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
