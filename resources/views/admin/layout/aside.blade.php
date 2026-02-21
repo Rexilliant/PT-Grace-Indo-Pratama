@@ -174,6 +174,11 @@
                     Produk
                 </a>
 
+                <a href="{{ route('admin.executive-produk-variant') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-produk-variant')">
+                    Produk Varian
+                </a>
+
                 <a href="{{ route('admin.executive-pengadaan-barang') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-pengadaan-barang')">
                     Pengadaan Barang
@@ -393,6 +398,10 @@
                 <a href="{{ route('admin.executive-produk') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-produk')">
                     Produk
+                </a>
+                <a href="{{ route('admin.executive-produk-variant') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-produk-variant')">
+                    Produk Varian
                 </a>
 
                 <a href="{{ route('admin.executive-pengadaan-barang') }}"

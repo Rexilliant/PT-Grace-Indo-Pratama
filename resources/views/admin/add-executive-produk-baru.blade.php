@@ -3,7 +3,6 @@
 {{-- sidebar active --}}
 @section('open-executive', 'open')
 @section('menu-executive', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
-{{-- sesuaikan kalau menu produk kamu beda --}}
 @section('menu-executive-produk', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
@@ -18,59 +17,97 @@
         </div>
     </section>
 
-    <form action="#" method="POST">
+    <form action="{{ route('admin.add-executive-produk-baru.store') }}" method="POST" class="space-y-4">
         @csrf
 
+        {{-- FORM CARD --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
-                {{-- ID Produk --}}
-                <div>
+                {{-- ID Produk (DB: code) --}}
+                <div class="sm:col-span-1">
                     <label class="block text-sm font-bold mb-2">ID Produk</label>
-                    <input name="id_produk" type="text" placeholder="Contoh: BHOS001"
+                    <input name="code" type="text" placeholder="Contoh: BHOSEXT" value="{{ old('code') }}"
                         class="w-full rounded-md border border-gray-400 bg-white
                                px-3 py-2.5 text-sm font-semibold text-gray-900
-                               focus:border-blue-600 focus:ring-0">
+                               focus:border-blue-600 focus:ring-0
+                               @error('code') border-red-500 focus:border-red-600 @enderror">
+                    @error('code')
+                        <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
-                {{-- Stock Keeping Unit --}}
-                <div>
-                    <label class="block text-sm font-bold mb-2">Stock Keeping Unit</label>
-                    <input name="sku" type="text" placeholder="Contoh: BHOSEK1000"
-                        class="w-full rounded-md border border-gray-400 bg-white
-                               px-3 py-2.5 text-sm font-semibold text-gray-900
-                               focus:border-blue-600 focus:ring-0">
-                </div>
-
-                {{-- Nama Produk --}}
-                <div>
+                {{-- Nama Produk (DB: name) --}}
+                <div class="sm:col-span-1">
                     <label class="block text-sm font-bold mb-2">Nama Produk</label>
-                    <input name="nama_produk" type="text" placeholder="Contoh: BHOS Ekstra"
+                    <input name="name" type="text" placeholder="Contoh: BHOS Ekstra" value="{{ old('name') }}"
                         class="w-full rounded-md border border-gray-400 bg-white
                                px-3 py-2.5 text-sm font-semibold text-gray-900
-                               focus:border-blue-600 focus:ring-0">
+                               focus:border-blue-600 focus:ring-0
+                               @error('name') border-red-500 focus:border-red-600 @enderror">
+                    @error('name')
+                        <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Status (DB: status) --}}
+                <div class="sm:col-span-2 lg:col-span-1">
+                    <label class="block text-sm font-bold mb-2">Status</label>
+                    <select name="status"
+                        class="w-full rounded-md border border-gray-400 bg-white
+                               px-3 py-2.5 text-sm font-semibold text-gray-900
+                               focus:border-blue-600 focus:ring-0
+                               @error('status') border-red-500 focus:border-red-600 @enderror">
+                        <option value="" disabled {{ old('status') ? '' : 'selected' }}>Pilih Status</option>
+                        <option value="aktif" {{ old('status') === 'aktif' ? 'selected' : '' }}>Active</option>
+                        <option value="nonaktif" {{ old('status') === 'nonaktif' ? 'selected' : '' }}>Inactive</option>
+                    </select>
+                    @error('status')
+                        <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Deskripsi Produk (DB: description) --}}
+                <div class="sm:col-span-2 lg:col-span-3">
+                    <label class="block text-sm font-bold mb-2">Deskripsi Produk</label>
+                    <textarea name="description" rows="5" placeholder="Tuliskan deskripsi produk..."
+                        class="w-full rounded-md border border-gray-400 bg-white
+                               px-3 py-2.5 text-sm font-semibold text-gray-900
+                               focus:border-blue-600 focus:ring-0
+                               @error('description') border-red-500 focus:border-red-600 @enderror">{{ old('description') }}</textarea>
+
+                    @error('description')
+                        <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
+                    @enderror
+
+                    <p class="mt-2 text-xs text-gray-600">
+                        Tips: Jelaskan kegunaan, keunggulan, ukuran/varian, dan informasi penting lainnya.
+                    </p>
                 </div>
 
             </div>
         </section>
 
         {{-- ACTIONS --}}
-        <div class="flex items-center justify-end gap-4 pt-2">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
             <button type="button" onclick="openCancelModal()"
-                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-10 py-3 text-sm font-bold text-white hover:bg-red-700">
+                class="w-full sm:w-auto inline-flex items-center justify-center rounded-lg
+                       bg-red-600 px-10 py-3 text-sm font-bold text-white hover:bg-red-700">
                 Batal
             </button>
 
             <button type="submit"
-                class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
+                class="w-full sm:w-auto inline-flex items-center justify-center rounded-lg
+                       bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
                 Simpan
             </button>
         </div>
     </form>
 
     {{-- MODAL BATAL --}}
-    <div id="cancelModal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 animate-scale-in">
+    <div id="cancelModal"
+        class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md animate-scale-in">
             <div class="px-6 py-4 border-b border-gray-200">
                 <h3 class="text-lg font-bold text-gray-800">Batalkan?</h3>
             </div>
@@ -80,19 +117,38 @@
                 Kalau dibatalkan, semua perubahan akan hilang.
             </div>
 
-            <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 px-6 py-4 border-t border-gray-200">
                 <button type="button" onclick="closeCancelModal()"
-                    class="px-4 py-2 rounded-lg text-sm font-semibold bg-gray-200 hover:bg-gray-300">
+                    class="w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-semibold bg-gray-200 hover:bg-gray-300">
                     Tetap di Halaman
                 </button>
 
                 <a href="{{ route('admin.executive-produk') }}"
-                    class="px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700">
+                    class="w-full sm:w-auto text-center px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700">
                     Ya, Batalkan
                 </a>
             </div>
         </div>
     </div>
+
+    {{-- Animasi modal (kalau belum ada di global CSS) --}}
+    <style>
+        @keyframes scaleIn {
+            from {
+                transform: scale(.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-scale-in {
+            animation: scaleIn .15s ease-out;
+        }
+    </style>
 
     <script>
         const modal = document.getElementById('cancelModal');
@@ -106,5 +162,15 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+
+        // Optional: tutup modal kalau klik area gelap (overlay)
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeCancelModal();
+        });
+
+        // Optional: ESC untuk tutup modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('flex')) closeCancelModal();
+        });
     </script>
 @endsection

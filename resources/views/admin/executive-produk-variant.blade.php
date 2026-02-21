@@ -1,0 +1,157 @@
+@extends('admin.layout.master')
+
+@section('open-executive', 'open')
+@section('menu-executive', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-executive-produk-variant', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+
+@section('content')
+
+    {{-- Breadcrumb --}}
+    <section class="mb-5">
+        <div class="text-xl font-semibold text-gray-700">
+            <span>Executive</span>
+            <span class="mx-1 text-gray-400">›</span>
+            <span class="text-blue-600">Produk Varian</span>
+        </div>
+
+        {{-- flash message --}}
+        @if (session('success'))
+            <div class="mt-3 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
+                {{ session('success') }}
+            </div>
+        @endif
+    </section>
+
+    <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
+
+        {{-- TOP BAR --}}
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-3">
+            <div class="w-full lg:max-w-[560px]">
+                <form method="GET" action="{{ route('admin.executive-produk-variant') }}">
+                    <div class="relative">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+
+                        <input type="text" name="q" value="{{ $q ?? request('q') }}"
+                            class="block w-full rounded-lg border border-gray-400 bg-gray-100 pl-10 pr-20 py-2.5 text-sm text-gray-900 focus:border-gray-400 focus:ring-0"
+                            placeholder="Search: SKU / Nama / Unit / Status">
+
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 gap-2">
+                            @if (!empty($q))
+                                <a href="{{ route('admin.executive-produk-varian') }}"
+                                    class="rounded-md px-3 py-2 text-xs font-bold bg-gray-200 hover:bg-gray-300">
+                                    Reset
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="flex items-center gap-2 justify-end">
+                {{-- Export (placeholder) --}}
+                <a href="#"
+                    class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 0 0014.9 3" />
+                    </svg>
+                    Export .xlsx
+                </a>
+
+                <a href="{{ route('admin.add-executive-produk-variant') }}"
+                    class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    <span class="text-lg leading-none">+</span>
+                    Tambah Produk
+                </a>
+            </div>
+        </div>
+
+        {{-- TABLE --}}
+        <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-800">
+                    <thead class="bg-[#5aba6f]/70 text-gray-900">
+                        <tr class="[&>th]:border-b [&>th]:border-gray-500">
+                            <th class="px-6 py-4 font-extrabold whitespace-nowrap">SKU</th>
+                            <th class="px-6 py-4 font-extrabold whitespace-nowrap">Nama Produk</th>
+                            <th class="px-6 py-4 font-extrabold whitespace-nowrap">Ukuran Kemasan</th>
+                            <th class="px-6 py-4 font-extrabold whitespace-nowrap">Satuan</th>
+                            <th class="px-6 py-4 font-extrabold whitespace-nowrap">Harga</th>
+                            <th class="px-6 py-4 font-extrabold whitespace-nowrap">Status</th>
+                            <th class="px-6 py-4 font-extrabold whitespace-nowrap">Aksi</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="bg-gray-200 divide-y divide-gray-500">
+                        @forelse ($variants as $v)
+                            <tr class="hover:bg-gray-300 transition">
+                                <td class="px-6 py-4 font-semibold whitespace-nowrap">{{ $v->sku }}</td>
+
+                                <td class="px-6 py-4 font-semibold">
+                                    {{ $v->name }}
+                                </td>
+
+                                <td class="px-6 py-4 font-semibold whitespace-nowrap">
+                                    {{ number_format($v->pack_size) }}
+                                </td>
+
+                                <td class="px-6 py-4 font-semibold whitespace-nowrap">
+                                    {{ $v->unit }}
+                                </td>
+
+                                <td class="px-6 py-4 font-semibold whitespace-nowrap">
+                                    Rp {{ number_format($v->price, 0, ',', '.') }}
+                                </td>
+
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if ($v->status === 'aktif')
+                                        <span
+                                            class="inline-flex items-center rounded-full bg-green-200 px-3 py-1 text-xs font-extrabold text-green-900">
+                                            Aktif
+                                        </span>
+                                    @else
+                                        <span
+                                            class="inline-flex items-center rounded-full bg-red-200 px-3 py-1 text-xs font-extrabold text-red-900">
+                                            Nonaktif
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- AKSI --}}
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center gap-4 font-semibold">
+                                        <a href="{{ route('admin.executive-produk-variant.edit', $v->id) }}"
+                                            class="text-[#2D2ACD] hover:underline">
+                                            Sunting
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="px-6 py-6 text-center font-semibold text-gray-600">
+                                    Data produk varian belum ada.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+
+                </table>
+            </div>
+
+            {{-- Pagination (pakai style custom kamu) --}}
+            @if ($variants->hasPages())
+                {{ $variants->links('vendor.pagination.pagination') }}
+            @endif
+
+        </div>
+
+    </section>
+@endsection
