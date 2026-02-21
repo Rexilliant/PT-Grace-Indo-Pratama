@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('procurement_id')->constrained('procurements')->cascadeOnDelete();
             $table->foreignId('raw_material_id')->constrained('raw_materials')->cascadeOnDelete();
-            $table->integer('stock');
-            $table->integer('quantity_use');
+            $table->integer('quantity_requested');
             $table->timestamps();
             $table->softDeletes();
         });
