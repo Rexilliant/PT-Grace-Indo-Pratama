@@ -17,9 +17,11 @@ return new class extends Migration
             $table->string('province');
             $table->string('status');
             $table->integer('total_price')->default(0);
-            $table->foreignId('approved_by')->constrained('users')->cascadeOnDelete();
+            // Tanggal Pemesanan
+            
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('approved_at')->nullable();
-            $table->foreignId('rejected_by')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('rejected_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('rejected_at')->nullable();
             $table->string('reason')->nullable();
             $table->text('note')->nullable();

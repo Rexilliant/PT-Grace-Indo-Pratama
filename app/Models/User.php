@@ -58,4 +58,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(Log::class);
     }
+    public function requestProcurements()
+    {
+        return $this->hasMany(Procurement::class, 'request_by');
+    }
+    public function approvedProcurements()
+    {
+        return $this->hasMany(Procurement::class, 'approved_by');
+    }
+    public function rejectedProcurements()
+    {
+        return $this->hasMany(Procurement::class, 'rejected_by');
+    }
 }

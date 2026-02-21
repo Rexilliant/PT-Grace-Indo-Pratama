@@ -59,7 +59,7 @@
             </summary>
 
             <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
-                <a href="{{ route('admin.gudang-pengadaan-barang') }}"
+                <a href="{{ route('procurements') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pengadaan')">
                     Pengadaan Barang
                 </a>
@@ -173,12 +173,10 @@
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-produk')">
                     Produk
                 </a>
-
                 <a href="{{ route('admin.executive-produk-variant') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-produk-variant')">
                     Produk Varian
                 </a>
-
                 <a href="{{ route('admin.executive-pengadaan-barang') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-pengadaan-barang')">
                     Pengadaan Barang
@@ -286,7 +284,7 @@
             </summary>
 
             <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
-                <a href="{{ route('admin.gudang-pengadaan-barang') }}"
+                <a href="{{ route('procurements') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pengadaan')">
                     Pengadaan Barang
                 </a>
@@ -399,11 +397,10 @@
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-produk')">
                     Produk
                 </a>
-                <a href="{{ route('admin.executive-produk-variant') }}"
+<a href="{{ route('admin.executive-produk-variant') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-produk-variant')">
                     Produk Varian
                 </a>
-
                 <a href="{{ route('admin.executive-pengadaan-barang') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-pengadaan-barang')">
                     Pengadaan Barang

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\RoleController;
@@ -48,16 +49,11 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.gudang-permintaan-pengiriman');
     })->name('admin.gudang-permintaan-pengiriman');
 
-    // Route::get('/gudang-bahan-baku', function () {
-    //     return view('admin.gudang-bahan-baku');
-    // })->name('admin.gudang-bahan-baku');
-
     Route::get('/gudang-bahan-baku', [RawMaterialController::class, 'index'])
         ->name('admin.gudang-bahan-baku');
 
     Route::get('/gudang-stok-bahan-baku', [RawMaterialController::class, 'stockIndex'])
         ->name('admin.gudang-stok-bahan-baku');
-
     Route::get('/pemasaran-permintaan-pengiriman', function () {
         return view('admin.pemasaran-permintaan-pengiriman');
     })->name('admin.pemasaran-permintaan-pengiriman');
@@ -86,11 +82,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.add-barang-masuk');
     })->name('admin.add-barang-masuk');
 
-    // Route::get('/add-bahan-baku', function () {
-    //     return view('admin.add-bahan-baku');
-    // })->name('admin.add-bahan-baku');
-
-    // add bahan baku
     Route::get('/add-bahan-baku', [RawMaterialController::class, 'create'])
         ->name('admin.add-bahan-baku');
     Route::post('/add-bahan-baku/store', [RawMaterialController::class, 'store'])
@@ -126,7 +117,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     // })->name('admin.edit-bahan-baku');
     Route::get('/gudang-stok-bahan-baku', [RawMaterialController::class, 'stockIndex'])
         ->name('admin.gudang-stok-bahan-baku');
-
     Route::get('/edit-bahan-baku/{id}', [RawMaterialController::class, 'edit'])
         ->name('admin.edit-bahan-baku');
     Route::put('/edit-bahan-baku/{id}', [RawMaterialController::class, 'update'])
@@ -226,7 +216,12 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::delete('/delete/{id}', 'destroy')->name('delete-user');
         Route::put('/restore/{id}', 'restore')->name('restore-user');
     });
-
-});
+    Route::controller(ProcurementController::class)->prefix('procurements')->group(function () {
+        Route::get('/create', 'create')->name('create-procurement');
+        Route::post('/store', 'store')->name('store-procurement');
+        Route::get('/', 'index')->name('procurements');
+        Route::get('/edit/{id}', 'edit')->name('edit-procurement');
+        Route::put('/edit/{id}', 'update')->name('update-procurement');
+    });
 
 require __DIR__ . '/auth.php';

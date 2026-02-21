@@ -17,9 +17,9 @@ return new class extends Migration
             $table->foreignId('raw_material_id')->constrained()->cascadeOnDelete();
             $table->string('type');
             $table->integer('stock');
-            $table->integer('quantity_use');
             $table->string('ref_type');
             $table->bigInteger('ref_id');
+            $table->foreignId('responsible_id')->constrained('users')->cascadeOnDelete();
             $table->text('note')->nullable();
             $table->timestamps();
             $table->softDeletes();
