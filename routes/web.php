@@ -3,27 +3,13 @@
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProcurementController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProductVariantController;
 use Illuminate\Support\Facades\Route;
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
-
-// Route::get('/dashboard', function () {
-//     return view('dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
-
-// Route::middleware('auth')->group(function () {
-//     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-//     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-//     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-// });
 Route::get('/phpinfo', function () {
     phpinfo();
 });
@@ -65,9 +51,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/profile', function () {
         return view('admin.profile');
     })->name('admin.profile');
-
-
-
 
     Route::get('/executive-pengadaan-barang', function () {
         return view('admin.executive-pengadaan-barang');
@@ -122,7 +105,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::put('/edit-bahan-baku/{id}', [RawMaterialController::class, 'update'])
         ->name('admin.update-bahan-baku');
 
-
     Route::get('/edit-barang-masuk', function () {
         return view('admin.edit-barang-masuk');
     })->name('admin.edit-barang-masuk');
@@ -157,8 +139,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     });
 
-
-
     // Gudang Bahan Baku
     Route::controller(RawMaterialController::class)->group(function () {
         Route::get('/gudang-bahan-baku', 'index')->name('admin.gudang-bahan-baku');
@@ -177,7 +157,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::put('/edit/{id}', 'updateExecutive')->name('admin.edit-executive-produk.update');
         Route::delete('/delete/{id}', 'destroyExecutive')->name('admin.executive-produk.destroy');
     });
-
 
     // Employee
     Route::controller(EmployeeController::class)->prefix('employees')->group(function () {
@@ -223,5 +202,5 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/edit/{id}', 'edit')->name('edit-procurement');
         Route::put('/edit/{id}', 'update')->name('update-procurement');
     });
-
-require __DIR__ . '/auth.php';
+});
+require __DIR__.'/auth.php';
