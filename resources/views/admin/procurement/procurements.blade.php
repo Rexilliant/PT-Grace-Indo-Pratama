@@ -68,24 +68,25 @@
                     </thead>
 
                     <tbody class="bg-gray-200 divide-y divide-gray-500">
-                        @foreach ($procurements as $procurement)
-                            <tr class="hover:bg-gray-300">
-                                <td class="px-6 py-4 font-semibold">{{ $procurement->created_at->format('d/m/Y') }}</td>
-                                <td class="px-6 py-4 font-semibold leading-tight">
-                                    {{ $procurement->userRequest->employee->name ?? $procurement->userRequest->name }}</td>
-                                </td>
-                                <td class="px-6 py-4 font-semibold">{{ $procurement->province }}</td>
-
-                                <td class="px-6 py-4 font-semibold">
+                        @forelse ($procurements as $procurement)
+                            <tr class="[&>td]:border-b [&>td]:border-gray-400 hover:bg-gray-100">
+                                <td class="px-6 py-4">
+                                    {{ \Carbon\Carbon::parse($procurement->purchase_at)->format('d/m/Y') }}</td>
+                                <td class="px-6 py-4">{{ $procurement->userRequest->name ?? '-' }}</td>
+                                <td class="px-6 py-4">{{ $procurement->province }}</td>
+                                <td class="px-6 py-4">
                                     <a href="{{ route('edit-procurement', $procurement->id) }}"
-                                        class="text-[#2D2ACD] hover:underline">Lihat</a>
+                                        class="text-blue-600 hover:underline">Sunting</a>
                                 </td>
-
-                                <td
-                                    class="px-6 py-4 font-semibold {{ $procurement->status === 'Diterima' ? 'text-[#2E7E3F]' : ($procurement->status === 'Ditolak' ? 'text-[#EC0000]' : 'text-gray-600') }}">
-                                    {{ $procurement->status }}</td>
+                                <td class="px-6 py-4"><span
+                                        class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{{ $procurement->status }}</span>
+                                </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">Data Tidak Ada</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
