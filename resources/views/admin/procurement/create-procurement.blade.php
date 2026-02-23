@@ -81,8 +81,11 @@
 
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-2">Tanggal Pemesanan</label>
-                    <input type="date" value="{{ now()->format('Y-m-d') }}" readonly name="create_at"
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
+                    <input type="date" value="{{ old('purchase_at') }}" name="purchase_at"
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 " />
+                    @error('purchase_at')
+                        <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
             </div>

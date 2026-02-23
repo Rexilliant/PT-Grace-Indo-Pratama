@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductVariantController;
+use App\Http\Controllers\PurchaseReceiptController;
 use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RawMaterialController;
@@ -204,6 +206,18 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/', 'index')->name('procurements');
         Route::get('/edit/{id}', 'edit')->name('edit-procurement');
         Route::put('/edit/{id}', 'update')->name('update-procurement');
+    });
+    Route::controller(PurchaseReceiptController::class)->prefix('purchase-receipts')->group(function () {
+        Route::get('/', 'index')->name('purchase-receipts');
+        Route::get('/create', 'create')->name('create-purchase-receipt');
+        Route::post('/store', 'store')->name('store-purchase-receipt');
+        Route::get('/edit/{id}', 'edit')->name('edit-barang-masuk');
+        Route::put('/edit/{id}', 'update')->name('update-barang-masuk');
+        Route::post('/add-media/{id}', 'addMedia')->name('purchase-receipts.add-media');
+        Route::delete('/delete/{id}', 'destroy')->name('purchase-receipts.destroy');
+    });
+    Route::controller(MediaController::class)->prefix('media')->group(function () {
+        Route::delete('/delete/{mediaId}', 'delete')->name('media.delete');
     });
 });
 require __DIR__.'/auth.php';

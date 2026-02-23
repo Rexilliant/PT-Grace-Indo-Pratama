@@ -38,6 +38,9 @@
 
         {{-- HEADER --}}
         <section class="bg-white p-5 shadow border border-gray-300 rounded-lg">
+            <div class="mb-5">
+                <h2 class="text-lg font-bold">ID Pengadaan Barang: {{ $procurement->id }}</h2>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
 
                 <div>
@@ -175,11 +178,4 @@
                 </button>
             @endif
         </div>
-
-    </form>
-    <form action="" method="post">
-        <button type="submit" class="rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
-            Done
-        </button>
-    </form>
-@endsection
+    @endsection

@@ -17,8 +17,7 @@ return new class extends Migration
             $table->string('province');
             $table->string('status');
             $table->integer('total_price')->default(0);
-            // Tanggal Pemesanan
-            
+            $table->timestamp('purchase_at');
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('approved_at')->nullable();
             $table->foreignId('rejected_by')->nullable()->constrained('users')->nullOnDelete();

@@ -52,6 +52,7 @@ class ProcurementController extends Controller
             'items' => 'required|array|min:1',
             'items.*.raw_material_id' => 'required|exists:raw_materials,id',
             'items.*.quantity_requested' => 'required|integer|min:1',
+            'purchase_at' => 'required|date',
         ]);
 
         try {
@@ -61,6 +62,7 @@ class ProcurementController extends Controller
                 'province' => $validated['province'],
                 'note' => $validated['note'] ?? null,
                 'status' => 'Menunggu',
+                'purchase_at' => $validated['purchase_at'],
             ]);
 
             // Simpan data procurement items
@@ -94,15 +96,10 @@ class ProcurementController extends Controller
             ])
             ->filter(fn ($p) => ! empty($p['name']))
             ->values();
-
-        $rawMaterials = RawMaterial::select('id', 'code', 'name', 'unit')
-            ->orderBy('name')
-            ->get();
-
         $procurement = Procurement::with('procurement_items.raw_material')
             ->findOrFail($id);
 
-        return view('admin.procurement.edit-procurement', compact('provinces', 'rawMaterials', 'procurement'));
+        return view('admin.procurement.edit-procurement', compact('provinces', 'procurement'));
     }
 
     public function update(Request $request, $id)

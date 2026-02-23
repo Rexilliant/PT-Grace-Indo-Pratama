@@ -64,7 +64,7 @@
                     Pengadaan Barang
                 </a>
 
-                <a href="{{ route('admin.gudang-barang-masuk') }}"
+                <a href="{{ route('purchase-receipts') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-barang-masuk')">
                     Barang Masuk
                 </a>
@@ -289,7 +289,7 @@
                     Pengadaan Barang
                 </a>
 
-                <a href="{{ route('admin.gudang-barang-masuk') }}"
+                <a href="{{ route('purchase-receipts') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-barang-masuk')">
                     Barang Masuk
                 </a>
@@ -397,7 +397,7 @@
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-produk')">
                     Produk
                 </a>
-<a href="{{ route('admin.executive-produk-variant') }}"
+                <a href="{{ route('admin.executive-produk-variant') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-produk-variant')">
                     Produk Varian
                 </a>

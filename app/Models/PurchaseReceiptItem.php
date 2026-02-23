@@ -2,26 +2,27 @@
 
 namespace App\Models;
 
-use App\Models\Procurement;
+use App\Models\PurchaseReceipt;
 use App\Models\RawMaterial;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ProcurementItem extends Model
+
+class PurchaseReceiptItem extends Model
 {
     use SoftDeletes;
     protected $fillable = [
-        'procurement_id',
+        'purchase_receipt_id',
         'raw_material_id',
-        'quantity_requested',
+        'quantity_received',
     ];
 
-    public function procurement()
+    public function purchaseReceipt()
     {
-        return $this->belongsTo(Procurement::class);
+        return $this->belongsTo(PurchaseReceipt::class);
     }
 
-    public function raw_material()
+    public function rawMaterial()
     {
         return $this->belongsTo(RawMaterial::class);
     }
