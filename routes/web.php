@@ -9,7 +9,10 @@ use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\PurchaseReceiptController;
 use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductVariantController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/phpinfo', function () {
