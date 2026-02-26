@@ -2,23 +2,26 @@
 
 namespace App\Models;
 
+use App\Models\Procurement;
 use App\Models\RawMaterial;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class RawMaterialStock extends Model
+class ProcurementItem extends Model
 {
     use SoftDeletes;
-
-    protected $table = 'raw_material_stocks';
-
     protected $fillable = [
+        'procurement_id',
         'raw_material_id',
-        'stock',
-        'province',
+        'quantity_requested',
     ];
 
-    public function rawMaterial()
+    public function procurement()
+    {
+        return $this->belongsTo(Procurement::class);
+    }
+
+    public function raw_material()
     {
         return $this->belongsTo(RawMaterial::class);
     }

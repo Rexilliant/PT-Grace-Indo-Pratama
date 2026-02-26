@@ -3,23 +3,32 @@
 namespace App\Models;
 
 use App\Models\RawMaterial;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class RawMaterialStock extends Model
+class RawMaterialStockMovement extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'raw_material_stocks';
-
     protected $fillable = [
-        'raw_material_id',
-        'stock',
         'province',
+        'raw_material_id',
+        'type',
+        'stock',
+        'ref_type',
+        'ref_id',
+        'responsible_id',
+        'note',
     ];
 
     public function rawMaterial()
     {
         return $this->belongsTo(RawMaterial::class);
+    }
+
+    public function responsible()
+    {
+        return $this->belongsTo(User::class, 'responsible_id');
     }
 }
