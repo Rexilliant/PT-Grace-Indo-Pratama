@@ -116,29 +116,19 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.edit-produk');
     })->name('admin.edit-produk');
 
+    // Product Variant
     Route::controller(ProductVariantController::class)->group(function () {
-
-        // LIST
         Route::get('/executive-produk-variant', 'index')
             ->name('admin.executive-produk-variant');
-
-        // ADD
         Route::get('/add-executive-produk-variant', 'create')
             ->name('admin.add-executive-produk-variant');
-
         Route::post('/add-executive-produk-variant/store', 'store')
             ->name('admin.add-executive-produk-variant.store');
-
-        // EDIT / UPDATE
         Route::get('/executive-produk-variant/{id}/edit', 'edit')
             ->name('admin.executive-produk-variant.edit');
-
         Route::put('/executive-produk-variant/{id}', 'update')
             ->name('admin.executive-produk-variant.update');
-
     });
-
-
 
     // Gudang Bahan Baku
     Route::controller(RawMaterialController::class)->group(function () {
