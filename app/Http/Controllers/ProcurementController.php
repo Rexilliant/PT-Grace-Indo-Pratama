@@ -7,14 +7,131 @@ use App\Models\ProcurementItem;
 use App\Models\RawMaterial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProcurementController extends Controller
 {
-    public function index()
+    public function export(Request $request)
     {
-        $procurements = Procurement::with('procurement_items')->orderBy('created_at', 'desc')->paginate(10);
+        $query = Procurement::query()
+            ->with('userRequest')
+            ->orderBy('created_at', 'desc');
 
-        return view('admin.procurement.procurements', compact('procurements'));
+        // FILTER sama seperti index kamu
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($sub) use ($search) {
+                $sub->where('province', 'like', "%{$search}%")
+                    ->orWhereHas('userRequest', function ($u) use ($search) {
+                        $u->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('province')) {
+            $query->where('province', $request->province);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('purchase_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('purchase_at', '<=', $request->date_to);
+        }
+
+        $rows = $query->get()->map(function ($p) {
+            return [
+                'id Pengadaan' => $p->id,
+                'Tanggal Pemesanan' => $p->purchase_at,
+                'Nama Pemesan' => $p->userRequest->name ?? '-',
+                'Provinsi' => $p->province ?? '-',
+                'Status' => $p->status ?? '-',
+            ];
+        });
+
+        $export = new class($rows) implements FromCollection, WithHeadings
+        {
+            public function __construct(private $rows) {}
+
+            public function collection()
+            {
+                return $this->rows;
+            }
+
+            public function headings(): array
+            {
+                return ['id Pengadaan', 'Tanggal Pemesanan', 'Nama Pemesan', 'Provinsi', 'Status'];
+            }
+        };
+
+        return Excel::download($export, 'procurements_'.now()->format('Ymd_His').'.xlsx');
+    }
+
+    public function index(Request $request)
+    {
+        $q = Procurement::query()
+            ->with(['procurement_items', 'userRequest'])
+            ->orderBy('created_at', 'desc');
+
+        // SEARCH (contoh: cari nama pemesan / provinsi)
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $q->where(function ($sub) use ($search) {
+                $sub->where('province', 'like', "%{$search}%")
+                    ->orWhereHas('userRequest', function ($u) use ($search) {
+                        $u->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // FILTER STATUS
+        if ($request->filled('status')) {
+            $q->where('status', $request->status);
+        }
+
+        // FILTER PROVINCE
+        if ($request->filled('province')) {
+            $q->where('province', $request->province);
+        }
+
+        // FILTER TANGGAL (purchase_at)
+        if ($request->filled('date_from')) {
+            $q->whereDate('purchase_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $q->whereDate('purchase_at', '<=', $request->date_to);
+        }
+
+        // ROWS PER PAGE (dropdown 10/25/50)
+        $perPage = (int) ($request->get('per_page', 10));
+        $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
+
+        $procurements = $q->paginate($perPage)->withQueryString();
+
+        // buat dropdown province (opsional)
+        $provinces = Procurement::query()
+            ->select('province')
+            ->whereNotNull('province')
+            ->distinct()
+            ->orderBy('province')
+            ->pluck('province');
+
+        $statuses = Procurement::query()
+            ->select('status')
+            ->whereNotNull('status')
+            ->distinct()
+            ->orderBy('status')
+            ->pluck('status');
+
+        return view('admin.procurement.procurements', compact('procurements', 'provinces', 'statuses'));
     }
 
     public function create()

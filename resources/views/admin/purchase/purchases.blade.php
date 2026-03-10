@@ -14,42 +14,82 @@
             <a href="#" class="text-blue-600 hover:underline">Barang Masuk</a>
         </div>
     </section>
+    <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
+        <form action="" method="get">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 justify-between items-end">
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Nama
+                    </label>
+                    <input type="text" name="name" value="{{ request('name') }}" placeholder="Nama"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Provinsi
+                    </label>
+                    <input type="text" name="province" value="{{ request('province') }}" placeholder="Provinsi"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Tanggal Mulai
+                    </label>
+                    <input type="date" name="date_from" value="{{ request('date_from') }}" placeholder="Tanggal Mulai"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Tanggal Akhir
+                    </label>
+                    <input type="date" name="date_to" value="{{ request('date_to') }}" placeholder="Tanggal Akhir"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+                {{-- Per Page --}}
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Tampilkan
+                    </label>
+                    <select name="per_page"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none"
+                        onchange="this.form.submit()">
+                        @foreach ([10, 25, 50, 100] as $n)
+                            <option value="{{ $n }}" @selected((int) request('per_page', 10) === $n)>
+                                {{ $n }} / halaman
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <button type="submit"
+                    class="rounded-md bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 transition">
+                    Filter
+                </button>
 
+                <a href="{{ route('purchase-receipts') }}"
+                    class="rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-800 transition text-center">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </section>
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         {{-- top bar --}}
-        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-3">
-            <div class="w-full lg:max-w-[560px]">
-                <div class="relative">
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 0 0114 0z" />
-                        </svg>
-                    </div>
-                    <input type="text"
-                        class="block w-full rounded-lg border border-gray-400 bg-gray-100 pl-10 pr-3 py-2.5 text-sm text-gray-900 focus:border-gray-500 focus:ring-0"
-                        placeholder="Search for Name and Date">
-                </div>
-            </div>
+        <div class="mb-5 flex items-center gap-5">
+            <a href="#"
+                class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 0 0014.9 3" />
+                </svg>
+                Export .xlsx
+            </a>
 
-            <div class="flex items-center gap-2 justify-end">
-                <a href="#"
-                    class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
-                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
-                    </svg>
-                    Export .xlsx
-                </a>
-
-                <a href="{{ route('create-purchase-receipt') }}"
-                    class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                    <span class="text-lg leading-none">+</span>
-                    Tambah Baru
-                </a>
-            </div>
+            <a href="{{ route('create-purchase-receipt') }}"
+                class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                <span class="text-lg leading-none">+</span>
+                Tambah Baru
+            </a>
         </div>
 
         {{-- table --}}
@@ -76,8 +116,8 @@
                                     <div class="flex items-center justify-start gap-6 font-semibold">
                                         <a href="{{ route('edit-barang-masuk', $receipt->id) }}"
                                             class="text-[#2E7E3F] hover:underline">Sunting</a>
-                                        <form action="{{ route('purchase-receipts.destroy', $receipt->id) }}" method="post"
-                                            class="delete-receipt-form">
+                                        <form action="{{ route('purchase-receipts.destroy', $receipt->id) }}"
+                                            method="post" class="delete-receipt-form">
                                             @csrf
                                             @method('DELETE')
                                             <button type="button"

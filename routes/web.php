@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\LogErrorController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProcurementController;
@@ -9,10 +10,7 @@ use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\PurchaseReceiptController;
 use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProductVariantController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/phpinfo', function () {
@@ -42,9 +40,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     Route::get('/gudang-bahan-baku', [RawMaterialController::class, 'index'])
         ->name('admin.gudang-bahan-baku');
-
-    Route::get('/gudang-stok-bahan-baku', [RawMaterialController::class, 'stockIndex'])
-        ->name('admin.gudang-stok-bahan-baku');
     Route::get('/pemasaran-permintaan-pengiriman', function () {
         return view('admin.pemasaran-permintaan-pengiriman');
     })->name('admin.pemasaran-permintaan-pengiriman');
@@ -219,5 +214,10 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::controller(MediaController::class)->prefix('media')->group(function () {
         Route::delete('/delete/{mediaId}', 'delete')->name('media.delete');
     });
+    Route::controller(LogErrorController::class)->prefix('log-errors')->group(function () {
+        Route::get('/', 'index')->name('log-errors');
+    });
+    Route::get('/procurements/export', [ProcurementController::class, 'export'])
+        ->name('procurements.export');
 });
 require __DIR__.'/auth.php';

@@ -13,12 +13,35 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Throwable;
 
 class PurchaseReceiptController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $receipts = PurchaseReceipt::orderBy('created_at', 'desc')->paginate(10);
+        $q = PurchaseReceipt::query()->with('receivedBy')
+            ->orderBy('created_at', 'desc');
+        // FILTER TANGGAL (purchase_at)
+        if ($request->filled('date_from')) {
+            $q->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $q->whereDate('created_at', '<=', $request->date_to);
+        }
+        if ($request->filled('name')) {
+            $search = $request->name;
+            $q->whereHas('receivedBy', function ($u) use ($search) {
+                $u->where('name', 'like', "%{$search}%");
+            });
+        }
+        // FILTER PROVINCE
+        if ($request->filled('province')) {
+            $q->where('province', 'like', "%{$request->province}%");
+        }
+        // ROWS PER PAGE (dropdown 10/25/50)
+        $perPage = (int) ($request->get('per_page', 10));
+        $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
+        $receipts = $q->paginate($perPage)->withQueryString();
 
         return view('admin.purchase.purchases', compact('receipts'));
     }
