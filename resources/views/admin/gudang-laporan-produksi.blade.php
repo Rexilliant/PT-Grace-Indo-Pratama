@@ -1,97 +1,10 @@
 @extends('admin.layout.master')
 
-{{-- sidebar active --}}
 @section('open-gudang', 'open')
 @section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-gudang-laporan-produksi', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
-    @php
-        // ===== DUMMY LIST (TABLE) =====
-        $rows = [
-            ['30/11/2025', 'BHOS0001', 'BHOS Ekstra', 'Bambang Pratama Putra Hadi', 'Riau'],
-            ['30/11/2025', 'BHOS0002', 'BHOS Turbo', 'Bambang Pratama Putra Hadi', 'Riau'],
-            ['30/11/2025', 'BHOS0003', 'BHOS Ekstra', 'Bambang Pratama Putra Hadi', 'Riau'],
-            ['30/11/2025', 'BHOS0004', 'BHOS Ekstra', 'Bambang Pratama Putra Hadi', 'Riau'],
-            ['30/11/2025', 'BHOS0005', 'BHOS Turbo', 'Bambang Pratama Putra Hadi', 'Riau'],
-        ];
-
-        // helper SKU (dummy)
-        $skuOf = function ($jenis) {
-            return match ($jenis) {
-                'BHOS Ekstra' => 'BHOSEK1000',
-                'BHOS Turbo' => 'BHOSTB1000',
-                default => '-',
-            };
-        };
-
-        // ===== DUMMY DETAIL UNTUK MODAL "LIHAT" =====
-        // key = id_produksi (kolom ID Barang di table)
-        $details = [
-            'BHOS0001' => [
-                'laporan_no' => 'BRMS0001',
-                'pj' => 'Bambang Pratama Putra Hadi',
-                'provinsi' => 'Riau',
-                'tanggal_masuk' => '30/11/2025',
-                'id_produksi' => 'BHOS0001',
-                'sku' => 'BHOSEK1000',
-                'nama_produk' => 'BHOS Ekstra',
-                'jumlah_produksi' => '150 Ltr',
-                'items' => [
-                    ['CA001', 'Kalsium', '200 Kg', '150 Kg'],
-                    ['K001', 'Kalium', '200 Kg', '150 Kg'],
-                    ['CL001', 'Klorida', '200 Kg', '150 Kg'],
-                    ['MG001', 'Magnesium', '200 Kg', '150 Kg'],
-                ],
-            ],
-            'BHOS0002' => [
-                'laporan_no' => 'BRMS0002',
-                'pj' => 'Bambang Pratama Putra Hadi',
-                'provinsi' => 'Riau',
-                'tanggal_masuk' => '30/11/2025',
-                'id_produksi' => 'BHOS0002',
-                'sku' => 'BHOSTB1000',
-                'nama_produk' => 'BHOS Turbo',
-                'jumlah_produksi' => '150 Kg',
-                'items' => [['CA001', 'Kalsium', '200 Kg', '150 Kg'], ['K001', 'Kalium', '200 Kg', '150 Kg']],
-            ],
-            'BHOS0003' => [
-                'laporan_no' => 'BRMS0003',
-                'pj' => 'Bambang Pratama Putra Hadi',
-                'provinsi' => 'Riau',
-                'tanggal_masuk' => '30/11/2025',
-                'id_produksi' => 'BHOS0003',
-                'sku' => 'BHOSEK1000',
-                'nama_produk' => 'BHOS Ekstra',
-                'jumlah_produksi' => '150 Ltr',
-                'items' => [['CL001', 'Klorida', '200 Kg', '150 Kg'], ['MG001', 'Magnesium', '200 Kg', '150 Kg']],
-            ],
-            'BHOS0004' => [
-                'laporan_no' => 'BRMS0004',
-                'pj' => 'Bambang Pratama Putra Hadi',
-                'provinsi' => 'Riau',
-                'tanggal_masuk' => '30/11/2025',
-                'id_produksi' => 'BHOS0004',
-                'sku' => 'BHOSEK1000',
-                'nama_produk' => 'BHOS Ekstra',
-                'jumlah_produksi' => '150 Ltr',
-                'items' => [['CA001', 'Kalsium', '200 Kg', '150 Kg'], ['CL001', 'Klorida', '200 Kg', '150 Kg']],
-            ],
-            'BHOS0005' => [
-                'laporan_no' => 'BRMS0005',
-                'pj' => 'Bambang Pratama Putra Hadi',
-                'provinsi' => 'Riau',
-                'tanggal_masuk' => '30/11/2025',
-                'id_produksi' => 'BHOS0005',
-                'sku' => 'BHOSTB1000',
-                'nama_produk' => 'BHOS Turbo',
-                'jumlah_produksi' => '150 Kg',
-                'items' => [['K001', 'Kalium', '200 Kg', '150 Kg'], ['MG001', 'Magnesium', '200 Kg', '150 Kg']],
-            ],
-        ];
-    @endphp
-
-    {{-- breadcrumb --}}
     <section class="mb-5">
         <div class="mb-4 text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Gudang</span>
@@ -100,14 +13,25 @@
         </div>
     </section>
 
+    @if (session('success'))
+        <div class="mb-4 rounded-lg border border-green-300 bg-green-50 p-4 text-sm text-green-700">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="mb-4 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         {{-- top bar --}}
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-3">
-            {{-- search --}}
             <div class="w-full lg:max-w-[520px]">
                 <div class="relative">
                     <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -119,16 +43,15 @@
                 </div>
             </div>
 
-            {{-- actions --}}
             <div class="flex items-center gap-2 justify-end">
                 <a href="#"
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
+                            d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 0 0014.9 3" />
                     </svg>
-                    Export xlxs.
+                    Export .xlsx
                 </a>
 
                 <a href="{{ route('admin.add-pilih-produk') }}"
@@ -139,107 +62,118 @@
             </div>
         </div>
 
-        {{-- table --}}
         <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-gray-900">
                     <thead class="bg-[#92d7a1] text-gray-900">
                         <tr class="[&>th]:border-b [&>th]:border-gray-600">
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Produksi</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">ID Barang</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">SKU</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Jenis Barang</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Penanggung Jawab</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
+                            <th class="px-6 py-4 font-extrabold text-left">Tanggal Produksi</th>
+                            <th class="px-6 py-4 font-extrabold text-left">ID Barang</th>
+                            <th class="px-6 py-4 font-extrabold text-left">SKU</th>
+                            <th class="px-6 py-4 font-extrabold text-left">Jenis Barang</th>
+                            <th class="px-6 py-4 font-extrabold text-left">Penanggung Jawab</th>
+                            <th class="px-6 py-4 font-extrabold text-left">Provinsi</th>
+                            <th class="px-6 py-4 font-extrabold text-left">Aksi</th>
                         </tr>
                     </thead>
 
                     <tbody class="bg-gray-200 divide-y divide-gray-600">
-                        @foreach ($rows as $r)
-                            @php $sku = $skuOf($r[2]); @endphp
+                        @forelse ($productionBatches as $batch)
+                            @php
+                                $variant = $batch->productStock?->productVariant;
+                                $product = $variant?->product;
+                                $modalData = [
+                                    'laporan_no' => 'PB-' . str_pad($batch->id, 5, '0', STR_PAD_LEFT),
+                                    'pj' => $batch->personResponsible?->name ?? '-',
+                                    'provinsi' => $batch->province,
+                                    'tanggal_masuk' => optional($batch->entry_date)->format('d/m/Y'),
+                                    'id_produksi' => $product?->code ?? '-',
+                                    'sku' => $variant?->sku ?? '-',
+                                    'nama_produk' => $variant?->name ?? '-',
+                                    'jumlah_produksi' => $batch->quantity . ' ' . ($variant?->unit ?? ''),
+                                    'items' => $batch->materials
+                                        ->map(function ($material) {
+                                            return [
+                                                $material->rawMaterial?->code ?? '-',
+                                                $material->rawMaterial?->name ?? '-',
+                                                $material->stock . ' ' . ($material->rawMaterial?->unit ?? ''),
+                                                $material->quantity_use . ' ' . ($material->rawMaterial?->unit ?? ''),
+                                            ];
+                                        })
+                                        ->values()
+                                        ->toArray(),
+                                ];
+                            @endphp
+
                             <tr class="hover:bg-gray-300">
-                                <td class="px-6 py-4 font-semibold">{{ $r[0] }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $r[1] }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $sku }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $r[2] }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $r[3] }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $r[4] }}</td>
+                                <td class="px-6 py-4 font-semibold">
+                                    {{ optional($batch->entry_date)->format('d/m/Y') }}
+                                </td>
+                                <td class="px-6 py-4 font-semibold">
+                                    {{ $product?->code ?? '-' }}
+                                </td>
+                                <td class="px-6 py-4 font-semibold">
+                                    {{ $variant?->sku ?? '-' }}
+                                </td>
+                                <td class="px-6 py-4 font-semibold">
+                                    {{ $variant?->name ?? '-' }}
+                                </td>
+                                <td class="px-6 py-4 font-semibold">
+                                    {{ $batch->personResponsible?->name ?? '-' }}
+                                </td>
+                                <td class="px-6 py-4 font-semibold">
+                                    {{ $batch->province }}
+                                </td>
 
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-start gap-6 font-semibold">
-                                        <a href="{{ route('admin.edit-produk') }}"
-                                            class="text-[#2E7E3F] hover:underline">Sunting</a>
+                                        <a href="{{ route('admin.edit-produk', $batch->id) }}"
+                                            class="text-[#2E7E3F] hover:underline">
+                                            Sunting
+                                        </a>
 
-                                        {{-- ✅ LIHAT: buka modal --}}
-                                        <button type="button" onclick='openLaporanModal(@json($details[$r[1]] ?? null))'
+                                        <button type="button" onclick='openLaporanModal(@json($modalData))'
                                             class="text-[#2D2ACD] hover:underline">
                                             Lihat
                                         </button>
 
-                                        <a href="#" class="text-[#EC0000] hover:underline">Hapus</a>
+                                        <form action="{{ route('admin.production.delete', $batch->id) }}" method="POST"
+                                            onsubmit="return confirm('Yakin ingin menghapus data produksi ini?')"
+                                            class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-[#EC0000] hover:underline">
+                                                Hapus
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="7" class="px-6 py-6 text-center text-gray-600 font-semibold">
+                                    Data produksi belum tersedia.
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
 
-            {{-- footer / pagination --}}
-            <div
-                class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between
-                       bg-gray-200 px-3 sm:px-4 md:px-5 py-3 sm:py-4 border-t border-gray-400">
-
-                <div class="text-xs sm:text-sm font-semibold text-gray-900">
-                    Showing 1–10 of 100
-                </div>
-
-                <div class="w-full sm:w-auto overflow-x-auto">
-                    <div class="inline-flex w-max rounded-lg border border-gray-400 overflow-hidden shadow-sm">
-                        <a href="#"
-                            class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gray-200 hover:bg-gray-300 border-r border-gray-400">
-                            Previous
-                        </a>
-                        <a href="#"
-                            class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gray-200 hover:bg-gray-300 border-r border-gray-400">
-                            1
-                        </a>
-                        <a href="#"
-                            class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gray-200 hover:bg-gray-300 border-r border-gray-400">
-                            2
-                        </a>
-                        <span
-                            class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gray-200 border-r border-gray-400">
-                            …
-                        </span>
-                        <a href="#"
-                            class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gray-200 hover:bg-gray-300 border-r border-gray-400">
-                            10
-                        </a>
-                        <a href="#"
-                            class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gray-200 hover:bg-gray-300">
-                            Next
-                        </a>
-                    </div>
-                </div>
-            </div>
+            {{ $productionBatches->links('vendor.pagination.pagination') }}
         </div>
     </section>
 
-    {{-- ========================= --}}
-    {{-- MODAL LIHAT (READ ONLY) --}}
-    {{-- ========================= --}}
+
+
     <div id="laporanModal"
         class="fixed inset-0 z-[9999] hidden bg-black/50 backdrop-blur-sm items-center justify-center p-2 sm:p-4">
         <div
             class="bg-[#f3f3f3] rounded-xl shadow-2xl w-full max-w-5xl mx-auto overflow-hidden animate-scale-in
                    max-h-[calc(100dvh-16px)] sm:max-h-[calc(100dvh-32px)] flex flex-col border border-gray-300">
 
-            {{-- header --}}
             <div
-                class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-300 bg-[#f3f3f3] flex items-center justify-between
-                       sticky top-0 z-10">
+                class="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-300 bg-[#f3f3f3] flex items-center justify-between sticky top-0 z-10">
                 <div class="text-sm sm:text-base font-bold text-gray-800">
                     Laporan Produksi Nomor: <span id="lm_no" class="font-extrabold">-</span>
                 </div>
@@ -249,58 +183,45 @@
                 </button>
             </div>
 
-            {{-- body scroll --}}
             <div class="px-4 sm:px-6 py-4 overflow-y-auto overscroll-contain">
-                {{-- top fields --}}
                 <div class="grid grid-cols-1 mb-5 md:grid-cols-3 gap-4 sm:gap-5">
-                    <div class="md:col-span-1">
+                    <div>
                         <label class="block text-xs font-bold text-gray-700 mb-2">Nama Penanggung Jawab</label>
                         <input id="lm_pj" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                     </div>
-                    <div class="md:col-span-1">
+                    <div>
                         <label class="block text-xs font-bold text-gray-700 mb-2">Provinsi</label>
                         <input id="lm_provinsi" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                     </div>
-                    <div class="md:col-span-1">
+                    <div>
                         <label class="block text-xs font-bold text-gray-700 mb-2">Tanggal Masuk</label>
                         <input id="lm_tanggal" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed">
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                     </div>
                 </div>
 
-                {{-- PRODUK UTAMA (RESPONSIVE: mobile card, iPad+ table grid) --}}
                 <div class="rounded-lg border border-gray-300 bg-gray-50 p-3 sm:p-4">
-                    {{-- header row (md+) --}}
                     <div class="hidden md:grid grid-cols-4 gap-4 text-xs font-bold text-gray-700 mb-3">
                         <div>ID Produksi</div>
                         <div>Stock Keeping Unit</div>
                         <div>Nama Produk</div>
                         <div>Jumlah Produksi</div>
                     </div>
-
-                    {{-- rows --}}
-                    <div id="lm_produk_row" class="space-y-3">
-                        {{-- injected by JS --}}
-                    </div>
+                    <div id="lm_produk_row" class="space-y-3"></div>
                 </div>
 
-                {{-- item list --}}
                 <div class="mt-5 rounded-lg border border-gray-300 bg-gray-50 p-3 sm:p-4">
                     <div class="hidden md:grid grid-cols-4 gap-4 text-xs font-bold text-gray-700 mb-3">
                         <div>ID Barang</div>
                         <div>Nama Barang</div>
-                        <div>Stok Tersedia</div>
+                        <div>Stok Saat Dipakai</div>
                         <div>Jumlah Stok Digunakan</div>
                     </div>
-
-                    <div id="lm_items" class="space-y-3">
-                        {{-- injected --}}
-                    </div>
+                    <div id="lm_items" class="space-y-3"></div>
                 </div>
 
-                {{-- footer button --}}
                 <div class="flex justify-end pt-6">
                     <button type="button" onclick="closeLaporanModal()"
                         class="inline-flex items-center justify-center rounded-lg bg-red-600 px-10 py-3 text-sm font-bold text-white hover:bg-red-700">
@@ -331,17 +252,16 @@
 
     <script>
         const laporanModal = document.getElementById('laporanModal');
-
         const lmNo = document.getElementById('lm_no');
         const lmPj = document.getElementById('lm_pj');
         const lmProvinsi = document.getElementById('lm_provinsi');
         const lmTanggal = document.getElementById('lm_tanggal');
-
         const lmProdukRow = document.getElementById('lm_produk_row');
         const lmItems = document.getElementById('lm_items');
 
         function esc(str) {
-            return String(str ?? '').replace(/&/g, '&amp;')
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
@@ -349,46 +269,31 @@
         }
 
         function renderProdukUtamaRow(data) {
-            if (!lmProdukRow) return;
-
             lmProdukRow.innerHTML = `
-                {{-- MOBILE: card --}}
                 <div class="md:hidden rounded-xl border border-gray-300 bg-white p-4 space-y-3">
                     <div>
                         <div class="text-[11px] font-bold text-gray-600 mb-1">ID Produksi</div>
-                        <input value="${esc(data?.id_produksi)}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                        <input value="${esc(data?.id_produksi)}" readonly class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                     </div>
-
                     <div>
                         <div class="text-[11px] font-bold text-gray-600 mb-1">Stock Keeping Unit</div>
-                        <input value="${esc(data?.sku)}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                        <input value="${esc(data?.sku)}" readonly class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                     </div>
-
                     <div>
                         <div class="text-[11px] font-bold text-gray-600 mb-1">Nama Produk</div>
-                        <input value="${esc(data?.nama_produk)}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                        <input value="${esc(data?.nama_produk)}" readonly class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                     </div>
-
                     <div>
                         <div class="text-[11px] font-bold text-gray-600 mb-1">Jumlah Produksi</div>
-                        <input value="${esc(data?.jumlah_produksi)}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                        <input value="${esc(data?.jumlah_produksi)}" readonly class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                     </div>
                 </div>
 
-                {{-- iPad+ : grid row --}}
                 <div class="hidden md:grid grid-cols-4 gap-3">
-                    <input value="${esc(data?.id_produksi)}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
-                    <input value="${esc(data?.sku)}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
-                    <input value="${esc(data?.nama_produk)}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
-                    <input value="${esc(data?.jumlah_produksi)}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                    <input value="${esc(data?.id_produksi)}" readonly class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
+                    <input value="${esc(data?.sku)}" readonly class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
+                    <input value="${esc(data?.nama_produk)}" readonly class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
+                    <input value="${esc(data?.jumlah_produksi)}" readonly class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                 </div>
             `;
         }
@@ -397,55 +302,34 @@
             lmItems.innerHTML = '';
 
             (items || []).forEach((v) => {
-                const idBarang = esc(v[0]);
-                const namaBarang = esc(v[1]);
-                const stok = esc(v[2]);
-                const digunakan = esc(v[3]);
-
                 const wrap = document.createElement('div');
-                wrap.className = 'space-y-0';
-
                 wrap.innerHTML = `
-                    {{-- MOBILE: card --}}
                     <div class="md:hidden rounded-xl border border-gray-300 bg-white p-4 space-y-3">
                         <div>
                             <div class="text-[11px] font-bold text-gray-600 mb-1">ID Barang</div>
-                            <input value="${idBarang}" readonly
-                                class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                            <input value="${esc(v[0])}" readonly class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                         </div>
-
                         <div>
                             <div class="text-[11px] font-bold text-gray-600 mb-1">Nama Barang</div>
-                            <input value="${namaBarang}" readonly
-                                class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                            <input value="${esc(v[1])}" readonly class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                         </div>
-
                         <div>
-                            <div class="text-[11px] font-bold text-gray-600 mb-1">Stok Tersedia</div>
-                            <input value="${stok}" readonly
-                                class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                            <div class="text-[11px] font-bold text-gray-600 mb-1">Stok Saat Dipakai</div>
+                            <input value="${esc(v[2])}" readonly class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                         </div>
-
                         <div>
                             <div class="text-[11px] font-bold text-gray-600 mb-1">Jumlah Stok Digunakan</div>
-                            <input value="${digunakan}" readonly
-                                class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                            <input value="${esc(v[3])}" readonly class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                         </div>
                     </div>
 
-                    {{-- iPad+ : grid row --}}
                     <div class="hidden md:grid grid-cols-4 gap-3">
-                        <input value="${idBarang}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
-                        <input value="${namaBarang}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
-                        <input value="${stok}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
-                        <input value="${digunakan}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 cursor-not-allowed" />
+                        <input value="${esc(v[0])}" readonly class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
+                        <input value="${esc(v[1])}" readonly class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
+                        <input value="${esc(v[2])}" readonly class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
+                        <input value="${esc(v[3])}" readonly class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                     </div>
                 `;
-
                 lmItems.appendChild(wrap);
             });
         }
@@ -472,12 +356,10 @@
             document.body.classList.remove('overflow-hidden');
         }
 
-        // close on backdrop click
         laporanModal?.addEventListener('click', (e) => {
             if (e.target === laporanModal) closeLaporanModal();
         });
 
-        // close on ESC
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && laporanModal && !laporanModal.classList.contains('hidden')) {
                 closeLaporanModal();

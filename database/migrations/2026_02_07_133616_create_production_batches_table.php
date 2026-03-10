@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -17,7 +16,6 @@ return new class extends Migration
             $table->foreignId('product_stock_id')->constrained('product_stocks')->cascadeOnDelete();
             $table->string('province');
             $table->date('entry_date');
-            $table->integer('stock');
             $table->integer('quantity');
             $table->string('note')->nullable();
             $table->string('status');
