@@ -12,7 +12,7 @@ class ProductVariantController extends Controller
     {
         $q = $request->get('q');
 
-        $variants = \App\Models\ProductVariant::query()
+        $variants = ProductVariant::query()
             ->when($q, function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
                     $sub->where('sku', 'like', "%{$q}%")
@@ -50,9 +50,29 @@ class ProductVariantController extends Controller
             'unit' => ['required', 'string', 'max:255'],
             'price' => ['required', 'integer', 'min:0'],
             'status' => ['required', 'in:aktif,nonaktif'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        ProductVariant::create($validated);
+        $variant = ProductVariant::create([
+            'product_id' => $validated['product_id'],
+            'sku' => $validated['sku'],
+            'name' => $validated['name'],
+            'pack_size' => $validated['pack_size'],
+            'unit' => $validated['unit'],
+            'price' => $validated['price'],
+            'status' => $validated['status'],
+        ]);
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $extension = $file->getClientOriginalExtension();
+            $fileName = now()->format('Ymd_His') . '_' . rand(100, 999) . '.' . $extension;
+
+            $variant
+                ->addMedia($file)
+                ->usingFileName($fileName)
+                ->toMediaCollection('product_variant_image');
+        }
 
         return redirect()
             ->route('admin.executive-produk-variant')
@@ -81,9 +101,29 @@ class ProductVariantController extends Controller
             'unit' => ['required', 'string', 'max:255'],
             'price' => ['required', 'integer', 'min:0'],
             'status' => ['required', 'in:aktif,nonaktif'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        $variant->update($validated);
+        $variant->update([
+            'product_id' => $validated['product_id'],
+            'sku' => $validated['sku'],
+            'name' => $validated['name'],
+            'pack_size' => $validated['pack_size'],
+            'unit' => $validated['unit'],
+            'price' => $validated['price'],
+            'status' => $validated['status'],
+        ]);
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $extension = $file->getClientOriginalExtension();
+            $fileName = now()->format('Ymd_His') . '_' . rand(100, 999) . '.' . $extension;
+
+            $variant
+                ->addMedia($file)
+                ->usingFileName($fileName)
+                ->toMediaCollection('product_variant_image');
+        }
 
         return redirect()
             ->route('admin.executive-produk-variant')

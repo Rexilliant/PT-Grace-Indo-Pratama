@@ -17,14 +17,15 @@
         </div>
     </section>
 
-    <form action="{{ route('admin.add-executive-produk-baru.store') }}" method="POST" class="space-y-4">
+    <form action="{{ route('admin.add-executive-produk-baru.store') }}" method="POST" enctype="multipart/form-data"
+        class="space-y-4">
         @csrf
 
         {{-- FORM CARD --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
-                {{-- ID Produk (DB: code) --}}
+                {{-- ID Produk --}}
                 <div class="sm:col-span-1">
                     <label class="block text-sm font-bold mb-2">ID Produk</label>
                     <input name="code" type="text" placeholder="Contoh: BHOSEXT" value="{{ old('code') }}"
@@ -37,7 +38,7 @@
                     @enderror
                 </div>
 
-                {{-- Nama Produk (DB: name) --}}
+                {{-- Nama Produk --}}
                 <div class="sm:col-span-1">
                     <label class="block text-sm font-bold mb-2">Nama Produk</label>
                     <input name="name" type="text" placeholder="Contoh: BHOS Ekstra" value="{{ old('name') }}"
@@ -50,7 +51,7 @@
                     @enderror
                 </div>
 
-                {{-- Status (DB: status) --}}
+                {{-- Status --}}
                 <div class="sm:col-span-2 lg:col-span-1">
                     <label class="block text-sm font-bold mb-2">Status</label>
                     <select name="status"
@@ -67,7 +68,7 @@
                     @enderror
                 </div>
 
-                {{-- Deskripsi Produk (DB: description) --}}
+                {{-- Deskripsi Produk --}}
                 <div class="sm:col-span-2 lg:col-span-3">
                     <label class="block text-sm font-bold mb-2">Deskripsi Produk</label>
                     <textarea name="description" rows="5" placeholder="Tuliskan deskripsi produk..."
@@ -83,6 +84,26 @@
                     <p class="mt-2 text-xs text-gray-600">
                         Tips: Jelaskan kegunaan, keunggulan, ukuran/varian, dan informasi penting lainnya.
                     </p>
+                </div>
+
+                {{-- Gambar Produk --}}
+                <div class="sm:col-span-2 lg:col-span-3">
+                    <label class="block text-sm font-bold mb-2">Gambar Produk</label>
+                    <input type="file" name="image" id="image" accept="image/*"
+                        class="w-full rounded-md border border-gray-400 bg-white
+               px-3 py-2.5 text-sm font-semibold text-gray-900
+               focus:border-blue-600 focus:ring-0
+               @error('image') border-red-500 focus:border-red-600 @enderror">
+
+                    @error('image')
+                        <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
+                    @enderror
+
+                    <div class="mt-3">
+                        <img id="imagePreview"
+                            class="hidden h-32 w-32 rounded-lg object-cover border border-gray-300 bg-white"
+                            alt="Preview Gambar">
+                    </div>
                 </div>
 
             </div>
@@ -131,7 +152,6 @@
         </div>
     </div>
 
-    {{-- Animasi modal (kalau belum ada di global CSS) --}}
     <style>
         @keyframes scaleIn {
             from {
@@ -151,26 +171,24 @@
     </style>
 
     <script>
-        const modal = document.getElementById('cancelModal');
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageInput = document.getElementById('image');
+            const imagePreview = document.getElementById('imagePreview');
 
-        function openCancelModal() {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
+            if (!imageInput || !imagePreview) return;
 
-        function closeCancelModal() {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
 
-        // Optional: tutup modal kalau klik area gelap (overlay)
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeCancelModal();
-        });
+                if (!file) {
+                    imagePreview.classList.add('hidden');
+                    imagePreview.removeAttribute('src');
+                    return;
+                }
 
-        // Optional: ESC untuk tutup modal
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal.classList.contains('flex')) closeCancelModal();
+                imagePreview.src = URL.createObjectURL(file);
+                imagePreview.classList.remove('hidden');
+            });
         });
     </script>
 @endsection

@@ -246,7 +246,7 @@
 
                         <div>
                             <label class="block text-sm font-bold mb-2">Stok Digunakan</label>
-                            <input type="number" min="1" name="items[${index}][quantity_use]"
+                            <input type="number" min="0" name="items[${index}][quantity_use]"
                                 class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900"
                                 placeholder="Masukkan jumlah">
                         </div>

@@ -21,9 +21,26 @@ class ProductController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'status' => ['required', 'in:aktif,nonaktif'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        Product::create($validated);
+        $product = Product::create([
+            'code' => $validated['code'],
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'status' => $validated['status'],
+        ]);
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $extension = $file->getClientOriginalExtension();
+            $fileName = now()->format('Ymd_His') . '_' . rand(100, 999) . '.' . $extension;
+
+            $product
+                ->addMedia($file)
+                ->usingFileName($fileName)
+                ->toMediaCollection('product_image');
+        }
 
         return redirect()
             ->route('admin.executive-produk')
@@ -50,9 +67,26 @@ class ProductController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'status' => ['required', 'in:aktif,nonaktif'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        $product->update($validated);
+        $product->update([
+            'code' => $validated['code'],
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'status' => $validated['status'],
+        ]);
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $extension = $file->getClientOriginalExtension();
+            $fileName = now()->format('Ymd_His') . '_' . rand(100, 999) . '.' . $extension;
+
+            $product
+                ->addMedia($file)
+                ->usingFileName($fileName)
+                ->toMediaCollection('product_image');
+        }
 
         return redirect()
             ->route('admin.executive-produk')
