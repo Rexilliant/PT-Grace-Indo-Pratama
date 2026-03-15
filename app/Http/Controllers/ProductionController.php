@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ProductStock;
-use App\Models\ProductVariant;
+use App\Http\Controllers\Controller;
+use App\Models\Product;
 use App\Models\ProductionBatch;
 use App\Models\ProductionHasMaterial;
+use App\Models\ProductStock;
+use App\Models\ProductVariant;
 use App\Models\RawMaterialStock;
 use App\Models\RawMaterialStockMovement;
+use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Http\Client\Response;
-use App\Models\Product;
 
 class ProductionController extends Controller
 {
