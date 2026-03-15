@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\ProductionBatch;
+use App\Models\ProductVariant;
+use App\Models\ShippmentItem;
 use Illuminate\Database\Eloquent\Model;
 
 class ProductStock extends Model

@@ -60,7 +60,7 @@ class ProductionController extends Controller
         ])
             ->orderByDesc('entry_date')
             ->orderByDesc('id')
-            ->paginate(1);
+            ->paginate(5);
 
         return view('admin.gudang-laporan-produksi', compact('productionBatches'));
     }
@@ -237,7 +237,7 @@ class ProductionController extends Controller
             'quantity' => ['required', 'integer', 'min:1'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.raw_material_id' => ['required', 'exists:raw_materials,id'],
-            'items.*.quantity_use' => ['required', 'integer', 'min:1'],
+            'items.*.quantity_use' => ['required', 'integer', 'min:0'],
             'note' => ['nullable', 'string'],
         ]);
 
@@ -283,6 +283,10 @@ class ProductionController extends Controller
                         ->where('province', $province)
                         ->lockForUpdate()
                         ->first();
+
+                    if ($quantityUse === 0) {
+                        continue;
+                    }
 
                     if (!$rawStock) {
                         throw new \Exception("Stok bahan baku tidak ditemukan untuk provinsi {$province}.");
@@ -354,7 +358,7 @@ class ProductionController extends Controller
             'quantity' => ['required', 'integer', 'min:1'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.raw_material_id' => ['required', 'exists:raw_materials,id'],
-            'items.*.quantity_use' => ['required', 'integer', 'min:1'],
+            'items.*.quantity_use' => ['required', 'integer', 'min:0'],
             'note' => ['nullable', 'string'],
         ]);
 
@@ -440,6 +444,10 @@ class ProductionController extends Controller
                         ->where('province', $newProvince)
                         ->lockForUpdate()
                         ->first();
+
+                    if ($quantityUse === 0) {
+                        continue;
+                    }
 
                     if (!$rawStock) {
                         throw new \Exception("Stok bahan baku tidak ditemukan untuk provinsi {$newProvince}.");

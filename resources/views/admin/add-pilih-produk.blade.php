@@ -55,7 +55,7 @@
 
                     <div class="p-4">
                         <div class="rounded-xl border border-gray-200 overflow-hidden bg-gray-50">
-                            <img src="{{ optional($p->product)->image ? asset($p->product->image) : asset('build/image/bhos-logo.png') }}"
+                            <img src="{{ $p->getFirstMediaUrl('product_variant_image') ?: asset('build/image/bhos-logo.png') }}"
                                 alt="{{ $p->name }}" class="w-full h-44 object-cover">
                         </div>
 

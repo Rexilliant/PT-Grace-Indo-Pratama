@@ -8,9 +8,11 @@ use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\ProductVariantController;
+use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\PurchaseReceiptController;
 use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\ShippmentController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -101,6 +103,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         [ProductionController::class, 'pilihProduk']
     )->name('admin.add-pilih-produk');
 
+
     // This Point
     Route::prefix('admin')
         ->name('admin.')
@@ -131,26 +134,18 @@ Route::middleware('auth')->prefix('admin')->group(function () {
                 ->name('production.delete');
         });
 
+    // Product Variant
     Route::controller(ProductVariantController::class)->group(function () {
-
-        // LIST
         Route::get('/executive-produk-variant', 'index')
             ->name('admin.executive-produk-variant');
-
-        // ADD
         Route::get('/add-executive-produk-variant', 'create')
             ->name('admin.add-executive-produk-variant');
-
         Route::post('/add-executive-produk-variant/store', 'store')
             ->name('admin.add-executive-produk-variant.store');
-
-        // EDIT / UPDATE
         Route::get('/executive-produk-variant/{id}/edit', 'edit')
             ->name('admin.executive-produk-variant.edit');
-
         Route::put('/executive-produk-variant/{id}', 'update')
             ->name('admin.executive-produk-variant.update');
-
     });
 
     // Bahan Baku
@@ -244,4 +239,4 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::delete('/delete/{id}', 'destroy')->name('delete-shippment');
     });
 });
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
