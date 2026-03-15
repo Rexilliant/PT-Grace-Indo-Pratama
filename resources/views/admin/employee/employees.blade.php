@@ -12,6 +12,75 @@
             <span class="text-blue-600">Daftar Karyawan</span>
         </div>
     </section>
+    <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
+        {{-- top bar --}}
+        <form method="GET" class="mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end">
+
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        NIP
+                    </label>
+                    <input type="text" name="nip" value="{{ request('nip') }}" placeholder="NIP"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Nama
+                    </label>
+                    <input type="text" name="name" value="{{ request('name') }}" placeholder="Nama"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Jabatan
+                    </label>
+                    <input type="text" name="position" value="{{ request('position') }}" placeholder="Jabatan"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Email
+                    </label>
+                    <input type="text" name="email" value="{{ request('email') }}" placeholder="Email"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        No. Hp
+                    </label>
+                    <input type="text" name="phone" value="{{ request('phone') }}" placeholder="No. Hp"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+
+                {{-- Per Page --}}
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Tampilkan
+                    </label>
+                    <select name="per_page"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none"
+                        onchange="this.form.submit()">
+                        @foreach ([10, 25, 50, 100] as $n)
+                            <option value="{{ $n }}" @selected((int) request('per_page', 10) === $n)>
+                                {{ $n }} / halaman
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <button type="submit"
+                    class="rounded-md bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 transition">
+                    Filter
+                </button>
+
+                <a href="{{ route('employees') }}"
+                    class="rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-800 transition text-center">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </section>
 
     <section class="p-5 rounded-2xl shadow-lg border border-gray-300">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -39,56 +108,56 @@
         {{-- Card Table --}}
         <div class="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+                <table class="w-full text-sm text-left text-gray-900">
+                    <thead class="bg-[#5aba6f]/70 text-gray-900">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th class="px-6 py-4 font-extrabold text-left">
                                 NIP
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th class="px-6 py-4 font-extrabold text-left">
                                 Nama
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th class="px-6 py-4 font-extrabold text-left">
                                 Jabatan
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th class="px-6 py-4 font-extrabold text-left">
                                 Email
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th class="px-6 py-4 font-extrabold text-left">
                                 No. Hp
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th class="px-6 py-4 font-extrabold text-left">
                                 Status
                             </th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-600">
+                            <th class="px-6 py-4 font-extrabold text-left">
                                 Aksi
                             </th>
                         </tr>
                     </thead>
 
-                    <tbody class="divide-y divide-gray-100 bg-white">
+                    <tbody class="bg-gray-200 divide-y divide-gray-500">
                         @forelse ($employees as $employee)
-                            <tr class="hover:bg-gray-50/70">
+                            <tr class="[&>td]:border-b border-gray-400 hover:bg-gray-100">
                                 <td class="px-6 py-4 text-sm font-medium text-gray-900">
                                     {{ $employee->nip }}
                                 </td>
 
-                                <td class="px-6 py-4 text-sm text-gray-900">
+                                <td class="px-6 py-4">
                                     {{ $employee->name }}
                                 </td>
 
-                                <td class="px-6 py-4 text-sm text-gray-600">
+                                <td class="px-6 py-4">
                                     {{ $employee->position }}
                                 </td>
 
-                                <td class="px-6 py-4 text-sm text-gray-600">
+                                <td class="px-6 py-4">
                                     {{ $employee->email }}
                                 </td>
 
-                                <td class="px-6 py-4 text-sm text-gray-600">
+                                <td class="px-6 py-4">
                                     {{ $employee->phone }}
                                 </td>
-                                <td class="px-6 py-4 text-sm text-gray-600">
+                                <td class="px-6 py-4">
                                     @if ($employee->deleted_at == null)
                                         <span
                                             class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">

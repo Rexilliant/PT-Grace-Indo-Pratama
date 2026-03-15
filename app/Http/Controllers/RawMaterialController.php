@@ -2,47 +2,67 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\RawMaterial;
 use App\Models\RawMaterialStock;
+use Illuminate\Http\Request;
 
 class RawMaterialController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $materials = RawMaterial::select('id', 'code', 'name', 'status')
-            ->orderByDesc('id')
-            ->paginate(5)
-            ->withQueryString();
+        $q = RawMaterial::query()->orderBy('created_at', 'desc');
+        if ($request->filled('code')) {
+            $q->where('code', 'like', "%{$request->code}%");
+        }
 
-        return view('admin.gudang-bahan-baku', compact('materials'));
+        if ($request->filled('name')) {
+            $q->where('name', 'like', "%{$request->name}%");
+        }
+
+        // FILTER PROVINCE
+        if ($request->filled('status')) {
+            $q->where('status', 'like', "%{$request->status}%");
+        }
+
+        // ROWS PER PAGE (dropdown 10/25/50)
+        $perPage = (int) ($request->get('per_page', 10));
+        $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
+
+        $materials = $q->paginate($perPage)->withQueryString();
+
+        $statuses = RawMaterial::query()
+            ->select('status')
+            ->whereNotNull('status')
+            ->distinct()
+            ->orderBy('status')
+            ->pluck('status');
+
+        return view('admin.raw_materials.raw_materials', compact('materials', 'statuses'));
     }
 
-
-
-
-    public function stockIndex()
+    public function stockIndex(Request $request)
     {
-        $stocks = RawMaterial::join(
-            'raw_material_stocks',
-            'raw_materials.id',
-            '=',
-            'raw_material_stocks.raw_material_id'
-        )
-            ->select(
-                'raw_materials.id as id',          // ✅ id buat route edit-bahan-baku
-                'raw_materials.code',
-                'raw_materials.name',
-                'raw_materials.status',
-                'raw_material_stocks.province',
-                'raw_material_stocks.stock'
-            )
-            ->orderBy('raw_material_stocks.id', 'desc')
-            ->paginate(5);
+        $q = RawMaterialStock::query()->with('rawMaterial');
+        if ($request->filled('code')) {
+            $q->whereHas('rawMaterial', function ($u) use ($request) {
+                $u->where('code', 'like', "%{$request->code}%");
+            });
+        }
+        if ($request->filled('name')) {
+            $search = $request->name;
+            $q->whereHas('rawMaterial', function ($u) use ($search) {
+                $u->where('name', 'like', "%{$search}%");
+            });
+        }
+        if ($request->filled('province')) {
+            $q->where('province', 'like', "%{$request->province}%");
+        }
+        $perPage = (int) ($request->get('per_page', 10));
+        $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
+        $stocks = $q->paginate(5)->withQueryString();
 
         return view('admin.gudang-stok-bahan-baku', compact('stocks'));
     }
-
 
     /**
      * FORM TAMBAH
@@ -100,7 +120,7 @@ class RawMaterialController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'kode_barang' => 'required|unique:raw_materials,code,' . $id,
+            'kode_barang' => 'required|unique:raw_materials,code,'.$id,
             'bahan_baku' => 'required',
             'unit' => 'required',
             'status' => 'required',

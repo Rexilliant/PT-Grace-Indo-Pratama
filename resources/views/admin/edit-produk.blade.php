@@ -1,169 +1,147 @@
 @extends('admin.layout.master')
 
-{{-- sidebar active --}}
 @section('open-gudang', 'open')
 @section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-gudang-laporan-produksi', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
-    @php
-        // DUMMY DATA EDIT (nanti ganti dari DB)
-        $produksi = (object) [
-            'nama_penerima' => 'Bambang Pratama Putra Hadi',
-            'provinsi' => 'Riau',
-            'tanggal_produksi' => '2025-11-30',
-            'id_produk' => 'BHOS001',
-            'sku' => 'BHOSEK1000',
-            'nama_produk' => 'BHOS Ekstra',
-            'jumlah_produksi' => '150 Ltr',
-            'invoice_url' => asset('images/dummy-invoice.jpg'), // kalau sudah ada invoice lama
-        ];
-
-        $items = [
-            ['CA001', 'Kalsium', '200 Kg', '150 Kg'],
-            ['CL001', 'Klorida', '200 Kg', '150 Kg'],
-            ['MG001', 'Magnesium', '200 Kg', '150 Kg'],
-        ];
-    @endphp
-
-    {{-- breadcrumb --}}
     <section class="mb-5">
         <div class="text-xl font-semibold text-gray-800">
             <span class="text-gray-800">Gudang</span>
             <span class="mx-1 text-gray-400">›</span>
             <a href="#" class="text-gray-800 hover:underline">Produksi</a>
             <span class="mx-1 text-gray-400">›</span>
-            <a href="#" class="text-gray-800 hover:underline">Pilih Produk</a>
-            <span class="mx-1 text-gray-400">›</span>
             <span class="text-blue-600 font-bold">Edit Produk</span>
         </div>
     </section>
 
-    <form action="#" method="POST" enctype="multipart/form-data" class="space-y-5">
+    @if (session('error'))
+        <div class="mb-4 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div class="mb-4 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700">
+            <ul class="list-disc pl-5 space-y-1">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form action="{{ route('admin.production.update', $productionBatch->id) }}" method="POST" class="space-y-5">
         @csrf
         @method('PUT')
 
+        <input type="hidden" name="product_variant_id" value="{{ $productVariant->id }}">
+
         {{-- ROW 1 --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Nama Penerima</label>
-                    <input type="text" name="customer_name" value="{{ $produksi->nama_penerima }}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500 cursor-not-allowed" />
+                    <input type="text" value="{{ $personResponsible->name }}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                 </div>
 
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Provinsi</label>
-                    <input type="text" name="provinsi" value="" placeholder="Contoh: Sumatera Utara"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
+                    <select id="provinceSelect" name="province"
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500">
+                        <option value="">-- Pilih Provinsi --</option>
+                        @foreach ($provinces as $province)
+                            <option value="{{ $province['name'] }}"
+                                {{ old('province', $productionBatch->province) == $province['name'] ? 'selected' : '' }}>
+                                {{ $province['name'] }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
 
-                <div class="md:col-span-2 lg:col-span-1">
+                <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Tanggal Produksi</label>
-                    <input type="date" name="tanggal_produksi"
-                        value="{{ old('tanggal_produksi', $produksi->tanggal_produksi) }}"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500">
+                    <input type="date" name="entry_date"
+                        value="{{ old('entry_date', $productionBatch->entry_date?->format('Y-m-d')) }}"
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
                 </div>
             </div>
         </section>
 
-        {{-- ROW 2 (GREEN) --}}
+        {{-- ROW 2 --}}
         <section class="bg-[#53BF6A]/55 p-5 shadow border border-gray-300 rounded-xl">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">ID Produk</label>
-                    <input type="text" name="id_produk" value="{{ $produksi->id_produk }}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700 cursor-not-allowed focus:ring-0">
+                    <input type="text" value="{{ $productVariant->product?->code ?? '-' }}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700">
                 </div>
 
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Stock Keeping Unit</label>
-                    <input type="text" name="sku" value="{{ $produksi->sku }}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700 focus:ring-0 focus:border-gray-500 cursor-not-allowed">
+                    <input type="text" value="{{ $productVariant->sku }}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700">
                 </div>
 
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Nama Produk</label>
-                    <input type="text" name="nama_produk" value="{{ $produksi->nama_produk }}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700 focus:ring-0 focus:border-gray-500 cursor-not-allowed">
+                    <input type="text" value="{{ $productVariant->name }}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700">
                 </div>
 
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Jumlah Produksi</label>
-                    <input type="text" name="jumlah_produksi"
-                        value="{{ old('jumlah_produksi', $produksi->jumlah_produksi) }}"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500">
+                    <input type="number" min="1" name="quantity"
+                        value="{{ old('quantity', $productionBatch->quantity) }}"
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
                 </div>
             </div>
         </section>
 
-        {{-- ITEMS (READ ONLY) --}}
-        @foreach ($items as $i => $it)
-            <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-sm font-bold mb-2">ID Barang</label>
-                        <input name="items[{{ $i }}][id_barang]" value="{{ $it[0] }}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700 cursor-not-allowed focus:ring-0">
+        {{-- MATERIALS --}}
+        <div id="materialsWrapper" class="space-y-4">
+            @foreach ($materials as $index => $item)
+                <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
+                    <input type="hidden" name="items[{{ $index }}][raw_material_id]"
+                        value="{{ $item['raw_material_id'] }}">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold mb-2">ID Barang</label>
+                            <input value="{{ $item['id_barang'] }}" readonly
+                                class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold mb-2">Nama Barang</label>
+                            <input value="{{ $item['nama_barang'] }}" readonly
+                                class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold mb-2">Stok Tersedia</label>
+                            <input value="{{ $item['stok_tersedia'] }} {{ $item['unit'] }}" readonly
+                                class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold mb-2">Stok Digunakan</label>
+                            <input type="number" min="0" name="items[{{ $index }}][quantity_use]"
+                                value="{{ old("items.$index.quantity_use", $item['quantity_use']) }}"
+                                class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
+                        </div>
                     </div>
+                </section>
+            @endforeach
+        </div>
 
-                    <div>
-                        <label class="block text-sm font-bold mb-2">Nama Barang</label>
-                        <input name="items[{{ $i }}][nama_barang]" value="{{ $it[1] }}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700 cursor-not-allowed focus:ring-0">
-                    </div>
+        <div>
+            <label class="block text-sm font-bold text-gray-800 mb-2">Catatan</label>
+            <textarea name="note" rows="3"
+                class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm text-gray-900">{{ old('note', $productionBatch->note) }}</textarea>
+        </div>
 
-                    <div>
-                        <label class="block text-sm font-bold mb-2">Stok Tersedia</label>
-                        <input name="items[{{ $i }}][stok_tersedia]" value="{{ $it[2] }}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700 cursor-not-allowed focus:ring-0">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold mb-2">Jumlah Stok Digunakan</label>
-                        <input name="items[{{ $i }}][stok_digunakan]" value="{{ $it[3] }}"
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-700 focus:ring-0">
-                    </div>
-                </div>
-            </section>
-        @endforeach
-
-        {{-- INVOICE (EDITABLE) --}}
-        {{-- <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-                <label class="block text-sm font-bold text-gray-800">Invoice Pembelian Barang</label>
-
-                @if (!empty($produksi->invoice_url))
-                    <button type="button" onclick="openInvoiceModal()"
-                        class="inline-flex items-center justify-center rounded-lg bg-gray-700 px-4 py-2 text-xs font-bold text-white hover:bg-gray-800">
-                        Lihat Invoice Lama
-                    </button>
-                @endif
-            </div>
-
-            <div id="dropzone"
-                class="relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-400 bg-gray-100 px-6 py-14 text-center">
-                <input id="invoice" name="invoice" type="file" accept=".png,.jpg,.jpeg"
-                    class="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
-
-                <div class="flex flex-col items-center gap-3 pointer-events-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-700" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
-                            d="M3 15a4 4 0 004 4h10a4 4 0 004-4m-4-4l-4-4m0 0L9 11m4-4v12" />
-                    </svg>
-
-                    <div class="text-sm text-gray-800">
-                        <span class="font-bold">Click to upload</span> or drag and drop
-                    </div>
-                    <div class="text-xs text-gray-600">PNG, JPG, or JPEG (MAX 3 Mb)</div>
-
-                    <div id="fileName" class="mt-2 hidden text-xs font-semibold text-gray-800"></div>
-                </div>
-            </div>
-        </section> --}}
-
-        {{-- ACTIONS --}}
         <div class="flex items-center justify-end gap-4 pt-2">
             <button type="button" onclick="openCancelModal()"
                 class="inline-flex items-center justify-center rounded-lg bg-red-600 px-10 py-3 text-sm font-bold text-white hover:bg-red-700">
@@ -177,15 +155,15 @@
         </div>
     </form>
 
-    {{-- MODAL BATAL --}}
-    <div id="cancelModal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 animate-scale-in">
+    <div id="cancelModal"
+        class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-2 sm:p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-auto animate-scale-in overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200">
-                <h3 class="text-lg font-bold text-gray-800">Batalkan Perubahan?</h3>
+                <h3 class="text-lg font-bold text-gray-800">Batalkan Pemesanan?</h3>
             </div>
 
             <div class="px-6 py-4 text-sm text-gray-700 leading-relaxed">
-                Perubahan yang kamu buat <span class="font-semibold">belum disimpan</span>.
+                Data yang sudah kamu isi <span class="font-semibold">belum disimpan</span>.
                 Kalau dibatalkan, semua perubahan akan hilang.
             </div>
 
@@ -203,111 +181,121 @@
         </div>
     </div>
 
-    {{-- MODAL INVOICE LAMA --}}
-    <div id="invoiceModal"
-        class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-2 sm:p-4">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl mx-auto overflow-hidden animate-scale-in">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-                <div class="text-sm font-bold text-gray-800">Invoice Lama</div>
-                <button type="button" onclick="closeInvoiceModal()"
-                    class="rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700">
-                    Tutup
-                </button>
-            </div>
-
-            <div class="p-4 bg-gray-100">
-                <img src="{{ $produksi->invoice_url }}" alt="Invoice"
-                    class="w-full max-h-[70vh] object-contain rounded-lg border border-gray-300 bg-white" />
-            </div>
-        </div>
-    </div>
-
-    <style>
-        @keyframes scaleIn {
-            from {
-                transform: scale(.98);
-                opacity: .6;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .animate-scale-in {
-            animation: scaleIn .12s ease-out;
-        }
-    </style>
-
     <script>
+        const provinceSelect = document.getElementById('provinceSelect');
+        const materialsWrapper = document.getElementById('materialsWrapper');
         const cancelModal = document.getElementById('cancelModal');
-        const invoiceModal = document.getElementById('invoiceModal');
 
         function openCancelModal() {
             cancelModal.classList.remove('hidden');
             cancelModal.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
         }
 
         function closeCancelModal() {
             cancelModal.classList.add('hidden');
             cancelModal.classList.remove('flex');
+            document.body.classList.remove('overflow-hidden');
         }
 
-        function openInvoiceModal() {
-            if (!invoiceModal) return;
-            invoiceModal.classList.remove('hidden');
-            invoiceModal.classList.add('flex');
+        // close when click backdrop
+        cancelModal?.addEventListener('click', (e) => {
+            if (e.target === cancelModal) closeCancelModal();
+        });
+
+        // ESC close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && cancelModal && !cancelModal.classList.contains('hidden')) {
+                closeCancelModal();
+            }
+        });
+
+        async function fetchMaterials(province) {
+            if (!province) {
+                materialsWrapper.innerHTML = `
+                    <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-xl p-4 text-sm">
+                        Pilih provinsi dulu, baru bahan baku akan dimuat.
+                    </div>
+                `;
+                return;
+            }
+
+            materialsWrapper.innerHTML = `
+                <div class="bg-gray-100 border border-gray-200 text-gray-700 rounded-xl p-4 text-sm">
+                    Memuat bahan baku...
+                </div>
+            `;
+
+            try {
+                const response = await fetch(
+                    `{{ route('admin.production.materials') }}?province=${encodeURIComponent(province)}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (!result.success || !result.materials || !result.materials.length) {
+                    materialsWrapper.innerHTML = `
+                        <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">
+                            Tidak ada stok bahan baku untuk provinsi ini.
+                        </div>
+                    `;
+                    return;
+                }
+
+                materialsWrapper.innerHTML = result.materials.map((item, index) => `
+                    <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
+                        <input type="hidden" name="items[${index}][raw_material_id]" value="${item.raw_material_id}">
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold mb-2">ID Barang</label>
+                                <input value="${item.id_barang}" readonly
+                                    class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold mb-2">Nama Barang</label>
+                                <input value="${item.nama_barang}" readonly
+                                    class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold mb-2">Stok Tersedia</label>
+                                <input value="${item.stok_tersedia} ${item.unit}" readonly
+                                    class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-700">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold mb-2">Stok Digunakan</label>
+                                <input type="number" min="1" name="items[${index}][quantity_use]"
+                                    class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900"
+                                    placeholder="Masukkan jumlah">
+                            </div>
+                        </div>
+                    </section>
+                `).join('');
+            } catch (error) {
+                console.error('Fetch materials error:', error);
+
+                materialsWrapper.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">
+                        Gagal mengambil data bahan baku.
+                    </div>
+                `;
+            }
         }
 
-        function closeInvoiceModal() {
-            if (!invoiceModal) return;
-            invoiceModal.classList.add('hidden');
-            invoiceModal.classList.remove('flex');
-        }
-
-        // const invoiceInput = document.getElementById('invoice');
-        // const fileName = document.getElementById('fileName');
-        // const dropzone = document.getElementById('dropzone');
-
-        // if (invoiceInput) {
-        //     invoiceInput.addEventListener('change', () => {
-        //         if (invoiceInput.files && invoiceInput.files[0]) {
-        //             fileName.textContent = invoiceInput.files[0].name;
-        //             fileName.classList.remove('hidden');
-        //             dropzone.classList.add('border-blue-600');
-        //         } else {
-        //             fileName.classList.add('hidden');
-        //             dropzone.classList.remove('border-blue-600');
-        //         }
-        //     });
-
-        //     ['dragenter', 'dragover'].forEach(evt => {
-        //         dropzone.addEventListener(evt, (e) => {
-        //             e.preventDefault();
-        //             e.stopPropagation();
-        //             dropzone.classList.add('border-blue-600');
-        //         });
-        //     });
-
-        //     ['dragleave', 'drop'].forEach(evt => {
-        //         dropzone.addEventListener(evt, (e) => {
-        //             e.preventDefault();
-        //             e.stopPropagation();
-        //             if (!invoiceInput.files.length) dropzone.classList.remove('border-blue-600');
-        //         });
-        //     });
-        // }
-
-        // document.addEventListener('keydown', (e) => {
-        //     if (e.key === 'Escape') {
-        //         if (invoiceModal && !invoiceModal.classList.contains('hidden')) closeInvoiceModal();
-        //         else if (cancelModal && !cancelModal.classList.contains('hidden')) closeCancelModal();
-        //     }
-        // });
-
-        // invoiceModal?.addEventListener('click', (e) => {
-        //     if (e.target === invoiceModal) closeInvoiceModal();
-        // });
+        provinceSelect.addEventListener('change', function() {
+            fetchMaterials(this.value);
+        });
     </script>
 @endsection

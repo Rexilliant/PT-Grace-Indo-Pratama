@@ -1,27 +1,29 @@
 @extends('admin.layout.master')
 
 @section('addCss')
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     {{-- FilePond (drag & drop + preview) --}}
     <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
     <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
+
     <style>
-        .filepond--root {
-            height: 80% !important;
+        .select2-container .select2-selection--single {
+        width: 100%;
+            height: 42px;
+            border-radius: 0.375rem;
+            border: 1px solid #9CA3AF;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
         }
 
-        .filepond--panel-root {
-            height: 100% !important;
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 100%;
         }
 
-        .filepond--image-preview-wrapper {
-            height: 100% !important;
-        }
-
-        .filepond--image-preview {
-            height: 100% !important;
-            object-fit: cover;
+        .select2-dropdown {
+            border-radius: 0.375rem;
         }
     </style>
 @endsection
@@ -36,7 +38,8 @@
         </div>
     </section>
 
-    <section x-data="employeeForm()" class="p-5 rounded-md shadow-sm border border-slate-200 bg-white">
+    <section x-data="employeeForm()" x-init="init()"
+        class="p-5 rounded-md shadow-sm border border-slate-200 bg-white">
         <h1 class="text-2xl font-semibold tracking-tight text-slate-900 mb-5">Tambah Karyawan</h1>
 
         <form action="{{ route('admin.store-employee') }}" method="POST" enctype="multipart/form-data">
@@ -47,12 +50,13 @@
                 <div class="lg:row-span-3 block">
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Foto Profil</label>
 
-                    <input type="file" name="profile_image" id="profile_image" accept="image/*" class="block h-full" />
+                    <input type="file" name="profile_image" id="profile_image" accept="image/*" class="block h-[300px]" />
 
                     @error('profile_image')
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                     @enderror
                 </div>
+
                 {{-- Name --}}
                 <div>
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Nama</label>
@@ -96,6 +100,7 @@
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                     @enderror
                 </div>
+
                 {{-- Position --}}
                 <div>
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Jabatan</label>
@@ -106,7 +111,6 @@
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                     @enderror
                 </div>
-
 
                 {{-- Country --}}
                 <div>
@@ -131,7 +135,6 @@
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Provinsi</label>
                     <select x-ref="province" name="province"
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900">
-                        <option value="">-- Pilih Provinsi --</option>
                     </select>
                     @error('province')
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
@@ -149,6 +152,7 @@
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                     @enderror
                 </div>
+
                 {{-- Postal Code --}}
                 <div>
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Kode Pos</label>
@@ -159,6 +163,7 @@
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                     @enderror
                 </div>
+
                 {{-- Address --}}
                 <div class="lg:col-span-2">
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Alamat Lengkap</label>
@@ -183,7 +188,9 @@
 @endsection
 
 @section('addJs')
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    {{-- jQuery + Select2 --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     {{-- FilePond --}}
     <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
@@ -193,8 +200,8 @@
         FilePond.registerPlugin(FilePondPluginImagePreview);
 
         FilePond.create(document.querySelector('#profile_image'), {
-            storeAsFile: true, // wajib untuk submit form biasa
-            instantUpload: false, // jangan upload async
+            storeAsFile: true,
+            instantUpload: false,
             allowMultiple: false,
             credits: false,
             stylePanelLayout: 'compact',
@@ -206,42 +213,38 @@
     <script>
         function employeeForm() {
             return {
-                tsCountry: null,
-                tsProvince: null,
-                tsCity: null,
                 countryCode: null,
 
                 init() {
-                    // ⚠️ guard biar tidak double-init
-                    if (this.$refs.country.tomselect) return;
+                    if ($(this.$refs.country).hasClass('select2-hidden-accessible')) return;
 
-                    this.tsCountry = new TomSelect(this.$refs.country, {
-                        create: false,
-                        allowEmptyOption: true,
+                    $(this.$refs.country).select2({
                         placeholder: 'Select Country',
+                        allowClear: true,
+                        width: '100%'
                     });
 
-                    this.tsProvince = new TomSelect(this.$refs.province, {
-                        create: false,
-                        allowEmptyOption: true,
+                    $(this.$refs.province).select2({
                         placeholder: 'Select Province',
+                        allowClear: true,
+                        width: '100%'
                     });
 
-                    this.tsCity = new TomSelect(this.$refs.city, {
-                        create: false,
-                        allowEmptyOption: true,
+                    $(this.$refs.city).select2({
                         placeholder: 'Select City',
+                        allowClear: true,
+                        width: '100%'
                     });
 
                     this.countryCode = this.getSelectedCountryCode();
 
-                    this.tsCountry.on('change', async () => {
+                    $(this.$refs.country).on('change', async () => {
                         this.countryCode = this.getSelectedCountryCode();
                         await this.loadProvinces();
                         this.resetCities(false);
                     });
 
-                    this.tsProvince.on('change', async () => {
+                    $(this.$refs.province).on('change', async () => {
                         await this.loadCities();
                     });
 
@@ -251,31 +254,20 @@
                 },
 
                 getSelectedCountryCode() {
-                    const el = this.$refs.country;
-                    const opt = el.options[el.selectedIndex];
+                    const opt = this.$refs.country.options[this.$refs.country.selectedIndex];
                     return opt ? opt.dataset.code : null;
                 },
 
                 resetProvinces(loading = false) {
-                    this.tsProvince.clear(true);
-                    this.tsProvince.clearOptions();
-                    this.tsProvince.addOption({
-                        value: '',
-                        text: loading ? 'Loading...' : '-- Select Province --'
-                    });
-                    this.tsProvince.setValue('', true);
-                    this.tsProvince.refreshOptions(false);
+                    $(this.$refs.province).html(`
+                        <option value="">${loading ? 'Loading...' : '-- Select Province --'}</option>
+                    `).val('').trigger('change');
                 },
 
                 resetCities(loading = false) {
-                    this.tsCity.clear(true);
-                    this.tsCity.clearOptions();
-                    this.tsCity.addOption({
-                        value: '',
-                        text: loading ? 'Loading...' : '-- Select City --'
-                    });
-                    this.tsCity.setValue('', true);
-                    this.tsCity.refreshOptions(false);
+                    $(this.$refs.city).html(`
+                        <option value="">${loading ? 'Loading...' : '-- Select City --'}</option>
+                    `).val('').trigger('change');
                 },
 
                 async loadProvinces() {
@@ -290,40 +282,32 @@
                     const res = await fetch(`/admin/employees/get-provinces/${this.countryCode}`);
                     if (!res.ok) {
                         console.error(await res.text());
+                        this.resetProvinces(false);
                         return;
                     }
 
                     const data = await res.json();
 
-                    this.tsProvince.clearOptions();
-                    this.tsProvince.addOption({
-                        value: '',
-                        text: '-- Select Province --'
-                    });
-
+                    let options = `<option value="">-- Select Province --</option>`;
                     data.forEach(item => {
-                        this.tsProvince.addOption({
-                            value: item.name, // disimpan = nama
-                            text: item.name,
-                            adminCode1: item.adminCode1 // kode untuk API
-                        });
+                        options +=
+                            `<option value="${item.name}" data-admin-code1="${item.adminCode1}">${item.name}</option>`;
                     });
 
-                    this.tsProvince.refreshOptions(false);
-                    this.tsProvince.setValue('', true);
+                    $(this.$refs.province).html(options).val('').trigger('change');
                 },
 
                 async loadCities() {
                     this.resetCities(true);
 
-                    const selectedProvince = this.tsProvince.getValue();
+                    const selectedProvince = $(this.$refs.province).val();
                     if (!this.countryCode || !selectedProvince) {
                         this.resetCities(false);
                         return;
                     }
 
-                    const provinceOption = this.tsProvince.options[selectedProvince];
-                    const adminCode1 = provinceOption?.adminCode1;
+                    const provinceOption = this.$refs.province.querySelector(`option[value="${selectedProvince}"]`);
+                    const adminCode1 = provinceOption ? provinceOption.dataset.adminCode1 : null;
 
                     const qs = new URLSearchParams({
                         adminCode1
@@ -332,30 +316,23 @@
                     const res = await fetch(`/admin/employees/get-cities/${this.countryCode}?${qs}`);
                     if (!res.ok) {
                         console.error(await res.text());
+                        this.resetCities(false);
                         return;
                     }
 
                     const data = await res.json();
 
-                    this.tsCity.clearOptions();
-                    this.tsCity.addOption({
-                        value: '',
-                        text: '-- Select City --'
-                    });
-
+                    let options = `<option value="">-- Select City --</option>`;
                     data.forEach(item => {
-                        this.tsCity.addOption({
-                            value: item.name,
-                            text: item.name
-                        });
+                        options += `<option value="${item.name}">${item.name}</option>`;
                     });
 
-                    this.tsCity.refreshOptions(false);
-                    this.tsCity.setValue('', true);
+                    $(this.$refs.city).html(options).val('').trigger('change');
                 }
             }
         }
     </script>
+
     <script src="{{ asset('assets/js/sweetalert.js') }}"></script>
 
     @if (session('success'))

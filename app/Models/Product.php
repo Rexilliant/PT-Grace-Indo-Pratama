@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
-use App\Models\ProductVariant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Product extends Model
+class Product extends Model implements HasMedia
 {
-    use SoftDeletes;
+    use SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
         'code',
@@ -22,4 +23,8 @@ class Product extends Model
         return $this->hasMany(\App\Models\ProductVariant::class);
     }
 
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('product_image')->singleFile();
+    }
 }

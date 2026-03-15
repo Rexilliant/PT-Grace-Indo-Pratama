@@ -14,8 +14,7 @@ return new class extends Migration
         Schema::create('shippment_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('shippment_id')->constrained('shippments')->cascadeOnDelete();
-            $table->string('ref_type');
-            $table->string('ref_id');
+            $table->foreignId('product_stock_id')->constrained('product_stocks');
             $table->integer('quantity');
             $table->timestamps();
             $table->softDeletes();

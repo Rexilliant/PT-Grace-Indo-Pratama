@@ -17,7 +17,8 @@
         </div>
     </section>
 
-    <form action="{{ route('admin.executive-produk-variant.update', $variant->id) }}" method="POST" class="space-y-4">
+    <form action="{{ route('admin.executive-produk-variant.update', $variant->id) }}" method="POST"
+        enctype="multipart/form-data" class="space-y-4">
         @csrf
         @method('PUT')
 
@@ -59,7 +60,7 @@
                     @enderror
                 </div>
 
-                {{-- Nama Produk (DB: name) --}}
+                {{-- Nama Produk --}}
                 <div>
                     <label class="block text-sm font-bold mb-2">Nama Produk</label>
                     <input name="name" type="text" value="{{ old('name', $variant->name) }}"
@@ -71,7 +72,7 @@
                     @enderror
                 </div>
 
-                {{-- Ukuran Kemasan (DB: pack_size) --}}
+                {{-- Ukuran Kemasan --}}
                 <div>
                     <label class="block text-sm font-bold mb-2">Ukuran Kemasan</label>
                     <input name="pack_size" type="number" min="0"
@@ -84,8 +85,8 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {{-- Satuan (DB: unit) --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-4">
+                {{-- Satuan --}}
                 <div>
                     <label class="block text-sm font-bold mb-2">Satuan</label>
                     <input name="unit" type="text" value="{{ old('unit', $variant->unit) }}"
@@ -97,7 +98,7 @@
                     @enderror
                 </div>
 
-                {{-- Harga (DB: price) --}}
+                {{-- Harga --}}
                 <div>
                     <label class="block text-sm font-bold mb-2">Harga</label>
                     <input name="price" type="number" min="0" value="{{ old('price', $variant->price) }}"
@@ -116,16 +117,45 @@
                     <select name="status"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900
                                focus:border-blue-600 focus:ring-0 @error('status') border-red-500 focus:border-red-600 @enderror">
-                        <option value="" disabled {{ old('status', $variant->status) ? '' : 'selected' }}>Pilih
-                            Status</option>
-                        <option value="aktif" {{ old('status', $variant->status) === 'aktif' ? 'selected' : '' }}>Active
+                        <option value="" disabled {{ old('status', $variant->status) ? '' : 'selected' }}>
+                            Pilih Status
+                        </option>
+                        <option value="aktif" {{ old('status', $variant->status) === 'aktif' ? 'selected' : '' }}>
+                            Active
                         </option>
                         <option value="nonaktif" {{ old('status', $variant->status) === 'nonaktif' ? 'selected' : '' }}>
-                            Inactive</option>
+                            Inactive
+                        </option>
                     </select>
                     @error('status')
                         <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
                     @enderror
+                </div>
+            </div>
+
+            {{-- Gambar Produk --}}
+            <div class="mb-2">
+                <label class="block text-sm font-bold mb-2">Gambar Produk</label>
+                <input type="file" name="image" id="image" accept="image/*"
+                    class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900
+                           focus:border-blue-600 focus:ring-0 @error('image') border-red-500 focus:border-red-600 @enderror">
+
+                <p class="mt-1 text-xs text-gray-600 font-semibold">
+                    Format: JPG, JPEG, PNG, WEBP. Maksimal 2MB.
+                </p>
+
+                @error('image')
+                    <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
+                @enderror
+
+                @php
+                    $currentImage = $variant->getFirstMediaUrl('product_variant_image');
+                @endphp
+
+                <div class="mt-3">
+                    <p class="mb-2 text-sm font-semibold text-gray-700">Preview Gambar</p>
+                    <img id="imagePreview" src="{{ $currentImage ?: asset('build/image/bhos-logo.png') }}"
+                        alt="Preview Gambar" class="h-32 w-32 rounded-lg object-cover border border-gray-300 bg-white">
                 </div>
             </div>
         </section>
@@ -203,11 +233,28 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeCancelModal();
         });
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && modal.classList.contains('flex')) closeCancelModal();
+        });
+
+        const imageInput = document.getElementById('image');
+        const imagePreview = document.getElementById('imagePreview');
+        const defaultImage = imagePreview.getAttribute('src');
+
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+
+            if (!file) {
+                imagePreview.src = defaultImage;
+                return;
+            }
+
+            imagePreview.src = URL.createObjectURL(file);
         });
     </script>
 @endsection

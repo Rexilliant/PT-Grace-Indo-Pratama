@@ -383,6 +383,7 @@
                     );
 
                     FilePond.create(input, {
+                        required: true,
                         storeAsFile: true,
                         instantUpload: false,
                         stylePanelLayout: 'compact',

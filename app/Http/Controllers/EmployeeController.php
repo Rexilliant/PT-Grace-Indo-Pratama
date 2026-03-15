@@ -10,9 +10,27 @@ use Illuminate\Support\Facades\Http;
 
 class EmployeeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $employees = Employee::withTrashed()->latest()->paginate(10);
+        $q = Employee::query();
+        if ($request->filled('nip')) {
+            $q->where('nip', 'like', '%'.$request->nip.'%');
+        }
+        if ($request->filled('name')) {
+            $q->where('name', 'like', '%'.$request->name.'%');
+        }
+        if ($request->filled('email')) {
+            $q->where('email', 'like', '%'.$request->email.'%');
+        }
+        if ($request->filled('phone')) {
+            $q->where('phone', 'like', '%'.$request->phone.'%');
+        }
+        if ($request->filled('position')) {
+            $q->where('position', 'like', '%'.$request->position.'%');
+        }
+        $perPage = (int) ($request->get('per_page', 10));
+        $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
+        $employees = $q->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
 
         return view('admin.employee.employees', compact('employees'));
     }
@@ -22,6 +40,7 @@ class EmployeeController extends Controller
         $response = Http::get('http://api.geonames.org/countryInfoJSON', [
             'username' => 'hier',
         ]);
+
         $countries = $response->json('geonames');
 
         return view('admin.employee.create-emplyee', compact('countries'));

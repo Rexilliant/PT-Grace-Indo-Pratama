@@ -6,22 +6,6 @@
 @section('menu-gudang-laporan-produksi', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
-    @php
-        // DUMMY DATA (nanti ganti dari DB)
-        $products = [
-            [
-                'id' => 'BHOS002',
-                'name' => 'BHOS TURBO',
-                'img' => asset('build/image/bhos-logo.png'), // ganti sesuai asset kamu
-            ],
-            [
-                'id' => 'BHOS001',
-                'name' => 'BHOS EKSTRA',
-                'img' => asset('build/image/bhos-logo.png'),
-            ],
-        ];
-    @endphp
-
     {{-- breadcrumb --}}
     <section class="mb-5">
         <div class="text-xl font-semibold text-gray-700">
@@ -61,31 +45,39 @@
         </div>
     </section>
 
-
     {{-- cards --}}
     <section>
         <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            @foreach ($products as $p)
-                <a href="{{ route('admin.add-produk') }}"
-                    class="product-card block text-left rounded-2xl border border-gray-300
-                       bg-white shadow-sm hover:shadow-md transition overflow-hidden">
+            @forelse ($products as $p)
+                <a href="{{ route('admin.add-produk', ['productVariant' => $p->id]) }}"
+                    class="product-card block text-left rounded-2xl border border-gray-300 bg-white shadow-sm hover:shadow-md transition overflow-hidden"
+                    data-name="{{ strtolower($p->name) }}">
 
                     <div class="p-4">
                         <div class="rounded-xl border border-gray-200 overflow-hidden bg-gray-50">
-                            <img src="{{ $p['img'] }}" alt="{{ $p['name'] }}" class="w-full h-44 object-cover">
+                            <img src="{{ $p->getFirstMediaUrl('product_variant_image') ?: asset('build/image/bhos-logo.png') }}"
+                                alt="{{ $p->name }}" class="w-full h-44 object-cover">
                         </div>
 
                         <div class="pt-3">
                             <div class="text-sm font-extrabold text-gray-800">
-                                {{ $p['name'] }}
+                                {{ $p->name }}
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                SKU: {{ $p->sku }}
                             </div>
                         </div>
                     </div>
                 </a>
-            @endforeach
+            @empty
+                <div class="col-span-full">
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-6 text-center text-gray-600">
+                        Produk belum tersedia.
+                    </div>
+                </div>
+            @endforelse
         </div>
     </section>
-
 
     <script>
         const searchInput = document.getElementById('searchInput');
@@ -94,14 +86,9 @@
         searchInput.addEventListener('input', () => {
             const q = (searchInput.value || '').toLowerCase().trim();
             cards.forEach((card) => {
-                const name = card.getAttribute('data-name') || '';
+                const name = (card.getAttribute('data-name') || '').toLowerCase();
                 card.classList.toggle('hidden', q && !name.includes(q));
             });
         });
-
-        function selectProduct(id, name) {
-            // UI dummy: ganti sesuai kebutuhan (redirect / isi form / dsb)
-            alert(`Produk dipilih: ${name} (${id})`);
-        }
     </script>
 @endsection

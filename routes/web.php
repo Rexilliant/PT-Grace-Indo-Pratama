@@ -1,19 +1,20 @@
 <?php
 
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\LogErrorController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\PurchaseReceiptController;
 use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\RawMaterialController;
+use App\Http\Controllers\ShippmentController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProductVariantController;
 use Illuminate\Support\Facades\Route;
+
 
 Route::get('/phpinfo', function () {
     phpinfo();
@@ -32,19 +33,13 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.gudang-barang-masuk');
     })->name('admin.gudang-barang-masuk');
 
-    Route::get('/gudang-laporan-produksi', function () {
-        return view('admin.gudang-laporan-produksi');
-    })->name('admin.gudang-laporan-produksi');
+    // Route::get('/gudang-laporan-produksi', function () {
+    //     return view('admin.gudang-laporan-produksi');
+    // })->name('admin.gudang-laporan-produksi');
 
     Route::get('/gudang-permintaan-pengiriman', function () {
         return view('admin.gudang-permintaan-pengiriman');
     })->name('admin.gudang-permintaan-pengiriman');
-
-    Route::get('/gudang-bahan-baku', [RawMaterialController::class, 'index'])
-        ->name('admin.gudang-bahan-baku');
-
-    Route::get('/gudang-stok-bahan-baku', [RawMaterialController::class, 'stockIndex'])
-        ->name('admin.gudang-stok-bahan-baku');
     Route::get('/pemasaran-permintaan-pengiriman', function () {
         return view('admin.pemasaran-permintaan-pengiriman');
     })->name('admin.pemasaran-permintaan-pengiriman');
@@ -70,11 +65,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.add-barang-masuk');
     })->name('admin.add-barang-masuk');
 
-    Route::get('/add-bahan-baku', [RawMaterialController::class, 'create'])
-        ->name('admin.add-bahan-baku');
-    Route::post('/add-bahan-baku/store', [RawMaterialController::class, 'store'])
-        ->name('admin.add-bahan-baku-store');
-
     Route::get('/add-gudang-permintaan-pengiriman', function () {
         return view('admin.add-gudang-permintaan-pengiriman');
     })->name('admin.add-gudang-permintaan-pengiriman');
@@ -87,28 +77,16 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.add-laporan-penjualan');
     })->name('admin.add-laporan-penjualan');
 
-    Route::get('/add-pilih-produk', function () {
-        return view('admin.add-pilih-produk');
-    })->name('admin.add-pilih-produk');
+    // Route::get('/add-produk', function () {
+    //     return view('admin.add-produk');
+    // })->name('admin.add-produk');
 
-    Route::get('/add-produk', function () {
-        return view('admin.add-produk');
-    })->name('admin.add-produk');
+    Route::get('/admin/gudang/laporan-produksi/tambah/{productVariant}', [ProductionController::class, 'create'])
+        ->name('admin.add-produk');
 
     Route::get('/add-executive-pengadaan-barang', function () {
         return view('admin.add-executive-pengadaan-barang');
     })->name('admin.add-executive-pengadaan-barang');
-
-    // Edit
-    // Route::get('/edit-bahan-baku', function () {
-    //     return view('admin.edit-bahan-baku');
-    // })->name('admin.edit-bahan-baku');
-    Route::get('/gudang-stok-bahan-baku', [RawMaterialController::class, 'stockIndex'])
-        ->name('admin.gudang-stok-bahan-baku');
-    Route::get('/edit-bahan-baku/{id}', [RawMaterialController::class, 'edit'])
-        ->name('admin.edit-bahan-baku');
-    Route::put('/edit-bahan-baku/{id}', [RawMaterialController::class, 'update'])
-        ->name('admin.update-bahan-baku');
 
     Route::get('/edit-barang-masuk', function () {
         return view('admin.edit-barang-masuk');
@@ -118,39 +96,64 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.edit-profile');
     })->name('admin.edit-profile');
 
-    Route::get('/edit-produk', function () {
-        return view('admin.edit-produk');
-    })->name('admin.edit-produk');
+    Route::get(
+        '/add-pilih-produk',
+        [ProductionController::class, 'pilihProduk']
+    )->name('admin.add-pilih-produk');
 
+
+    // This Point
+    Route::prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+
+            Route::get('/gudang/laporan-produksi', [ProductionController::class, 'index'])
+                ->name('gudang-laporan-produksi');
+
+            Route::get('/gudang/laporan-produksi/pilih-produk', [ProductionController::class, 'pilihProduk'])
+                ->name('add-pilih-produk');
+
+            Route::get('/add-produk/{productVariant}', [ProductionController::class, 'create'])
+                ->name('add-produk');
+
+            Route::get('/production/materials', [ProductionController::class, 'getMaterialsByProvince'])
+                ->name('production.materials');
+
+            Route::post('/production/store', [ProductionController::class, 'store'])
+                ->name('production.store');
+
+            Route::get('/edit-produk/{productionBatch}', [ProductionController::class, 'edit'])
+                ->name('edit-produk');
+
+            Route::put('/edit-produk/{productionBatch}', [ProductionController::class, 'update'])
+                ->name('production.update');
+
+            Route::delete('/production/{productionBatch}', [ProductionController::class, 'destroy'])
+                ->name('production.delete');
+        });
+
+    // Product Variant
     Route::controller(ProductVariantController::class)->group(function () {
-
-        // LIST
         Route::get('/executive-produk-variant', 'index')
             ->name('admin.executive-produk-variant');
-
-        // ADD
         Route::get('/add-executive-produk-variant', 'create')
             ->name('admin.add-executive-produk-variant');
-
         Route::post('/add-executive-produk-variant/store', 'store')
             ->name('admin.add-executive-produk-variant.store');
-
-        // EDIT / UPDATE
         Route::get('/executive-produk-variant/{id}/edit', 'edit')
             ->name('admin.executive-produk-variant.edit');
-
         Route::put('/executive-produk-variant/{id}', 'update')
             ->name('admin.executive-produk-variant.update');
-
     });
 
-    // Gudang Bahan Baku
-    Route::controller(RawMaterialController::class)->group(function () {
-        Route::get('/gudang-bahan-baku', 'index')->name('admin.gudang-bahan-baku');
-        Route::get('/add-bahan-baku', 'create')->name('admin.add-bahan-baku');
-        Route::post('/add-bahan-baku/store', 'store')->name('admin.add-bahan-baku.store');
-        Route::get('/gudang-bahan-baku/{id}/edit', 'edit')->name('admin.gudang-bahan-baku.edit');
-        Route::put('/gudang-bahan-baku/{id}', 'update')->name('admin.gudang-bahan-baku.update');
+    // Bahan Baku
+    Route::controller(RawMaterialController::class)->prefix('raw-materials')->group(function () {
+        Route::get('/', 'index')->name('admin.gudang-bahan-baku');
+        Route::get('/create', 'create')->name('admin.add-bahan-baku');
+        Route::get('/stock', 'stockIndex')->name('admin.gudang-stok-bahan-baku');
+        Route::post('/store', 'store')->name('admin.add-bahan-baku.store');
+        Route::get('/{id}/edit', 'edit')->name('admin.gudang-bahan-baku.edit');
+        Route::put('/{id}', 'update')->name('admin.gudang-bahan-baku.update');
     });
 
     // Executive Produk
@@ -161,6 +164,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/edit/{id}', 'editExecutive')->name('admin.edit-executive-produk');
         Route::put('/edit/{id}', 'updateExecutive')->name('admin.edit-executive-produk.update');
         Route::delete('/delete/{id}', 'destroyExecutive')->name('admin.executive-produk.destroy');
+        Route::get('/stock', 'productStock')->name('product-stocks');
     });
 
     // Employee
@@ -219,5 +223,18 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::controller(MediaController::class)->prefix('media')->group(function () {
         Route::delete('/delete/{mediaId}', 'delete')->name('media.delete');
     });
+    Route::controller(LogErrorController::class)->prefix('log-errors')->group(function () {
+        Route::get('/', 'index')->name('log-errors');
+    });
+    Route::get('/procurements/export', [ProcurementController::class, 'export'])
+        ->name('procurements.export');
+    Route::controller(ShippmentController::class)->prefix('shippments')->group(function () {
+        Route::get('/', 'index')->name('shippments');
+        Route::get('/create', 'create')->name('create-shippment');
+        Route::post('/store', 'store')->name('store-shippment');
+        Route::get('/edit/{id}', 'edit')->name('edit-shippment');
+        Route::put('/edit/{id}', 'update')->name('update-shippment');
+        Route::delete('/delete/{id}', 'destroy')->name('delete-shippment');
+    });
 });
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

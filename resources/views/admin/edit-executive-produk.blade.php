@@ -17,7 +17,8 @@
         </div>
     </section>
 
-    <form action="{{ route('admin.edit-executive-produk.update', $product->id) }}" method="POST" class="space-y-4">
+    <form action="{{ route('admin.edit-executive-produk.update', $product->id) }}" method="POST"
+        enctype="multipart/form-data" class="space-y-4">
         @csrf
         @method('PUT')
 
@@ -25,7 +26,7 @@
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
-                {{-- ID Produk (DB: code) --}}
+                {{-- ID Produk --}}
                 <div class="sm:col-span-1">
                     <label class="block text-sm font-bold mb-2">ID Produk</label>
                     <input name="code" type="text" value="{{ old('code', $product->code) }}"
@@ -39,7 +40,7 @@
                     @enderror
                 </div>
 
-                {{-- Nama Produk (DB: name) --}}
+                {{-- Nama Produk --}}
                 <div class="sm:col-span-1">
                     <label class="block text-sm font-bold mb-2">Nama Produk</label>
                     <input name="name" type="text" value="{{ old('name', $product->name) }}"
@@ -53,7 +54,7 @@
                     @enderror
                 </div>
 
-                {{-- Status (DB: status) --}}
+                {{-- Status --}}
                 <div class="sm:col-span-2 lg:col-span-1">
                     <label class="block text-sm font-bold mb-2">Status</label>
                     <select name="status"
@@ -61,19 +62,22 @@
                                px-3 py-2.5 text-sm font-semibold text-gray-900
                                focus:border-blue-600 focus:ring-0
                                @error('status') border-red-500 focus:border-red-600 @enderror">
-                        <option value="" disabled {{ old('status', $product->status) ? '' : 'selected' }}>Pilih Status
+                        <option value="" disabled {{ old('status', $product->status) ? '' : 'selected' }}>
+                            Pilih Status
                         </option>
-                        <option value="aktif" {{ old('status', $product->status) === 'aktif' ? 'selected' : '' }}>Active
+                        <option value="aktif" {{ old('status', $product->status) === 'aktif' ? 'selected' : '' }}>
+                            Active
                         </option>
                         <option value="nonaktif" {{ old('status', $product->status) === 'nonaktif' ? 'selected' : '' }}>
-                            Inactive</option>
+                            Inactive
+                        </option>
                     </select>
                     @error('status')
                         <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
-                {{-- Deskripsi Produk (DB: description) --}}
+                {{-- Deskripsi Produk --}}
                 <div class="sm:col-span-2 lg:col-span-3">
                     <label class="block text-sm font-bold mb-2">Deskripsi Produk</label>
                     <textarea name="description" rows="5" placeholder="Tuliskan deskripsi produk..."
@@ -89,6 +93,40 @@
                     <p class="mt-2 text-xs text-gray-600">
                         Tips: Jelaskan kegunaan, keunggulan, ukuran/varian, dan informasi penting lainnya.
                     </p>
+                </div>
+
+                {{-- Gambar Produk --}}
+                <div class="sm:col-span-2 lg:col-span-3">
+                    <label class="block text-sm font-bold mb-2">Gambar Produk</label>
+                    <input type="file" name="image" id="image" accept="image/*"
+                        class="w-full rounded-md border border-gray-400 bg-white
+                               px-3 py-2.5 text-sm font-semibold text-gray-900
+                               focus:border-blue-600 focus:ring-0
+                               @error('image') border-red-500 focus:border-red-600 @enderror">
+
+                    <p class="mt-1 text-xs text-gray-600 font-semibold">
+                        Format: JPG, JPEG, PNG, WEBP. Maksimal 2MB.
+                    </p>
+
+                    @error('image')
+                        <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
+                    @enderror
+
+                    @php
+                        $currentImage = $product->getFirstMediaUrl('product_image');
+                    @endphp
+
+                    <div class="mt-3">
+                        <p class="mb-2 text-sm font-semibold text-gray-700">Gambar Saat Ini</p>
+
+                        @if ($currentImage)
+                            <img id="imagePreview" src="{{ $currentImage }}" alt="Preview Gambar"
+                                class="h-32 w-32 rounded-lg object-cover border border-gray-300 bg-white">
+                        @else
+                            <img id="imagePreview" alt="Preview Gambar"
+                                class="hidden h-32 w-32 rounded-lg object-cover border border-gray-300 bg-white">
+                        @endif
+                    </div>
                 </div>
 
             </div>
@@ -174,6 +212,31 @@
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && modal.classList.contains('flex')) closeCancelModal();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageInput = document.getElementById('image');
+            const imagePreview = document.getElementById('imagePreview');
+
+            if (!imageInput || !imagePreview) return;
+
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+
+                if (!file) {
+                    @if ($currentImage)
+                        imagePreview.src = "{{ $currentImage }}";
+                        imagePreview.classList.remove('hidden');
+                    @else
+                        imagePreview.removeAttribute('src');
+                        imagePreview.classList.add('hidden');
+                    @endif
+                    return;
+                }
+
+                imagePreview.src = URL.createObjectURL(file);
+                imagePreview.classList.remove('hidden');
+            });
         });
     </script>
 @endsection
