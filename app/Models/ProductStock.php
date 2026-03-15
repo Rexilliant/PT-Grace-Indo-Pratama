@@ -21,4 +21,9 @@ class ProductStock extends Model
     {
         return $this->hasMany(ProductionBatch::class);
     }
+
+    public function shipmentItems()
+    {
+        return $this->hasMany(ShippmentItem::class);
+    }
 }

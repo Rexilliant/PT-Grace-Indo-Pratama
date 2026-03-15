@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\Procurement;
 use App\Models\ProcurementItem;
 use App\Models\RawMaterial;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -140,12 +142,18 @@ class ProcurementController extends Controller
          * GeoNames: ambil provinsi Indonesia
          * Indonesia geonameId = 1643084
          */
-        $response = Http::get('http://api.geonames.org/childrenJSON', [
-            'geonameId' => 1643084,
-            'username' => 'hier',
-        ]);
+        // $response = Http::get('http://api.geonames.org/childrenJSON', [
+        //     'geonameId' => 1643084,
+        //     'username' => 'hier',
+        // ]);
 
-        $provinces = collect($response->json('geonames') ?? [])
+        $path = public_path('assets/data/provinceAndCity.json');
+
+        $json = File::get($path);
+
+        $data = json_decode($json, true);
+
+        $provinces = collect($data['geonames'] ?? [])
             ->map(fn ($p) => [
                 'id' => $p['geonameId'] ?? null,
                 'name' => $p['name'] ?? null,
@@ -201,18 +209,21 @@ class ProcurementController extends Controller
 
     public function edit(Request $request, $id)
     {
-        $response = Http::get('http://api.geonames.org/childrenJSON', [
-            'geonameId' => 1643084,
-            'username' => 'hier',
-        ]);
 
-        $provinces = collect($response->json('geonames') ?? [])
+        $path = public_path('assets/data/provinceAndCity.json');
+
+        $json = File::get($path);
+
+        $data = json_decode($json, true);
+
+        $provinces = collect($data['geonames'] ?? [])
             ->map(fn ($p) => [
                 'id' => $p['geonameId'] ?? null,
                 'name' => $p['name'] ?? null,
             ])
             ->filter(fn ($p) => ! empty($p['name']))
             ->values();
+
         $procurement = Procurement::with('procurement_items.raw_material')
             ->findOrFail($id);
 

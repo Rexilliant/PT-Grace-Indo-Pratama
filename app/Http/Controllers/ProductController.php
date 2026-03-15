@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductStock;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -46,7 +47,7 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         $validated = $request->validate([
-            'code' => ['required', 'string', 'max:255', 'unique:products,code,' . $product->id],
+            'code' => ['required', 'string', 'max:255', 'unique:products,code,'.$product->id],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'status' => ['required', 'in:aktif,nonaktif'],
@@ -87,4 +88,10 @@ class ProductController extends Controller
             ->with('success', 'Produk berhasil dihapus!!!.');
     }
 
+    public function productStock()
+    {
+        $productStocks = ProductStock::with('productVariant')->paginate(10);
+
+        return view('admin.product.product-stocks', compact('productStocks'));
+    }
 }

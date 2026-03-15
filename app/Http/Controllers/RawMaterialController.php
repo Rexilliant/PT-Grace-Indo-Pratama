@@ -8,14 +8,36 @@ use Illuminate\Http\Request;
 
 class RawMaterialController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $materials = RawMaterial::select('id', 'code', 'name', 'status')
-            ->orderByDesc('id')
-            ->paginate(5)
-            ->withQueryString();
+        $q = RawMaterial::query()->orderBy('created_at', 'desc');
+        if ($request->filled('code')) {
+            $q->where('code', 'like', "%{$request->code}%");
+        }
 
-        return view('admin.gudang-bahan-baku', compact('materials'));
+        if ($request->filled('name')) {
+            $q->where('name', 'like', "%{$request->name}%");
+        }
+
+        // FILTER PROVINCE
+        if ($request->filled('status')) {
+            $q->where('status', 'like', "%{$request->status}%");
+        }
+
+        // ROWS PER PAGE (dropdown 10/25/50)
+        $perPage = (int) ($request->get('per_page', 10));
+        $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
+
+        $materials = $q->paginate($perPage)->withQueryString();
+
+        $statuses = RawMaterial::query()
+            ->select('status')
+            ->whereNotNull('status')
+            ->distinct()
+            ->orderBy('status')
+            ->pluck('status');
+
+        return view('admin.raw_materials.raw_materials', compact('materials', 'statuses'));
     }
 
     public function stockIndex(Request $request)

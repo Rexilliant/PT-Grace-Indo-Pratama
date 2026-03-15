@@ -11,6 +11,7 @@ use App\Models\RawMaterialStockMovement;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Throwable;
@@ -48,21 +49,24 @@ class PurchaseReceiptController extends Controller
 
     public function create()
     {
-        try {
-            $response = Http::get('http://api.geonames.org/childrenJSON', [
-                'geonameId' => 1643084,
-                'username' => 'hier',
-            ]);
-            $provinces = collect($response->json('geonames') ?? [])
-                ->map(fn ($p) => [
-                    'id' => $p['geonameId'] ?? null,
-                    'name' => $p['name'] ?? null,
-                ])
-                ->filter(fn ($p) => ! empty($p['name']))
-                ->values();
-        } catch (\Exception $e) {
-            $provinces = collect([]);
-        }
+
+        // $response = Http::get('http://api.geonames.org/childrenJSON', [
+        //     'geonameId' => 1643084,
+        //     'username' => 'hier',
+        // ]);
+        $path = public_path('assets/data/provinceAndCity.json');
+
+        $json = File::get($path);
+
+        $data = json_decode($json, true);
+
+        $provinces = collect($data['geonames'] ?? [])
+            ->map(fn ($p) => [
+                'id' => $p['geonameId'] ?? null,
+                'name' => $p['name'] ?? null,
+            ])
+            ->filter(fn ($p) => ! empty($p['name']))
+            ->values();
         $rawMaterials = RawMaterial::select('id', 'code', 'name', 'unit')
             ->orderBy('name')
             ->get();
@@ -84,7 +88,7 @@ class PurchaseReceiptController extends Controller
             'items.*.raw_material_id' => ['required', 'integer', 'exists:raw_materials,id'],
             'items.*.quantity_received' => ['required', 'integer', 'min:1'],
 
-            'invoices' => ['nullable', 'array'],
+            'invoices' => ['required', 'array'],
             'invoices.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'], // 3MB
         ]);
         $rawIds = collect($validated['items'])->pluck('raw_material_id')->unique()->values();
@@ -224,22 +228,19 @@ class PurchaseReceiptController extends Controller
 
     public function edit($id)
     {
-        try {
-            $response = Http::get('http://api.geonames.org/childrenJSON', [
-                'geonameId' => 1643084,
-                'username' => 'hier',
-            ]);
+        $path = public_path('assets/data/provinceAndCity.json');
 
-            $provinces = collect($response->json('geonames') ?? [])
-                ->map(fn ($p) => [
-                    'id' => $p['geonameId'] ?? null,
-                    'name' => $p['name'] ?? null,
-                ])
-                ->filter(fn ($p) => ! empty($p['name']))
-                ->values();
-        } catch (\Exception $e) {
-            $provinces = collect([]);
-        }
+        $json = File::get($path);
+
+        $data = json_decode($json, true);
+
+        $provinces = collect($data['geonames'] ?? [])
+            ->map(fn ($p) => [
+                'id' => $p['geonameId'] ?? null,
+                'name' => $p['name'] ?? null,
+            ])
+            ->filter(fn ($p) => ! empty($p['name']))
+            ->values();
 
         $receipt = PurchaseReceipt::with([
             'items.rawMaterial',

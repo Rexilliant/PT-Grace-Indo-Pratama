@@ -60,7 +60,7 @@ class ProductionController extends Controller
         ])
             ->orderByDesc('entry_date')
             ->orderByDesc('id')
-            ->paginate(2);
+            ->paginate(1);
 
         return view('admin.gudang-laporan-produksi', compact('productionBatches'));
     }

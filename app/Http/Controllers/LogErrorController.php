@@ -10,6 +10,6 @@ class LogErrorController extends Controller
     {
         $logerrors = LogError::paginate(10);
 
-        return view('admin.logerrors.logerrors', compact('logerrors'));
+        return view('admin.logerrors.logerrors', compact('logerrors '));
     }
 }

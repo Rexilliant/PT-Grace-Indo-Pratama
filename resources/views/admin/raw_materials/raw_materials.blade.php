@@ -16,6 +16,64 @@
             <a href="#" class="text-blue-600 hover:underline">Bahan Baku</a>
         </div>
     </section>
+    <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
+        {{-- top bar --}}
+        <form method="GET" class="mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end">
+
+                {{-- Search --}}
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Code
+                    </label>
+                    <input type="text" name="code" value="{{ request('code') }}" placeholder="Code"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+
+                {{-- Status --}}
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Status
+                    </label>
+                    <select name="status"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none">
+                        <option value="">Semua Status</option>
+                        @foreach ($statuses as $st)
+                            <option value="{{ $st }}" @selected(request('status') == $st)>
+                                {{ $st }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Per Page --}}
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Tampilkan
+                    </label>
+                    <select name="per_page"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none"
+                        onchange="this.form.submit()">
+                        @foreach ([10, 25, 50, 100] as $n)
+                            <option value="{{ $n }}" @selected((int) request('per_page', 10) === $n)>
+                                {{ $n }} / halaman
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <button type="submit"
+                    class="rounded-md bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 transition">
+                    Filter
+                </button>
+
+                <a href="{{ route('procurements') }}"
+                    class="rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-800 transition text-center">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </section>
 
     @if (session('success'))
         <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show"
@@ -109,8 +167,6 @@
 
                 </table>
             </div>
-
-            {{-- footer / pagination (mobile + ipad aman) --}}
             {{ $materials->links('vendor.pagination.pagination') }}
 
         </div>
