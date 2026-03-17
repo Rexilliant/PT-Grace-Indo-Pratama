@@ -64,8 +64,8 @@
                 <div>
                     <label class="block text-xs font-bold mb-2">Status</label>
                     <select name="status" x-model="status"
-                        class="w-full rounded-md border px-3 py-2.5 text-sm font-semibold @if ($procurement->status !== 'Menunggu') {{ $disabledClass }} @endif"
-                        @if ($procurement->status !== 'Menunggu') disabled @endif>
+                        class="w-full rounded-md border px-3 py-2.5 text-sm font-semibold @if ($procurement->status !== 'Menunggu' || !auth()->user()->can('update-procurements')) {{ $disabledClass }} @endif"
+                        @if ($procurement->status !== 'Menunggu' || !auth()->user()->can('update-procurements')) disabled @endif>
                         @foreach (['Menunggu', 'Diterima', 'Ditolak'] as $st)
                             <option value="{{ $st }}">{{ $st }}</option>
                         @endforeach
@@ -170,12 +170,14 @@
             </section>
         @endif
 
-        <div class="flex justify-end pt-2">
-            @if ($procurement->status === 'Menunggu')
-                <button type="submit"
-                    class="rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
-                    Update
-                </button>
-            @endif
-        </div>
+        @can('update-procurements')
+            <div class="flex justify-end pt-2">
+                @if ($procurement->status === 'Menunggu')
+                    <button type="submit"
+                        class="rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
+                        Update
+                    </button>
+                @endif
+            </div>
+        @endcan
     @endsection
