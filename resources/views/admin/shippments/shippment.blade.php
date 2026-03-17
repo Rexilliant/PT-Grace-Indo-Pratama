@@ -111,11 +111,13 @@
                 Export .xlsx
             </a>
 
-            <a href="{{ route('create-shippment') }}"
-                class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                <span class="text-lg leading-none">+</span>
-                Tambah Baru
-            </a>
+            @can('create-shippments')
+                <a href="{{ route('create-shippment') }}"
+                    class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    <span class="text-lg leading-none">+</span>
+                    Tambah Baru
+                </a>
+            @endcan
         </div>
         {{-- table --}}
         <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm">

@@ -193,6 +193,10 @@
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-role')">
                     Role
                 </a>
+                <a href="{{ route('log-errors') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-log')">
+                    Log Error
+                </a>
             </div>
 
         </details>
@@ -417,6 +421,10 @@
                 <a href="{{ route('permissions') }}"
                     class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-permission')">
                     Permission
+                </a>
+                <a href="{{ route('log-errors') }}"
+                    class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-log')">
+                    Log Error
                 </a>
             </div>
         </details>

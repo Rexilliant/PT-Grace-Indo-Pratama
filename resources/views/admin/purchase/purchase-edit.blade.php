@@ -157,10 +157,12 @@
                     <div class="text-xs text-gray-600">Tambah / hapus item barang masuk</div>
                 </div>
 
-                <button type="button" @click="addItem()"
-                    class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-4 py-2 text-xs font-bold text-white hover:bg-blue-800">
-                    + Tambah Item
-                </button>
+                @can('update-purchase-receipts')
+                    <button type="button" @click="addItem()"
+                        class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-4 py-2 text-xs font-bold text-white hover:bg-blue-800">
+                        + Tambah Item
+                    </button>
+                @endcan
             </div>
 
             @error('items')
@@ -221,12 +223,14 @@
         </template>
 
         {{-- ACTIONS --}}
-        <div class="flex items-center justify-end gap-4 pt-2">
-            <button type="submit"
-                class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
-                Update
-            </button>
-        </div>
+        @can('update-purchase-receipts')
+            <div class="flex items-center justify-end gap-4 pt-2">
+                <button type="submit"
+                    class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
+                    Update
+                </button>
+            </div>
+        @endcan
     </form>
     <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm mb-5">
         <div class="overflow-x-auto">
@@ -244,16 +248,18 @@
                             <td class="px-6 py-4 font-semibold"><a target="_blank"
                                     href="{{ $invoice->getUrl() }}">{{ $invoice->file_name }}</a></td>
                             <td class="px-6 py-3">
-                                <div class="flex items-center justify-start gap-6 font-semibold">
-                                    <form action="{{ route('media.delete', $invoice->id) }}" method="post"
-                                        class="delete-invoice-form">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" class="text-[#EC0000] hover:underline btn-delete-invoice">
-                                            Hapus
-                                        </button>
-                                    </form>
-                                </div>
+                                @can('update-purchase-receipts')
+                                    <div class="flex items-center justify-start gap-6 font-semibold">
+                                        <form action="{{ route('media.delete', $invoice->id) }}" method="post"
+                                            class="delete-invoice-form">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" class="text-[#EC0000] hover:underline btn-delete-invoice">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endcan
                             </td>
                         @empty
                     @endforelse
@@ -263,35 +269,37 @@
     </div>
 
     {{-- FILEPOND --}}
-    <form action="{{ route('purchase-receipts.add-media', $receipt->id) }}" method="post"
-        enctype="multipart/form-data">
-        @csrf
-        <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-            <label class="block text-sm font-bold mb-3 text-gray-800">Invoice Pembelian Barang</label>
+    @can('update-purchase-receipts')
+        <form action="{{ route('purchase-receipts.add-media', $receipt->id) }}" method="post"
+            enctype="multipart/form-data">
+            @csrf
+            <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
+                <label class="block text-sm font-bold mb-3 text-gray-800">Invoice Pembelian Barang</label>
 
-            <input id="invoicesPond" type="file" name="invoices[]" multiple
-                accept="image/png,image/jpeg,application/pdf" />
+                <input id="invoicesPond" type="file" name="invoices[]" multiple
+                    accept="image/png,image/jpeg,application/pdf" />
 
-            <p class="mt-2 text-xs text-gray-600">
-                Format: PNG/JPG/JPEG/PDF • Maks 3MB per file • Bisa upload multiple.
-            </p>
+                <p class="mt-2 text-xs text-gray-600">
+                    Format: PNG/JPG/JPEG/PDF • Maks 3MB per file • Bisa upload multiple.
+                </p>
 
-            @error('invoices')
-                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-            @enderror
-            @error('invoices.*')
-                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
-            @enderror
-        </section>
+                @error('invoices')
+                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                @enderror
+                @error('invoices.*')
+                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                @enderror
+            </section>
 
-        {{-- ACTIONS --}}
-        <div class="flex items-center justify-end gap-4 pt-2">
-            <button type="submit"
-                class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
-                Tambah Invoice
-            </button>
-        </div>
-    </form>
+            {{-- ACTIONS --}}
+            <div class="flex items-center justify-end gap-4 pt-2">
+                <button type="submit"
+                    class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
+                    Tambah Invoice
+                </button>
+            </div>
+        </form>
+    @endcan
 @endsection
 
 

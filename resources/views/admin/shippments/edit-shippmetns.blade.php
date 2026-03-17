@@ -177,7 +177,7 @@
 
                         <select name="status" x-model="statusPermintaan"
                             class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold"
-                            @if (in_array(strtolower($shippment->status), ['ditolak', 'selesai'])) disabled @endif>
+                            @if (in_array(strtolower($shippment->status), ['ditolak', 'selesai']) || !auth()->user()->can('update-shippments')) disabled @endif>
                             <option value="Menunggu">Menunggu</option>
                             <option value="Ditolak">Ditolak</option>
                             <option value="disetujui">Disetujui</option>
@@ -282,14 +282,16 @@
                 @endif
             </section>
 
-            <div class="flex justify-end pt-2">
-                @if (strtolower($shippment->status) !== 'selesai')
-                    <button type="submit"
-                        class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
-                        Simpan
-                    </button>
-                @endif
-            </div>
+            @can('update-shippments')
+                <div class="flex justify-end pt-2">
+                    @if (strtolower($shippment->status) !== 'selesai')
+                        <button type="submit"
+                            class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
+                            Simpan
+                        </button>
+                    @endif
+                </div>
+            @endcan
         </form>
 
         <form x-ref="deleteMediaForm" method="POST" class="hidden">

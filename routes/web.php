@@ -15,7 +15,6 @@ use App\Http\Controllers\ShippmentController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-
 Route::get('/phpinfo', function () {
     phpinfo();
 });
@@ -101,7 +100,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         [ProductionController::class, 'pilihProduk']
     )->name('admin.add-pilih-produk');
 
-
     // This Point
     Route::prefix('admin')
         ->name('admin.')
@@ -147,7 +145,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     });
 
     // Bahan Baku
-    Route::controller(RawMaterialController::class)->prefix('raw-materials')->group(function () {
+    Route::controller(RawMaterialController::class)->prefix('raw-materials')->middleware(['auth', 'role:admin|admin_gudang'])->group(function () {
         Route::get('/', 'index')->name('admin.gudang-bahan-baku');
         Route::get('/create', 'create')->name('admin.add-bahan-baku');
         Route::get('/stock', 'stockIndex')->name('admin.gudang-stok-bahan-baku');
@@ -168,7 +166,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     });
 
     // Employee
-    Route::controller(EmployeeController::class)->prefix('employees')->group(function () {
+    Route::controller(EmployeeController::class)->middleware(['auth', 'role:admin|executive'])->prefix('employees')->group(function () {
         Route::get('/', 'index')->name('employees');
         Route::get('/create', 'create')->name('admin.create-employee');
         Route::post('/create', 'store')->name('admin.store-employee');
@@ -180,14 +178,14 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::put('/restore/{id}', 'restore')->name('restore.employee');
 
     });
-    Route::controller(RoleController::class)->prefix('roles')->group(function () {
+    Route::controller(RoleController::class)->prefix('roles')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/', 'index')->name('roles');
         Route::get('/create', 'create')->name('admin.create-role');
         Route::post('/create', 'store')->name('admin.store-role');
         Route::get('/edit/{id}', 'edit')->name('edit.role');
         Route::put('/edit/{id}', 'update')->name('update.role');
     });
-    Route::controller(PermissionController::class)->prefix('permissions')->group(function () {
+    Route::controller(PermissionController::class)->prefix('permissions')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/', 'index')->name('permissions');
         Route::get('/create', 'create')->name('create-permission');
         Route::post('/store', 'store')->name('store-permission');
@@ -195,7 +193,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::put('/edit/{id}', 'update')->name('update-permission');
         Route::delete('/delete/{id}', 'destroy')->name('delete-permission');
     });
-    Route::controller(UserController::class)->prefix('users')->group(function () {
+    Route::controller(UserController::class)->prefix('users')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/', 'index')->name('users');
         Route::get('/create', 'create')->name('create-user');
         Route::post('/create', 'store')->name('store-user');
@@ -205,36 +203,36 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::put('/restore/{id}', 'restore')->name('restore-user');
     });
     Route::controller(ProcurementController::class)->prefix('procurements')->group(function () {
-        Route::get('/create', 'create')->name('create-procurement');
-        Route::post('/store', 'store')->name('store-procurement');
-        Route::get('/', 'index')->name('procurements');
-        Route::get('/edit/{id}', 'edit')->name('edit-procurement');
+        Route::get('/create', 'create')->middleware(['auth', 'permission:create-procurements'])->name('create-procurement');
+        Route::post('/store', 'store')->middleware(['auth', 'permission:create-procurements'])->name('store-procurement');
+        Route::get('/', 'index')->middleware(['auth', 'permission:read-procurements'])->name('procurements');
+        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:show-procurements'])->name('edit-procurement');
         Route::put('/edit/{id}', 'update')->name('update-procurement');
     });
-    Route::controller(PurchaseReceiptController::class)->prefix('purchase-receipts')->group(function () {
-        Route::get('/', 'index')->name('purchase-receipts');
-        Route::get('/create', 'create')->name('create-purchase-receipt');
+    Route::controller(PurchaseReceiptController::class)->prefix('purchase-receipts')->middleware(['auth', 'role:admin|executive|admin_gudang'])->group(function () {
+        Route::get('/', 'index')->middleware(['auth', 'permission:read-purchase-receipts'])->name('purchase-receipts');
+        Route::get('/create', 'create')->middleware(['auth', 'permission:create-purchase-receipts'])->name('create-purchase-receipt');
         Route::post('/store', 'store')->name('store-purchase-receipt');
-        Route::get('/edit/{id}', 'edit')->name('edit-barang-masuk');
-        Route::put('/edit/{id}', 'update')->name('update-barang-masuk');
+        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:show-purchase-receipts'])->name('edit-barang-masuk');
+        Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:update-purchase-receipts'])->name('update-barang-masuk');
         Route::post('/add-media/{id}', 'addMedia')->name('purchase-receipts.add-media');
         Route::delete('/delete/{id}', 'destroy')->name('purchase-receipts.destroy');
     });
     Route::controller(MediaController::class)->prefix('media')->group(function () {
         Route::delete('/delete/{mediaId}', 'delete')->name('media.delete');
     });
-    Route::controller(LogErrorController::class)->prefix('log-errors')->group(function () {
+    Route::controller(LogErrorController::class)->middleware(['auth', 'role:admin'])->prefix('log-errors')->group(function () {
         Route::get('/', 'index')->name('log-errors');
     });
     Route::get('/procurements/export', [ProcurementController::class, 'export'])
         ->name('procurements.export');
-    Route::controller(ShippmentController::class)->prefix('shippments')->group(function () {
-        Route::get('/', 'index')->name('shippments');
-        Route::get('/create', 'create')->name('create-shippment');
-        Route::post('/store', 'store')->name('store-shippment');
-        Route::get('/edit/{id}', 'edit')->name('edit-shippment');
-        Route::put('/edit/{id}', 'update')->name('update-shippment');
+    Route::controller(ShippmentController::class)->prefix('shippments')->middleware(['auth', 'role:admin|executive|admin_pemasaran'])->group(function () {
+        Route::get('/', 'index')->middleware(['auth', 'permission:read-shippments'])->name('shippments');
+        Route::get('/create', 'create')->middleware(['auth', 'permission:create-shippments'])->name('create-shippment');
+        Route::post('/store', 'store')->middleware(['auth', 'permission:create-shippments'])->name('store-shippment');
+        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:show-shippments'])->name('edit-shippment');
+        Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:update-shippments'])->name('update-shippment');
         Route::delete('/delete/{id}', 'destroy')->name('delete-shippment');
     });
 });
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
