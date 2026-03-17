@@ -3,15 +3,14 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class PermissionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        DB::table('permissions')->insert([
+        $permissions = [
             ['name' => 'access dashboard', 'guard_name' => 'web'],
             ['name' => 'create-procurements', 'guard_name' => 'web'],
             ['name' => 'update-procurements', 'guard_name' => 'web'],
@@ -63,6 +62,19 @@ class PermissionSeeder extends Seeder
             ['name' => 'update-raw-materials', 'guard_name' => 'web'],
             ['name' => 'delete-raw-materials', 'guard_name' => 'web'],
             ['name' => 'show-stock-raw-materials', 'guard_name' => 'web'],
-        ]);
+        ];
+
+        foreach ($permissions as $permission) {
+            DB::table('permissions')->updateOrInsert(
+                [
+                    'name' => $permission['name'],
+                    'guard_name' => $permission['guard_name'],
+                ],
+                [
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]
+            );
+        }
     }
 }
