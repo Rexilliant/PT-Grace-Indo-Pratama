@@ -2,7 +2,8 @@
 
 @section('open-gudang', 'open')
 @section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
-@section('menu-warehouse', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-gudang-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+
 
 @section('addCss')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

@@ -14,8 +14,8 @@ class WarehouseSeeder extends Seeder
     public function run(): void
     {
         $warehouses = [
-            ['name' => 'Gudang Produksi Sumatera Utara', 'province' => 'Sumatera Utara', 'city' => 'Medan', 'responsible_id' => 1],
-            ['name' => 'Gudang Pemasaran Sumatera Utara', 'province' => 'Sumatera Utara', 'city' => 'Medan', 'responsible_id' => 1],
+            ['name' => 'Gudang Produksi Sumatera Utara', 'province' => 'SUMATERA UTARA', 'city' => 'KOTA MEDAN', 'responsible_id' => 1],
+            ['name' => 'Gudang Pemasaran Sumatera Utara', 'province' => 'SUMATERA UTARA', 'city' => 'KOTA MEDAN', 'responsible_id' => 1],
         ];
 
         foreach ($warehouses as $warehouse) {
