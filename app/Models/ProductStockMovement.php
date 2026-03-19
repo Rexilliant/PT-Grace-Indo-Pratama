@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\ProductStock;
+use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductStockMovement extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
-        'province',
+        'warehouse_id',
         'product_stock_id',
         'type',
         'quantity',
@@ -27,5 +32,10 @@ class ProductStockMovement extends Model
     public function reference()
     {
         return $this->morphTo(null, 'ref_type', 'ref_id');
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 }

@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('production_has_materials', function (Blueprint $table) {
+        Schema::create('warehouses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('production_batch_id')->constrained('production_batches')->cascadeOnDelete();
-            $table->foreignId('raw_material_id')->constrained('raw_materials')->cascadeOnDelete();
-            $table->integer('stock');
-            $table->integer('quantity_use');
+            $table->string('name');
+            $table->string('province');
+            $table->string('city');
+            $table->bigInteger('responsible_id')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('production_has_materials');
+        Schema::dropIfExists('warehouse');
     }
 };

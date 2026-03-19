@@ -8,11 +8,11 @@ use App\Models\PurchaseReceiptItem;
 use App\Models\RawMaterial;
 use App\Models\RawMaterialStock;
 use App\Models\RawMaterialStockMovement;
+use App\Models\Warehouse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -35,59 +35,36 @@ class PurchaseReceiptController extends Controller
                 $u->where('name', 'like', "%{$search}%");
             });
         }
-        // FILTER PROVINCE
-        if ($request->filled('province')) {
-            $q->where('province', 'like', "%{$request->province}%");
-        }
         // ROWS PER PAGE (dropdown 10/25/50)
         $perPage = (int) ($request->get('per_page', 10));
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
         $receipts = $q->paginate($perPage)->withQueryString();
+        $warehouses = Warehouse::all();
 
-        return view('admin.purchase.purchases', compact('receipts'));
+        return view('admin.purchase.purchases', compact('receipts', 'warehouses'));
     }
 
     public function create()
     {
+        $warehouses = Warehouse::all();
 
-        // $response = Http::get('http://api.geonames.org/childrenJSON', [
-        //     'geonameId' => 1643084,
-        //     'username' => 'hier',
-        // ]);
-        $path = public_path('assets/data/provinceAndCity.json');
-
-        $json = File::get($path);
-
-        $data = json_decode($json, true);
-
-        $provinces = collect($data['geonames'] ?? [])
-            ->map(fn ($p) => [
-                'id' => $p['geonameId'] ?? null,
-                'name' => $p['name'] ?? null,
-            ])
-            ->filter(fn ($p) => ! empty($p['name']))
-            ->values();
         $rawMaterials = RawMaterial::select('id', 'code', 'name', 'unit')
             ->orderBy('name')
             ->get();
-        $procurements = Procurement::where('status', 'diterima')->get();
+        $procurements = Procurement::where('status', 'disetujui')->get();
 
-        return view('admin.purchase.purchase-create', compact('provinces', 'rawMaterials', 'procurements'));
+        return view('admin.purchase.purchase-create', compact('warehouses', 'rawMaterials', 'procurements'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'procurement_id' => ['required', 'integer', 'exists:procurements,id'],
-            'province' => ['required'],
-
             'received_at' => ['required', 'date'],
             'total_price' => ['nullable', 'integer', 'min:0'],
-
             'items' => ['required', 'array', 'min:1'],
             'items.*.raw_material_id' => ['required', 'integer', 'exists:raw_materials,id'],
             'items.*.quantity_received' => ['required', 'integer', 'min:1'],
-
             'invoices' => ['required', 'array'],
             'invoices.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'], // 3MB
         ]);
@@ -104,11 +81,12 @@ class PurchaseReceiptController extends Controller
 
                 // Receipt number (silakan sesuaikan format)
                 $receiptNumber = 'RCPT-'.now()->format('Ymd').'-'.strtoupper(Str::random(6));
-
+                $procurement = Procurement::findOrFail($validated['procurement_id']);
+                $warehouse_id = $procurement->warehouse_id;
                 $receipt = PurchaseReceipt::create([
                     'receipt_number' => $receiptNumber,
+                    'warehouse_id' => $warehouse_id,
                     'procurement_id' => (int) $validated['procurement_id'],
-                    'province' => (string) $validated['province'], // simpan apa adanya dari form
                     'received_at' => $validated['received_at'],
                     'received_by' => $userId,
                     'status' => 'received',
@@ -124,7 +102,7 @@ class PurchaseReceiptController extends Controller
                         'quantity_received' => (int) $row['quantity_received'],
                     ]);
                     RawMaterialStockMovement::create([
-                        'province' => $receipt->province,
+                        'warehouse_id' => $warehouse_id,
                         'raw_material_id' => (int) $row['raw_material_id'],
                         'type' => 'in',
                         'stock' => (int) $row['quantity_received'],
@@ -136,14 +114,15 @@ class PurchaseReceiptController extends Controller
                     RawMaterialStock::updateOrCreate(
                         [
                             'raw_material_id' => (int) $row['raw_material_id'],
-                            'province' => $receipt->province,
+                            'warehouse_id' => $warehouse_id,
+
                         ],
                         []
                     );
 
                     RawMaterialStock::where([
                         'raw_material_id' => (int) $row['raw_material_id'],
-                        'province' => $receipt->province,
+                        'warehouse_id' => $warehouse_id,
                     ])->increment('stock', (int) $row['quantity_received']);
                 }
                 if ($request->hasFile('invoices')) {
@@ -151,7 +130,6 @@ class PurchaseReceiptController extends Controller
                         if (! $file->isValid()) {
                             continue;
                         }
-
                         // file name rapi
                         $baseName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                         $ext = $file->getClientOriginalExtension();
@@ -170,7 +148,7 @@ class PurchaseReceiptController extends Controller
             });
 
             return redirect()
-                ->back()
+                ->route('purchase-receipts')
                 ->with('success', "Barang masuk berhasil disimpan. No: {$receipt->receipt_number}");
 
         } catch (Throwable $e) {
@@ -228,19 +206,7 @@ class PurchaseReceiptController extends Controller
 
     public function edit($id)
     {
-        $path = public_path('assets/data/provinceAndCity.json');
-
-        $json = File::get($path);
-
-        $data = json_decode($json, true);
-
-        $provinces = collect($data['geonames'] ?? [])
-            ->map(fn ($p) => [
-                'id' => $p['geonameId'] ?? null,
-                'name' => $p['name'] ?? null,
-            ])
-            ->filter(fn ($p) => ! empty($p['name']))
-            ->values();
+        $warehouses = Warehouse::all();
 
         $receipt = PurchaseReceipt::with([
             'items.rawMaterial',
@@ -262,7 +228,7 @@ class PurchaseReceiptController extends Controller
 
         return view('admin.purchase.purchase-edit', compact(
             'receipt',
-            'provinces',
+            'warehouses',
             'rawMaterials',
             'procurements',
             'invoices'
@@ -272,8 +238,6 @@ class PurchaseReceiptController extends Controller
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'procurement_id' => ['required', 'integer', 'exists:procurements,id'],
-            'province' => ['required'],
             'received_at' => ['required', 'date'],
             'total_price' => ['nullable', 'integer', 'min:0'],
 
@@ -285,18 +249,11 @@ class PurchaseReceiptController extends Controller
         try {
             DB::transaction(function () use ($validated, $id) {
                 $userId = auth()->id();
-
                 $receipt = PurchaseReceipt::with(['items'])->findOrFail($id);
-
-                /**
-                 * 1) BALIKIN STOK DARI ITEM LAMA (reverse)
-                 * - kurangi stock berdasarkan item lama
-                 * - hapus movement lama untuk receipt ini
-                 */
                 foreach ($receipt->items as $oldItem) {
                     RawMaterialStock::where([
                         'raw_material_id' => (int) $oldItem->raw_material_id,
-                        'province' => $receipt->province, // province lama
+                        'warehouse_id' => $receipt->warehouse_id,
                     ])->decrement('stock', (int) $oldItem->quantity_received);
                 }
 
@@ -305,19 +262,14 @@ class PurchaseReceiptController extends Controller
                     'ref_id' => $receipt->id,
                 ])->delete();
 
-                /**
-                 * 2) UPDATE HEADER RECEIPT
-                 */
+                $procurement = Procurement::findOrFail($receipt->procurement_id);
+                $warehouse_id = $procurement->warehouse_id;
                 $receipt->update([
-                    'procurement_id' => (int) $validated['procurement_id'],
-                    'province' => (string) $validated['province'],
+                    'warehouse_id' => $warehouse_id,
                     'received_at' => $validated['received_at'],
                     'total_price' => (int) ($validated['total_price'] ?? 0),
                 ]);
 
-                /**
-                 * 3) HAPUS ITEM LAMA, INSERT ITEM BARU
-                 */
                 PurchaseReceiptItem::where('purchase_receipt_id', $receipt->id)->delete();
 
                 foreach ($validated['items'] as $row) {
@@ -329,7 +281,7 @@ class PurchaseReceiptController extends Controller
 
                     // movement baru
                     RawMaterialStockMovement::create([
-                        'province' => $receipt->province, // province baru
+                        'warehouse_id' => $receipt->warehouse_id,
                         'raw_material_id' => (int) $row['raw_material_id'],
                         'type' => 'in',
                         'stock' => (int) $row['quantity_received'],
@@ -343,7 +295,7 @@ class PurchaseReceiptController extends Controller
                     RawMaterialStock::updateOrCreate(
                         [
                             'raw_material_id' => (int) $row['raw_material_id'],
-                            'province' => $receipt->province,
+                            'warehouse_id' => $receipt->warehouse_id,
                         ],
                         []
                     );
@@ -351,7 +303,7 @@ class PurchaseReceiptController extends Controller
                     // tambah stock baru
                     RawMaterialStock::where([
                         'raw_material_id' => (int) $row['raw_material_id'],
-                        'province' => $receipt->province,
+                        'warehouse_id' => $receipt->warehouse_id,
                     ])->increment('stock', (int) $row['quantity_received']);
                 }
             });
@@ -380,7 +332,7 @@ class PurchaseReceiptController extends Controller
                 foreach ($receipt->items as $item) {
                     $current = RawMaterialStock::where([
                         'raw_material_id' => (int) $item->raw_material_id,
-                        'province' => $receipt->province,
+                        'warehouse_id' => $receipt->warehouse_id,
                     ])->value('stock') ?? 0;
 
                     if ($current < (int) $item->quantity_received) {
@@ -392,7 +344,7 @@ class PurchaseReceiptController extends Controller
                 foreach ($receipt->items as $item) {
                     RawMaterialStock::where([
                         'raw_material_id' => (int) $item->raw_material_id,
-                        'province' => $receipt->province,
+                        'warehouse_id' => $receipt->warehouse_id,
                     ])->decrement('stock', (int) $item->quantity_received);
                 }
 

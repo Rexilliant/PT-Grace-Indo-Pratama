@@ -12,7 +12,7 @@
         <div class="mb-4 text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Executive</span>
             <span class="mx-1 text-gray-400">›</span>
-            <a href="#" class="text-blue-600 hover:underline">Pengadaan Barang</a>
+            <a href="#" class="text-blue-600 hover:underline">Produk Stok</a>
         </div>
     </section>
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
@@ -28,22 +28,6 @@
                     <input type="text" name="name" value="{{ request('name') }}" placeholder="Nama"
                         class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
                 </div>
-
-                {{-- Province --}}
-                {{-- <div class="flex flex-col w-full">
-                    <label class="text-xs font-semibold text-gray-700 mb-1">
-                        Provinsi
-                    </label>
-                    <select name="province"
-                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none">
-                        <option value="">Semua Provinsi</option>
-                        @foreach ($provinces as $prov)
-                            <option value="{{ $prov }}" @selected(request('province') == $prov)>
-                                {{ $prov }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div> --}}
 
 
                 {{-- Per Page --}}
@@ -102,7 +86,7 @@
                     <thead class="bg-[#5aba6f]/70 text-gray-900">
                         <tr class="[&>th]:border-b [&>th]:border-gray-500">
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Product</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Province</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Gudang</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Stock</th>
                         </tr>
                     </thead>
@@ -111,7 +95,7 @@
                         @forelse ($productStocks as $productStock)
                             <tr class="[&>td]:border-b [&>td]:border-gray-400 hover:bg-gray-100">
                                 <td class="px-6 py-4 font-medium">{{ $productStock->productVariant->name }}</td>
-                                <td class="px-6 py-4 font-medium">{{ $productStock->province }}</td>
+                                <td class="px-6 py-4 font-medium">{{ $productStock->warehouse->name }}</td>
                                 <td class="px-6 py-4 font-medium">{{ $productStock->stock }}</td>
                             </tr>
                         @empty

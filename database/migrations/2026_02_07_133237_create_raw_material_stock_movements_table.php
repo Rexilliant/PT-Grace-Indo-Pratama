@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('raw_material_stock_movements', function (Blueprint $table) {
             $table->id();
-            $table->string('province');
+            $table->foreignId('warehouse_id')->constrained();
             $table->foreignId('raw_material_id')->constrained()->cascadeOnDelete();
             $table->string('type');
             $table->integer('stock');

@@ -1,46 +1,62 @@
 @extends('admin.layout.master')
 
-{{-- sidebar active (sesuaikan menu kamu) --}}
 @section('open-pemasaran', 'open')
 @section('menu-pemasaran', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-pemasaran-permintaan-pengiriman', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
+    @php
+        $sectionClass = 'rounded-xl border border-gray-300 bg-gray-200/80 p-5 shadow';
+        $labelClass = 'mb-2.5 block text-xs font-bold text-gray-800';
+        $readonlyClass =
+            'w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0';
+        $inputBaseClass =
+            'w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500';
+        $inputNormalClass = $inputBaseClass . ' border border-gray-400 bg-white';
+        $inputErrorClass = $inputBaseClass . ' border border-red-500 bg-red-50';
+        $actionBtnClass = 'inline-flex items-center justify-center rounded-lg px-10 py-3 text-sm font-bold text-white';
+    @endphp
+
     <section class="mb-5">
         <div class="text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Gudang</span>
             <span class="mx-1 text-gray-400">›</span>
             <a href="#" class="text-gray-700 hover:underline">Permintaan Pengiriman</a>
             <span class="mx-1 text-gray-400">›</span>
-            <span class="text-blue-600 font-bold">Tambah Pengiriman</span>
+            <span class="font-bold text-blue-600">Tambah Pengiriman</span>
         </div>
     </section>
 
     <form action="{{ route('store-shippment') }}" method="POST" enctype="multipart/form-data" class="space-y-5"
-        x-data="shipmentForm()" x-init="init()">
+        x-data="shipmentForm({
+            stockWarehouse: @js(old('stock_warehouse', '')),
+            productStocks: @js($productStocks),
+            items: @js(old('items', [['product_stock_id' => '', 'quantity' => 1]])),
+            validationErrors: @js($errors->toArray()),
+            successMessage: @js(session('success')),
+            errorMessage: @js(session('error')),
+        })" x-init="init()">
         @csrf
 
-        <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <section class="{{ $sectionClass }}">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
                 <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Tanggal Pengajuan</label>
-                    <input type="date" value="{{ now()->format('Y-m-d') }}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0">
+                    <label class="{{ $labelClass }}">Tanggal Pengajuan</label>
+                    <input type="date" value="{{ now()->format('Y-m-d') }}" readonly class="{{ $readonlyClass }}">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Tanggal Permintaan Pengiriman</label>
+                    <label class="{{ $labelClass }}">Tanggal Permintaan Pengiriman</label>
                     <input type="date" name="shippment_request_at" value="{{ old('shippment_request_at') }}"
-                        class="w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 @error('shippment_request_at') border-red-500 bg-red-50 @else border-gray-400 bg-white @enderror">
+                        class="@error('shippment_request_at') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
                     @error('shippment_request_at')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Penanggung Jawab</label>
-                    <input type="text" value="{{ auth()->user()->name }}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0">
+                    <label class="{{ $labelClass }}">Penanggung Jawab</label>
+                    <input type="text" value="{{ auth()->user()->name }}" readonly class="{{ $readonlyClass }}">
                     <input type="hidden" name="person_responsible_id" value="{{ auth()->id() }}">
                     @error('person_responsible_id')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -48,48 +64,46 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Jenis Pengiriman</label>
+                    <label class="{{ $labelClass }}">Jenis Pengiriman</label>
                     <input type="text" name="shippment_type" value="{{ old('shippment_type') }}"
-                        class="w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 @error('shippment_type') border-red-500 bg-red-50 @else border-gray-400 bg-white @enderror">
+                        class="@error('shippment_type') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
                     @error('shippment_type')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Provinsi Tujuan</label>
-                    <select name="province"
-                        class="w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500 @error('province') border-red-500 bg-red-50 @else border-gray-400 bg-white @enderror">
-                        <option value="">-- Pilih Provinsi Tujuan --</option>
-                        @foreach ($provinces as $province)
-                            <option value="{{ $province['name'] }}"
-                                {{ old('province') == $province['name'] ? 'selected' : '' }}>
-                                {{ $province['name'] }}
+                    <label class="{{ $labelClass }}">Gudang Tujuan</label>
+                    <select name="warehouse_id"
+                        class="@error('warehouse_id') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
+                        <option value="">-- Pilih Gudang Tujuan --</option>
+                        @foreach ($warehouses as $warehouse)
+                            <option value="{{ $warehouse->id }}" @selected(old('warehouse_id') == $warehouse->id)>
+                                {{ $warehouse->name }}
                             </option>
                         @endforeach
                     </select>
-                    @error('province')
+                    @error('warehouse_id')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Armada Pengiriman</label>
+                    <label class="{{ $labelClass }}">Armada Pengiriman</label>
                     <input type="text" name="shipping_fleet" value="{{ old('shipping_fleet') }}"
-                        class="w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 @error('shipping_fleet') border-red-500 bg-red-50 @else border-gray-400 bg-white @enderror">
+                        class="@error('shipping_fleet') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
                     @error('shipping_fleet')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Nama Penerima</label>
+                    <label class="{{ $labelClass }}">Nama Penerima</label>
                     <select name="received_by_id"
-                        class="w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500 @error('received_by_id') border-red-500 bg-red-50 @else border-gray-400 bg-white @enderror">
+                        class="@error('received_by_id') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
                         <option value="">-- Pilih Penerima --</option>
                         @foreach ($users as $user)
-                            <option value="{{ $user->id }}"
-                                {{ old('received_by_id') == $user->id ? 'selected' : '' }}>
+                            <option value="{{ $user->id }}" @selected(old('received_by_id') == $user->id)>
                                 {{ $user->name }}
                             </option>
                         @endforeach
@@ -100,27 +114,27 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Kontak Penerima</label>
+                    <label class="{{ $labelClass }}">Kontak Penerima</label>
                     <input type="text" name="contact" value="{{ old('contact') }}"
-                        class="w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 @error('contact') border-red-500 bg-red-50 @else border-gray-400 bg-white @enderror">
+                        class="@error('contact') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
                     @error('contact')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Alamat Lengkap</label>
+                    <label class="{{ $labelClass }}">Alamat Lengkap</label>
                     <textarea rows="3" name="address"
-                        class="w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 @error('address') border-red-500 bg-red-50 @else border-gray-400 bg-white @enderror">{{ old('address') }}</textarea>
+                        class="@error('address') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">{{ old('address') }}</textarea>
                     @error('address')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Catatan</label>
+                    <label class="{{ $labelClass }}">Catatan</label>
                     <textarea name="notes" rows="3" placeholder="Opsional"
-                        class="w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 @error('notes') border-red-500 bg-red-50 @else border-gray-400 bg-white @enderror">{{ old('notes') }}</textarea>
+                        class="@error('notes') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">{{ old('notes') }}</textarea>
                     @error('notes')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
@@ -128,28 +142,28 @@
             </div>
         </section>
 
-        <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-            <div class="flex items-center justify-between">
-                <div class="text-xs font-bold text-gray-800 mb-4">Daftar Item Pengiriman</div>
-                <button type="button" @click="addItem()"
+        <section class="{{ $sectionClass }}">
+            <div class="mb-4 flex items-center justify-between">
+                <div class="text-xs font-bold text-gray-800">Daftar Item Pengiriman</div>
+                <button type="button" @click="addItem"
                     class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">
                     + Tambah Item
                 </button>
             </div>
 
             <div class="mb-4">
-                <label class="block text-xs font-bold text-gray-800 mb-2.5">Provinsi Stok</label>
-                <select x-model="stockProvince" @change="resetProductSelections()"
-                    class="w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500 @error('stock_province') border-red-500 bg-red-50 @else border-gray-400 bg-white @enderror">
-                    <option value="">-- Pilih Provinsi Stok --</option>
-                    @foreach ($provinceProducts as $province)
-                        <option value="{{ $province }}">{{ $province }}</option>
+                <label class="{{ $labelClass }}">Gudang Stok</label>
+                <select x-model="stockWarehouse" @change="resetItems"
+                    class="@error('stock_warehouse') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
+                    <option value="">-- Pilih Gudang Stok --</option>
+                    @foreach ($warehouses as $warehouse)
+                        <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
                     @endforeach
                 </select>
 
-                <input type="hidden" name="stock_province" :value="stockProvince">
+                <input type="hidden" name="stock_warehouse" :value="stockWarehouse">
 
-                @error('stock_province')
+                @error('stock_warehouse')
                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                 @enderror
             </div>
@@ -158,8 +172,8 @@
                 <p class="mb-3 text-xs text-red-600">{{ $message }}</p>
             @enderror
 
-            <div class="mb-4 text-xs text-gray-600" x-show="!stockProvince">
-                Pilih provinsi stok terlebih dahulu agar daftar produk muncul.
+            <div x-show="!stockWarehouse" class="mb-4 text-xs text-gray-600">
+                Pilih gudang stok terlebih dahulu agar daftar produk muncul.
             </div>
 
             <div class="space-y-4">
@@ -169,42 +183,42 @@
                             <div>
                                 <label class="mb-2 block text-xs font-bold text-gray-800">Produk</label>
                                 <select :name="`items[${index}][product_stock_id]`" x-model="item.product_stock_id"
-                                    :disabled="!stockProvince"
-                                    :class="itemError(index, 'product_stock_id') ? 'border-red-500 bg-red-50' :
+                                    :disabled="!stockWarehouse"
+                                    :class="fieldError(index, 'product_stock_id') ? 'border-red-500 bg-red-50' :
                                         'border-gray-400 bg-white'"
                                     class="w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 disabled:bg-gray-100">
                                     <option value="">-- Pilih Produk --</option>
-                                    <template x-for="stock in filteredStocks()" :key="stock.id">
+                                    <template x-for="stock in availableStocks" :key="stock.id">
                                         <option :value="stock.id"
-                                            x-text="`${stock.product_variant.sku} - ${stock.product_variant.name}`">
+                                            x-text="`${stock.product_variant?.sku ?? '-'} - ${stock.product_variant?.name ?? '-'}`">
                                         </option>
                                     </template>
                                 </select>
 
-                                <template x-if="itemError(index, 'product_stock_id')">
-                                    <p class="mt-1 text-xs text-red-600" x-text="itemError(index, 'product_stock_id')">
+                                <template x-if="fieldError(index, 'product_stock_id')">
+                                    <p class="mt-1 text-xs text-red-600" x-text="fieldError(index, 'product_stock_id')">
                                     </p>
                                 </template>
                             </div>
 
                             <div>
-                                <label class="mb-2 block text-xs font-bold text-gray-800">Stock Tersedia</label>
-                                <input type="text" :value="selectedStock(item.product_stock_id)?.stock ?? 0" readonly
-                                    class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0">
+                                <label class="mb-2 block text-xs font-bold text-gray-800">Stok Tersedia</label>
+                                <input type="text" :value="getSelectedStock(item.product_stock_id)?.stock ?? 0" readonly
+                                    class="{{ $readonlyClass }}">
                             </div>
 
                             <div>
                                 <label class="mb-2 block text-xs font-bold text-gray-800">Jumlah</label>
                                 <input type="number" min="1"
-                                    :max="selectedStock(item.product_stock_id)?.stock ?? null"
+                                    :max="getSelectedStock(item.product_stock_id)?.stock ?? null"
                                     :name="`items[${index}][quantity]`" x-model="item.quantity"
                                     placeholder="Masukkan jumlah"
-                                    :class="itemError(index, 'quantity') ? 'border-red-500 bg-red-50' :
+                                    :class="fieldError(index, 'quantity') ? 'border-red-500 bg-red-50' :
                                         'border-gray-400 bg-white'"
                                     class="w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0">
 
-                                <template x-if="itemError(index, 'quantity')">
-                                    <p class="mt-1 text-xs text-red-600" x-text="itemError(index, 'quantity')"></p>
+                                <template x-if="fieldError(index, 'quantity')">
+                                    <p class="mt-1 text-xs text-red-600" x-text="fieldError(index, 'quantity')"></p>
                                 </template>
                             </div>
 
@@ -216,8 +230,8 @@
                             </div>
                         </div>
 
-                        <div class="mt-2 text-[11px] text-gray-600"
-                            x-show="item.product_stock_id && item.quantity > (selectedStock(item.product_stock_id)?.stock ?? 0)">
+                        <div x-show="item.product_stock_id && Number(item.quantity) > Number(getSelectedStock(item.product_stock_id)?.stock ?? 0)"
+                            class="mt-2 text-[11px] text-gray-600">
                             Jumlah melebihi stok tersedia.
                         </div>
                     </div>
@@ -225,16 +239,13 @@
             </div>
         </section>
 
-
-
         <div class="flex items-center justify-end gap-4 pt-2">
             <a href="{{ route('admin.gudang-permintaan-pengiriman') }}"
-                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-10 py-3 text-sm font-bold text-white hover:bg-red-700">
+                class="{{ $actionBtnClass }} bg-red-600 hover:bg-red-700">
                 Batal
             </a>
 
-            <button type="submit"
-                class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
+            <button type="submit" class="{{ $actionBtnClass }} bg-[#2D2ACD] hover:bg-blue-800">
                 Simpan
             </button>
         </div>
@@ -242,43 +253,57 @@
 @endsection
 
 @section('addJs')
-
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        function shipmentForm() {
+        function shipmentForm(config) {
             return {
-                stockProvince: @js(old('stock_province', '')),
-                productStocks: @json($productStocks),
-                validationErrors: @json($errors->toArray()),
-                items: @json(old('items', [['product_stock_id' => '', 'quantity' => 1]])),
+                stockWarehouse: config.stockWarehouse || '',
+                productStocks: Array.isArray(config.productStocks) ? config.productStocks : [],
+                items: Array.isArray(config.items) && config.items.length ?
+                    config.items :
+                    [{
+                        product_stock_id: '',
+                        quantity: 1
+                    }],
+                validationErrors: config.validationErrors || {},
+                successMessage: config.successMessage || '',
+                errorMessage: config.errorMessage || '',
 
                 init() {
-                    this.initFilePond();
-
-                    @if (session('success'))
+                    if (this.successMessage) {
                         Swal.fire({
                             icon: 'success',
                             title: 'Berhasil',
-                            text: @js(session('success')),
+                            text: this.successMessage,
                             confirmButtonColor: '#2D2ACD'
                         });
-                    @endif
+                    }
 
-                    @if (session('error'))
+                    if (this.errorMessage) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
-                            text: @js(session('error')),
+                            text: this.errorMessage,
                             confirmButtonColor: '#dc2626'
                         });
-                    @endif
+                    }
+
+                    console.log('productStocks:', this.productStocks);
+                },
+
+                get availableStocks() {
+                    if (!this.stockWarehouse) return [];
+
+                    return this.productStocks.filter(stock =>
+                        String(stock.warehouse_id) === String(this.stockWarehouse)
+                    );
                 },
 
                 addItem() {
                     this.items.push({
                         product_stock_id: '',
-                        quantity: 1
+                        quantity: 1,
                     });
                 },
 
@@ -294,28 +319,23 @@
                     this.items.splice(index, 1);
                 },
 
-                filteredStocks() {
-                    if (!this.stockProvince) return [];
-                    return this.productStocks.filter(stock => stock.province === this.stockProvince);
-                },
-
-                selectedStock(productStockId) {
-                    return this.productStocks.find(stock => String(stock.id) === String(productStockId)) || null;
-                },
-
-                resetProductSelections() {
-                    this.items = this.items.map(item => ({
-                        ...item,
+                resetItems() {
+                    this.items = this.items.map(() => ({
                         product_stock_id: '',
-                        quantity: 1
+                        quantity: 1,
                     }));
                 },
 
-                itemError(index, field) {
-                    const key = `items.${index}.${field}`;
-                    return this.validationErrors[key] ? this.validationErrors[key][0] : '';
+                getSelectedStock(productStockId) {
+                    return this.productStocks.find(
+                        stock => String(stock.id) === String(productStockId)
+                    ) || null;
                 },
 
+                fieldError(index, field) {
+                    const key = `items.${index}.${field}`;
+                    return this.validationErrors[key]?.[0] || '';
+                },
             }
         }
     </script>

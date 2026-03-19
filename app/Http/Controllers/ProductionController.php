@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Product;
 use App\Models\ProductionBatch;
 use App\Models\ProductionHasMaterial;
 use App\Models\ProductStock;
+use App\Models\ProductStockMovement;
 use App\Models\ProductVariant;
 use App\Models\RawMaterialStock;
 use App\Models\RawMaterialStockMovement;
+use App\Models\Warehouse;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,54 +18,37 @@ use Illuminate\Support\Facades\Http;
 
 class ProductionController extends Controller
 {
-    // public function index(Request $request)
-    // {
-    //     $search = trim((string) $request->get('search'));
-
-    //     $productionBatches = ProductionBatch::with([
-    //         'personResponsible',
-    //         'productStock.productVariant',
-    //         'materials.rawMaterial',
-    //     ])
-    //         ->when($search, function ($query) use ($search) {
-    //             $query->where(function ($q) use ($search) {
-    //                 $q->where('province', 'like', "%{$search}%")
-    //                     ->orWhereDate('entry_date', $search)
-    //                     ->orWhereHas('personResponsible', function ($userQuery) use ($search) {
-    //                         $userQuery->where('name', 'like', "%{$search}%");
-    //                     })
-    //                     ->orWhereHas('productStock.productVariant', function ($variantQuery) use ($search) {
-    //                         $variantQuery->where('sku', 'like', "%{$search}%")
-    //                             ->orWhere('name', 'like', "%{$search}%");
-    //                     });
-    //             });
-    //         })
-    //         ->orderByDesc('entry_date')
-    //         ->orderByDesc('id')
-    //         ->paginate(10)
-    //         ->withQueryString();
-
-    //     return view('admin.gudang-laporan-produksi', compact(
-    //         'productionBatches',
-    //         'search'
-    //     ));
-    // }
-
-
-    public function index()
+    public function index(Request $request)
     {
-        $productionBatches = ProductionBatch::with([
+        $q = ProductionBatch::query()->with([
             'personResponsible',
             'productStock.productVariant.product',
             'materials.rawMaterial',
-        ])
-            ->orderByDesc('entry_date')
-            ->orderByDesc('id')
-            ->paginate(5);
+            'warehouse',
+        ]);
+        if ($request->filled('id')) {
+            $q->where('id', 'like', '%'.$request->id.'%');
+        }
 
-        return view('admin.gudang-laporan-produksi', compact('productionBatches'));
+        if ($request->filled('warehouse_id')) {
+            $q->where('warehouse_id', $request->warehouse_id);
+        }
+        // FILTER TANGGAL (purchase_at)
+        if ($request->filled('date_from')) {
+            $q->whereDate('entry_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $q->whereDate('entry_date', '<=', $request->date_to);
+        }
+        // ROWS PER PAGE (dropdown 10/25/50)
+        $perPage = (int) ($request->get('per_page', 10));
+        $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
+
+        $productionBatches = $q->paginate($perPage)->withQueryString();
+        $warehouses = Warehouse::all();
+
+        return view('admin.gudang-laporan-produksi', compact('productionBatches', 'warehouses'));
     }
-
 
     public function pilihProduk()
     {
@@ -81,106 +64,93 @@ class ProductionController extends Controller
         $productVariant->load('product');
 
         $personResponsible = Auth::user();
-        $provinces = $this->getProvinceOptions();
+        $warehouses = Warehouse::all();
 
         return view('admin.add-produk', compact(
             'productVariant',
             'personResponsible',
-            'provinces'
+            'warehouses'
         ));
     }
 
-    public function edit(ProductionBatch $productionBatch)
-    {
-        $productionBatch->load([
-            'personResponsible',
-            'productStock.productVariant.product',
-            'materials.rawMaterial',
-        ]);
-
-        $personResponsible = $productionBatch->personResponsible;
-        $productVariant = $productionBatch->productStock?->productVariant;
-        $provinces = $this->getProvinceOptions();
-
-        if (!$productVariant) {
-            return redirect()
-                ->route('admin.gudang-laporan-produksi')
-                ->with('error', 'Produk pada batch produksi tidak ditemukan.');
-        }
-
-        $usedMaterials = $productionBatch->materials->keyBy('raw_material_id');
-
-        $materials = RawMaterialStock::with('rawMaterial')
-            ->where('province', $productionBatch->province)
-            ->whereHas('rawMaterial', function ($query) {
-                $query->whereNull('deleted_at');
-            })
-            ->orderBy('raw_material_id')
-            ->get()
-            ->map(function ($stock) use ($usedMaterials) {
-                $used = $usedMaterials->get($stock->raw_material_id);
-
-                return [
-                    'raw_material_id' => $stock->raw_material_id,
-                    'id_barang' => $stock->rawMaterial->code ?? '-',
-                    'nama_barang' => $stock->rawMaterial->name ?? '-',
-                    'stok_tersedia' => $stock->stock,
-                    'unit' => $stock->rawMaterial->unit ?? '',
-                    'quantity_use' => $used?->quantity_use,
-                ];
-            })
-            ->values();
-
-        return view('admin.edit-produk', compact(
-            'productionBatch',
-            'productVariant',
-            'personResponsible',
-            'provinces',
-            'materials'
-        ));
-    }
-
-    public function destroy(ProductionBatch $productionBatch)
+    public function edit($id)
     {
         try {
-            DB::transaction(function () use ($productionBatch) {
-                $productionBatch->load(['materials', 'productStock']);
+            $productionBatch = ProductionBatch::with([
+                'materials.rawMaterial',
+                'productStock.productVariant.product',
+                'personResponsible',
+                'warehouse',
+            ])->findOrFail($id);
 
-                $province = trim($productionBatch->province);
-                $quantity = (int) $productionBatch->quantity;
+            $productVariant = $productionBatch->productStock?->productVariant;
 
-                $productStock = ProductStock::lockForUpdate()->find($productionBatch->product_stock_id);
+            if (! $productVariant) {
+                throw new \Exception('Variant produk tidak ditemukan.');
+            }
 
-                if (!$productStock) {
-                    throw new \Exception('Stok produk tidak ditemukan.');
-                }
+            $personResponsible = $productionBatch->personResponsible;
+            $warehouses = Warehouse::orderBy('name')->get();
 
-                if ($productStock->stock < $quantity) {
-                    throw new \Exception('Stok produk jadi tidak cukup untuk rollback penghapusan.');
-                }
+            return view('admin.edit-produk', compact(
+                'productionBatch',
+                'productVariant',
+                'personResponsible',
+                'warehouses'
+            ));
+        } catch (\Throwable $th) {
+            if (function_exists('save_log_error')) {
+                save_log_error($th);
+            }
 
-                $productStock->decrement('stock', $quantity);
+            return redirect()
+                ->route('admin.gudang-laporan-produksi')
+                ->with('error', $th->getMessage() ?: 'Gagal memuat halaman edit produksi.');
+        }
+    }
 
-                foreach ($productionBatch->materials as $material) {
+    public function destroy($id)
+    {
+        try {
+            DB::transaction(function () use ($id) {
+                $batch = ProductionBatch::with([
+                    'materials',
+                    'productStock',
+                ])->lockForUpdate()->findOrFail($id);
+
+                $warehouseId = (int) $batch->warehouse_id;
+                $productQty = (int) $batch->quantity;
+
+                $productStock = ProductStock::lockForUpdate()->findOrFail($batch->product_stock_id);
+
+                foreach ($batch->materials as $material) {
                     $rawStock = RawMaterialStock::where('raw_material_id', $material->raw_material_id)
-                        ->where('province', $province)
+                        ->where('warehouse_id', $warehouseId)
                         ->lockForUpdate()
                         ->first();
 
-                    if (!$rawStock) {
-                        throw new \Exception("Stok bahan baku tidak ditemukan untuk provinsi {$province}.");
+                    if ($rawStock) {
+                        $rawStock->increment('stock', (int) $material->quantity_use);
                     }
-
-                    $rawStock->increment('stock', (int) $material->quantity_use);
                 }
 
-                ProductionHasMaterial::where('production_batch_id', $productionBatch->id)->delete();
+                if ($productStock->stock < $productQty) {
+                    throw new \Exception('Stok produk jadi tidak mencukupi untuk menghapus data produksi.');
+                }
+
+                $productStock->decrement('stock', $productQty);
+
+                ProductionHasMaterial::where('production_batch_id', $batch->id)->delete();
 
                 RawMaterialStockMovement::where('ref_type', 'production_batches')
-                    ->where('ref_id', $productionBatch->id)
+                    ->where('ref_id', $batch->id)
                     ->delete();
 
-                $productionBatch->delete();
+                ProductStockMovement::where('ref_type', 'production_batches')
+                    ->where('ref_id', $batch->id)
+                    ->delete();
+
+                $batch->delete();
             });
 
             return redirect()
@@ -197,16 +167,16 @@ class ProductionController extends Controller
         }
     }
 
-    public function getMaterialsByProvince(Request $request)
+    public function getMaterialsByWarehouse(Request $request)
     {
         $request->validate([
-            'province' => ['required', 'string'],
+            'warehouse_id' => ['required'],
         ]);
 
-        $province = trim($request->province);
+        $warehouse = $request->warehouse_id;
 
         $materials = RawMaterialStock::with('rawMaterial')
-            ->where('province', $province)
+            ->where('warehouse_id', $warehouse)
             ->whereHas('rawMaterial', function ($query) {
                 $query->whereNull('deleted_at');
             })
@@ -231,34 +201,52 @@ class ProductionController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'product_variant_id' => ['required', 'exists:product_variants,id'],
-            'province' => ['required', 'string', 'max:255'],
-            'entry_date' => ['required', 'date'],
-            'quantity' => ['required', 'integer', 'min:1'],
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.raw_material_id' => ['required', 'exists:raw_materials,id'],
-            'items.*.quantity_use' => ['required', 'integer', 'min:0'],
-            'note' => ['nullable', 'string'],
-        ]);
-
-        $user = Auth::user();
-
         try {
-            DB::transaction(function () use ($validated, $user) {
-                $province = trim($validated['province']);
-                $productVariantId = (int) $validated['product_variant_id'];
-                $quantity = (int) $validated['quantity'];
+            $validated = $request->validate([
+                'product_variant_id' => ['required', 'exists:product_variants,id'],
+                'warehouse_id' => ['required', 'exists:warehouses,id'],
+                'entry_date' => ['required', 'date'],
+                'quantity' => ['required', 'integer', 'min:1'],
+                'items' => ['required', 'array', 'min:1'],
+                'items.*.raw_material_id' => ['required', 'exists:raw_materials,id'],
+                'items.*.quantity_use' => ['required', 'integer', 'min:0'],
+                'note' => ['nullable', 'string'],
+            ]);
 
-                /**
-                 * Ambil / buat stok produk jadi per product_variant + province
-                 * quantity di production_batches = source of truth transaksi
-                 * stock di product_stocks = hasil akumulasi
-                 */
+            $userId = Auth::id();
+            $warehouseId = (int) $validated['warehouse_id'];
+            $productVariantId = (int) $validated['product_variant_id'];
+            $productionQty = (int) $validated['quantity'];
+            $entryDate = $validated['entry_date'];
+            $note = $validated['note'] ?? null;
+
+            $items = collect($validated['items'])
+                ->map(function ($item) {
+                    return [
+                        'raw_material_id' => (int) $item['raw_material_id'],
+                        'quantity_use' => (int) $item['quantity_use'],
+                    ];
+                })
+                ->filter(fn ($item) => $item['quantity_use'] > 0)
+                ->values();
+
+            if ($items->isEmpty()) {
+                throw new \Exception('Minimal satu bahan baku harus digunakan.');
+            }
+
+            DB::transaction(function () use (
+                $userId,
+                $warehouseId,
+                $productVariantId,
+                $productionQty,
+                $entryDate,
+                $note,
+                $items
+            ) {
                 $productStock = ProductStock::firstOrCreate(
                     [
                         'product_variant_id' => $productVariantId,
-                        'province' => $province,
+                        'warehouse_id' => $warehouseId,
                     ],
                     [
                         'stock' => 0,
@@ -266,31 +254,27 @@ class ProductionController extends Controller
                 );
 
                 $batch = ProductionBatch::create([
-                    'person_responsible_id' => $user->id,
+                    'person_responsible_id' => $userId,
                     'product_stock_id' => $productStock->id,
-                    'province' => $province,
-                    'entry_date' => $validated['entry_date'],
-                    'quantity' => $quantity,
-                    'note' => $validated['note'] ?? null,
+                    'warehouse_id' => $warehouseId,
+                    'entry_date' => $entryDate,
+                    'quantity' => $productionQty,
+                    'note' => $note,
                     'status' => 'completed',
                 ]);
 
-                foreach ($validated['items'] as $item) {
-                    $rawMaterialId = (int) $item['raw_material_id'];
-                    $quantityUse = (int) $item['quantity_use'];
+                foreach ($items as $item) {
+                    $rawMaterialId = $item['raw_material_id'];
+                    $quantityUse = $item['quantity_use'];
 
                     $rawStock = RawMaterialStock::with('rawMaterial')
                         ->where('raw_material_id', $rawMaterialId)
-                        ->where('province', $province)
+                        ->where('warehouse_id', $warehouseId)
                         ->lockForUpdate()
                         ->first();
 
-                    if ($quantityUse === 0) {
-                        continue;
-                    }
-
-                    if (!$rawStock) {
-                        throw new \Exception("Stok bahan baku tidak ditemukan untuk provinsi {$province}.");
+                    if (! $rawStock) {
+                        throw new \Exception("Stok bahan baku tidak ditemukan untuk gudang ID {$warehouseId}.");
                     }
 
                     if ($rawStock->stock < $quantityUse) {
@@ -298,10 +282,6 @@ class ProductionController extends Controller
                         throw new \Exception("Stok bahan baku {$materialName} tidak mencukupi.");
                     }
 
-                    /**
-                     * Simpan snapshot bahan yang dipakai di transaksi produksi
-                     * stock = stok saat itu sebelum dikurangi
-                     */
                     ProductionHasMaterial::create([
                         'production_batch_id' => $batch->id,
                         'raw_material_id' => $rawMaterialId,
@@ -309,30 +289,31 @@ class ProductionController extends Controller
                         'quantity_use' => $quantityUse,
                     ]);
 
-                    /**
-                     * Kurangi stok bahan baku
-                     */
                     $rawStock->decrement('stock', $quantityUse);
 
-                    /**
-                     * Catat movement OUT bahan baku
-                     */
                     RawMaterialStockMovement::create([
-                        'province' => $province,
+                        'warehouse_id' => $warehouseId,
                         'raw_material_id' => $rawMaterialId,
                         'type' => 'out',
                         'stock' => $quantityUse,
                         'ref_type' => 'production_batches',
                         'ref_id' => $batch->id,
-                        'responsible_id' => $user->id,
+                        'responsible_id' => $userId,
                         'note' => 'Pemakaian bahan baku untuk produksi',
                     ]);
                 }
 
-                /**
-                 * Tambahkan stok produk jadi
-                 */
-                $productStock->increment('stock', $quantity);
+                $productStock->increment('stock', $productionQty);
+
+                ProductStockMovement::create([
+                    'warehouse_id' => $warehouseId,
+                    'product_stock_id' => $productStock->id,
+                    'type' => 'in',
+                    'quantity' => $productionQty,
+                    'ref_type' => 'production_batches',
+                    'ref_id' => $batch->id,
+                    'note' => 'Hasil tambah produksi',
+                ]);
             });
 
             return redirect()
@@ -350,108 +331,122 @@ class ProductionController extends Controller
         }
     }
 
-    public function update(Request $request, ProductionBatch $productionBatch)
+    public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'product_variant_id' => ['required', 'exists:product_variants,id'],
-            'province' => ['required', 'string', 'max:255'],
-            'entry_date' => ['required', 'date'],
-            'quantity' => ['required', 'integer', 'min:1'],
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.raw_material_id' => ['required', 'exists:raw_materials,id'],
-            'items.*.quantity_use' => ['required', 'integer', 'min:0'],
-            'note' => ['nullable', 'string'],
-        ]);
-
-        $user = Auth::user();
-
         try {
-            DB::transaction(function () use ($validated, $user, $productionBatch) {
-                $productionBatch->load([
-                    'productStock',
+            $validated = $request->validate([
+                'product_variant_id' => ['required', 'exists:product_variants,id'],
+                'warehouse_id' => ['required', 'exists:warehouses,id'],
+                'entry_date' => ['required', 'date'],
+                'quantity' => ['required', 'integer', 'min:1'],
+                'items' => ['required', 'array', 'min:1'],
+                'items.*.raw_material_id' => ['required', 'exists:raw_materials,id'],
+                'items.*.quantity_use' => ['required', 'integer', 'min:0'],
+                'note' => ['nullable', 'string'],
+            ]);
+
+            $userId = Auth::id();
+            $warehouseId = (int) $validated['warehouse_id'];
+            $productVariantId = (int) $validated['product_variant_id'];
+            $productionQty = (int) $validated['quantity'];
+            $entryDate = $validated['entry_date'];
+            $note = $validated['note'] ?? null;
+
+            $items = collect($validated['items'])
+                ->map(fn ($item) => [
+                    'raw_material_id' => (int) $item['raw_material_id'],
+                    'quantity_use' => (int) $item['quantity_use'],
+                ])
+                ->filter(fn ($item) => $item['quantity_use'] > 0)
+                ->values();
+
+            if ($items->isEmpty()) {
+                throw new \Exception('Minimal satu bahan baku harus digunakan.');
+            }
+
+            DB::transaction(function () use (
+                $id,
+                $userId,
+                $warehouseId,
+                $productVariantId,
+                $productionQty,
+                $entryDate,
+                $note,
+                $items
+            ) {
+                $batch = ProductionBatch::with([
                     'materials',
-                ]);
+                    'productStock',
+                ])->lockForUpdate()->findOrFail($id);
 
-                $oldProvince = trim($productionBatch->province);
-                $oldQuantity = (int) $productionBatch->quantity;
-                $oldProductStock = ProductStock::lockForUpdate()->find($productionBatch->product_stock_id);
-
-                if (!$oldProductStock) {
-                    throw new \Exception('Stok produk lama tidak ditemukan.');
-                }
+                $oldWarehouseId = (int) $batch->warehouse_id;
+                $oldProductStock = ProductStock::lockForUpdate()->findOrFail($batch->product_stock_id);
+                $oldProductionQty = (int) $batch->quantity;
 
                 /**
-                 * Rollback efek batch lama
+                 * 1. Kembalikan stok bahan baku lama
                  */
-
-                if ($oldProductStock->stock < $oldQuantity) {
-                    throw new \Exception('Stok produk jadi tidak cukup untuk rollback batch lama.');
-                }
-
-                $oldProductStock->decrement('stock', $oldQuantity);
-
-                foreach ($productionBatch->materials as $oldMaterial) {
+                foreach ($batch->materials as $oldMaterial) {
                     $oldRawStock = RawMaterialStock::where('raw_material_id', $oldMaterial->raw_material_id)
-                        ->where('province', $oldProvince)
+                        ->where('warehouse_id', $oldWarehouseId)
                         ->lockForUpdate()
                         ->first();
 
-                    if (!$oldRawStock) {
-                        throw new \Exception("Stok bahan baku lama tidak ditemukan untuk provinsi {$oldProvince}.");
+                    if ($oldRawStock) {
+                        $oldRawStock->increment('stock', (int) $oldMaterial->quantity_use);
                     }
-
-                    $oldRawStock->increment('stock', (int) $oldMaterial->quantity_use);
                 }
 
-                ProductionHasMaterial::where('production_batch_id', $productionBatch->id)->delete();
+                /**
+                 * 2. Kurangi stok produk jadi lama
+                 */
+                if ($oldProductStock->stock < $oldProductionQty) {
+                    throw new \Exception('Stok produk jadi lama tidak mencukupi untuk proses update.');
+                }
+
+                $oldProductStock->decrement('stock', $oldProductionQty);
+
+                /**
+                 * 3. Hapus detail lama & movement lama
+                 */
+                ProductionHasMaterial::where('production_batch_id', $batch->id)->delete();
 
                 RawMaterialStockMovement::where('ref_type', 'production_batches')
-                    ->where('ref_id', $productionBatch->id)
+                    ->where('ref_id', $batch->id)
+                    ->delete();
+
+                ProductStockMovement::where('ref_type', 'production_batches')
+                    ->where('ref_id', $batch->id)
                     ->delete();
 
                 /**
-                 * Terapkan data baru
+                 * 4. Ambil / buat product stock baru
                  */
-                $newProvince = trim($validated['province']);
-                $newProductVariantId = (int) $validated['product_variant_id'];
-                $newQuantity = (int) $validated['quantity'];
-
-                $newProductStock = ProductStock::firstOrCreate(
+                $productStock = ProductStock::firstOrCreate(
                     [
-                        'product_variant_id' => $newProductVariantId,
-                        'province' => $newProvince,
+                        'product_variant_id' => $productVariantId,
+                        'warehouse_id' => $warehouseId,
                     ],
                     [
                         'stock' => 0,
                     ]
                 );
 
-                $productionBatch->update([
-                    'person_responsible_id' => $user->id,
-                    'product_stock_id' => $newProductStock->id,
-                    'province' => $newProvince,
-                    'entry_date' => $validated['entry_date'],
-                    'quantity' => $newQuantity,
-                    'note' => $validated['note'] ?? null,
-                    'status' => 'completed',
-                ]);
-
-                foreach ($validated['items'] as $item) {
-                    $rawMaterialId = (int) $item['raw_material_id'];
-                    $quantityUse = (int) $item['quantity_use'];
+                /**
+                 * 5. Validasi dan kurangi stok bahan baku baru
+                 */
+                foreach ($items as $item) {
+                    $rawMaterialId = $item['raw_material_id'];
+                    $quantityUse = $item['quantity_use'];
 
                     $rawStock = RawMaterialStock::with('rawMaterial')
                         ->where('raw_material_id', $rawMaterialId)
-                        ->where('province', $newProvince)
+                        ->where('warehouse_id', $warehouseId)
                         ->lockForUpdate()
                         ->first();
 
-                    if ($quantityUse === 0) {
-                        continue;
-                    }
-
-                    if (!$rawStock) {
-                        throw new \Exception("Stok bahan baku tidak ditemukan untuk provinsi {$newProvince}.");
+                    if (! $rawStock) {
+                        throw new \Exception("Stok bahan baku tidak ditemukan untuk gudang ID {$warehouseId}.");
                     }
 
                     if ($rawStock->stock < $quantityUse) {
@@ -460,7 +455,7 @@ class ProductionController extends Controller
                     }
 
                     ProductionHasMaterial::create([
-                        'production_batch_id' => $productionBatch->id,
+                        'production_batch_id' => $batch->id,
                         'raw_material_id' => $rawMaterialId,
                         'stock' => $rawStock->stock,
                         'quantity_use' => $quantityUse,
@@ -469,18 +464,42 @@ class ProductionController extends Controller
                     $rawStock->decrement('stock', $quantityUse);
 
                     RawMaterialStockMovement::create([
-                        'province' => $newProvince,
+                        'warehouse_id' => $warehouseId,
                         'raw_material_id' => $rawMaterialId,
                         'type' => 'out',
                         'stock' => $quantityUse,
                         'ref_type' => 'production_batches',
-                        'ref_id' => $productionBatch->id,
-                        'responsible_id' => $user->id,
+                        'ref_id' => $batch->id,
+                        'responsible_id' => $userId,
                         'note' => 'Pemakaian bahan baku untuk produksi',
                     ]);
                 }
 
-                $newProductStock->increment('stock', $newQuantity);
+                /**
+                 * 6. Update batch
+                 */
+                $batch->update([
+                    'product_stock_id' => $productStock->id,
+                    'warehouse_id' => $warehouseId,
+                    'entry_date' => $entryDate,
+                    'quantity' => $productionQty,
+                    'note' => $note,
+                ]);
+
+                /**
+                 * 7. Tambahkan stok produk jadi baru
+                 */
+                $productStock->increment('stock', $productionQty);
+
+                ProductStockMovement::create([
+                    'warehouse_id' => $warehouseId,
+                    'product_stock_id' => $productStock->id,
+                    'type' => 'in',
+                    'quantity' => $productionQty,
+                    'ref_type' => 'production_batches',
+                    'ref_id' => $batch->id,
+                    'note' => 'Hasil produksi barang jadi',
+                ]);
             });
 
             return redirect()
@@ -497,7 +516,6 @@ class ProductionController extends Controller
                 ->with('error', $th->getMessage() ?: 'Terjadi kesalahan saat memperbarui data produksi.');
         }
     }
-
 
     /**
      * Ambil daftar provinsi Indonesia dari GeoNames
@@ -521,7 +539,7 @@ class ProductionController extends Controller
                     ];
                 })
                 ->filter(function ($province) {
-                    return !empty($province['name']);
+                    return ! empty($province['name']);
                 })
                 ->values();
         } catch (\Throwable $th) {

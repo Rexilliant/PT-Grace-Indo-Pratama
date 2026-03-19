@@ -43,10 +43,17 @@
                 </div>
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
-                        Provinsi
+                        Warehouse
                     </label>
-                    <input type="text" name="province" value="{{ request('province') }}" placeholder="Provinsi"
-                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                    <select name="warehouse_id"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none">
+                        <option value="">Semua Gudang</option>
+                        @foreach ($warehouses as $warehouse)
+                            <option value="{{ $warehouse->id }}" @selected(request('warehouse_id') == $warehouse->id)>
+                                {{ $warehouse->name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 {{-- Per Page --}}
                 <div class="flex flex-col w-full">
@@ -85,10 +92,7 @@
                         <tr class="[&>th]:border-b [&>th]:border-gray-500">
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Kode Barang</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Bahan Baku</th>
-
-                            {{-- ✅ Kolom Baru Provinsi --}}
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th>
-
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Gudang</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Jumlah Stok</th>
                         </tr>
                     </thead>
@@ -98,7 +102,7 @@
                             <tr class="hover:bg-gray-300">
                                 <td class="px-6 py-4 font-semibold">{{ $s->rawMaterial->code }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $s->rawMaterial->name }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $s->province }}</td>
+                                <td class="px-6 py-4 font-semibold">{{ $s->warehouse->name }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $s->stock }}</td>
                             </tr>
                         @empty

@@ -12,7 +12,7 @@
         <div class="mb-4 text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Executive</span>
             <span class="mx-1 text-gray-400">›</span>
-            <a href="#" class="text-blue-600 hover:underline">Pengadaan Barang</a>
+            <a href="#" class="text-blue-600 hover:underline">Pengiriman Produk</a>
         </div>
     </section>
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
@@ -51,24 +51,20 @@
                         @endforeach
                     </select>
                 </div>
-
-                {{-- Province --}}
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
-                        Provinsi
+                        Warehouse
                     </label>
-                    <select name="province"
+                    <select name="warehouse_id"
                         class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none">
-                        <option value="">Semua Provinsi</option>
-                        @foreach ($provinces as $prov)
-                            <option value="{{ $prov }}" @selected(request('province') == $prov)>
-                                {{ $prov }}
+                        <option value="">Semua Gudang</option>
+                        @foreach ($warehouses as $warehouse)
+                            <option value="{{ $warehouse->id }}" @selected(request('warehouse_id') == $warehouse->id)>
+                                {{ $warehouse->name }}
                             </option>
                         @endforeach
                     </select>
                 </div>
-
-
                 {{-- Per Page --}}
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
@@ -130,7 +126,7 @@
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Pemesanan</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Pengiriman</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama Pemesan</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Gudang</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Status</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
                         </tr>
@@ -147,13 +143,24 @@
                                     {{ $shippment->shippment_at?->format('d M Y') ?? '-' }}
                                 </td>
                                 <td class="px-6 py-4">{{ $shippment->personResponsible->name }}</td>
-                                <td class="px-6 py-4">{{ $shippment->province }}</td>
+                                <td class="px-6 py-4">{{ $shippment->warehouse->name }}</td>
                                 <td class="px-6 py-4"><span
                                         class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{{ $shippment->status }}</span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <a href="{{ route('edit-shippment', $shippment->id) }}"
                                         class="text-blue-600 hover:underline">Sunting</a>
+                                    @if ($shippment->status == 'Menunggu')
+                                        |
+                                        <form action="{{ route('delete-shippment', ['id' => $shippment->id]) }}"
+                                            method="POST" class="inline-block form-delete">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:underline">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -184,4 +191,44 @@
 
         </div>
     </section>
+@endsection
+@section('addJs')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session('success') }}',
+            });
+        @endif
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
+            });
+        @endif
+        document.querySelectorAll('.form-delete').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Anda yakin?',
+                    text: 'Data Pengadaan yang dihapus tidak bisa dikembalikan.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 @endsection

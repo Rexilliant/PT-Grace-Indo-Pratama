@@ -14,7 +14,7 @@ class PurchaseReceipt extends Model implements Hasmedia
     protected $fillable = [
         'receipt_number',
         'procurement_id',
-        'province',
+        'warehouse_id',
         'received_at',
         'received_by',
         'status',
@@ -35,6 +35,11 @@ class PurchaseReceipt extends Model implements Hasmedia
     public function receivedBy()
     {
         return $this->belongsTo(User::class, 'received_by');
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
 
     protected $casts = [

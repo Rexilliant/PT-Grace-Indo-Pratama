@@ -1,5 +1,5 @@
 @extends('admin.layout.master')
-{{-- sidebar active (sesuaikan menu kamu) --}}
+
 @section('open-pemasaran', 'open')
 @section('menu-pemasaran', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-pemasaran-permintaan-pengiriman', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
@@ -16,121 +16,161 @@
 @endsection
 
 @section('content')
+    @php
+        $sectionClass = 'rounded-xl border border-gray-300 bg-gray-200/80 p-5 shadow';
+        $labelClass = 'mb-2.5 block text-xs font-bold text-gray-800';
+        $readonlyClass =
+            'w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0';
+        $inputBaseClass =
+            'w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500';
+        $inputNormalClass = $inputBaseClass . ' border border-gray-400 bg-white';
+        $inputErrorClass = $inputBaseClass . ' border border-red-500 bg-red-50';
+        $actionBtnClass = 'inline-flex items-center justify-center rounded-lg px-10 py-3 text-sm font-bold text-white';
+
+        $status = $shippment->status ?? 'Menunggu';
+        $statusLower = strtolower($status);
+
+        $statusDate = null;
+        $statusUser = '-';
+
+        if ($statusLower === 'ditolak') {
+            $statusDate = $shippment->rejected_at;
+            $statusUser = optional($shippment->rejectedBy)->name ?? '-';
+        } elseif (in_array($statusLower, ['disetujui', 'dikirim', 'selesai'])) {
+            $statusDate = $shippment->approved_at;
+            $statusUser = optional($shippment->approvedBy)->name ?? '-';
+        }
+
+        $statusOptions = match ($status) {
+            'Menunggu' => ['Menunggu', 'Disetujui', 'Ditolak'],
+            'Disetujui' => ['Disetujui', 'Dikirim'],
+            'Dikirim' => ['Dikirim', 'Selesai'],
+            'Ditolak' => ['Ditolak'],
+            'Selesai' => ['Selesai'],
+            default => [$status],
+        };
+
+        $isStatusLocked = in_array($status, ['Ditolak', 'Selesai']) || !auth()->user()->can('update-shippments');
+    @endphp
+
     <section class="mb-5">
         <div class="text-xl font-semibold text-gray-700">
             <span>Gudang</span>
             <span class="mx-1 text-gray-400">›</span>
             <span>Permintaan Pengiriman</span>
             <span class="mx-1 text-gray-400">›</span>
-            <span class="text-blue-600 font-bold">Detail Pengiriman</span>
+            <span class="font-bold text-blue-600">Detail Pengiriman</span>
         </div>
     </section>
 
-    <div x-data="shipmentForm()" x-init="init()">
+    <div x-data="shipmentEditForm({
+        status: @js($status),
+        successMessage: @js(session('success')),
+        errorMessage: @js(session('error')),
+    })" x-init="init()">
         <form action="{{ route('update-shippment', ['id' => $shippment->id]) }}" method="POST"
             enctype="multipart/form-data" class="space-y-5">
             @csrf
             @method('PUT')
 
-            <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-                <p>Id Pengajuan : {{ $shippment->shippment_code }}</p>
+            {{-- INFORMASI UTAMA --}}
+            <section class="{{ $sectionClass }}">
+                <div class="mb-4 text-sm font-bold text-gray-800">
+                    ID Pengajuan: {{ $shippment->shippment_code }}
+                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Tanggal Pengajuan</label>
+                        <label class="{{ $labelClass }}">Tanggal Pengajuan</label>
                         <input type="text" value="{{ $shippment->created_at?->format('Y-m-d') }}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                            class="{{ $readonlyClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Tanggal Permintaan Pengiriman</label>
+                        <label class="{{ $labelClass }}">Tanggal Permintaan Pengiriman</label>
                         <input type="text" value="{{ $shippment->shippment_request_at?->format('Y-m-d') }}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                            class="{{ $readonlyClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Penanggung Jawab</label>
-                        <input type="text" value="{{ $shippment->personResponsible->name }}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                        <label class="{{ $labelClass }}">Penanggung Jawab</label>
+                        <input type="text" value="{{ $shippment->personResponsible->name ?? '-' }}" readonly
+                            class="{{ $readonlyClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Jenis Pengiriman</label>
+                        <label class="{{ $labelClass }}">Jenis Pengiriman</label>
                         <input type="text" value="{{ $shippment->shippment_type }}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                            class="{{ $readonlyClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Provinsi Tujuan</label>
-                        <input type="text" value="{{ $shippment->province }}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                        <label class="{{ $labelClass }}">Gudang / Tujuan</label>
+                        <input type="text" value="{{ $shippment->warehouse->name ?? ($shippment->province ?? '-') }}"
+                            readonly class="{{ $readonlyClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Armada Pengiriman</label>
+                        <label class="{{ $labelClass }}">Armada Pengiriman</label>
                         <input type="text" value="{{ $shippment->shipping_fleet }}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                            class="{{ $readonlyClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Nama Penerima</label>
+                        <label class="{{ $labelClass }}">Nama Penerima</label>
                         <input type="text" value="{{ $shippment->receivedBy->name ?? '-' }}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                            class="{{ $readonlyClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Kontak</label>
-                        <input type="text" value="{{ $shippment->contact }}" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                        <label class="{{ $labelClass }}">Kontak Penerima</label>
+                        <input type="text" value="{{ $shippment->contact }}" readonly class="{{ $readonlyClass }}">
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Alamat</label>
-                        <textarea rows="3" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">{{ $shippment->address }}</textarea>
+                        <label class="{{ $labelClass }}">Alamat Lengkap</label>
+                        <textarea rows="3" readonly class="{{ $readonlyClass }}">{{ $shippment->address }}</textarea>
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Catatan</label>
-                        <textarea rows="3" readonly
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">{{ $shippment->notes }}</textarea>
+                        <label class="{{ $labelClass }}">Catatan</label>
+                        <textarea rows="3" readonly class="{{ $readonlyClass }}">{{ $shippment->notes }}</textarea>
                     </div>
                 </div>
             </section>
 
-            <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-                <div class="text-xs font-bold text-gray-800 mb-4">
-                    Daftar Item Pengiriman
-                </div>
+            {{-- ITEM PENGIRIMAN --}}
+            <section class="{{ $sectionClass }}">
+                <div class="mb-4 text-xs font-bold text-gray-800">Daftar Item Pengiriman</div>
 
                 <div class="space-y-4">
                     @foreach ($shippment->shippmentItems as $item)
                         <div class="rounded-lg border border-gray-300 p-4">
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
                                 <div>
-                                    <label class="mb-2 block text-xs font-bold text-gray-800">Produk</label>
+                                    <label class="{{ $labelClass }}">Produk</label>
                                     <input type="text"
-                                        value="{{ $item->productStock->productVariant->sku }} - {{ $item->productStock->productVariant->name }}"
-                                        readonly
-                                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                                        value="{{ ($item->productStock->productVariant->sku ?? '-') . ' - ' . ($item->productStock->productVariant->name ?? '-') }}"
+                                        readonly class="{{ $readonlyClass }}">
                                 </div>
 
                                 <div>
-                                    <label class="mb-2 block text-xs font-bold text-gray-800">Provinsi Stok</label>
-                                    <input type="text" value="{{ $item->productStock->province }}" readonly
-                                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                                    <label class="{{ $labelClass }}">Gudang Stok</label>
+                                    <input type="text"
+                                        value="{{ $item->productStock->warehouse->name ?? ($item->productStock->province ?? '-') }}"
+                                        readonly class="{{ $readonlyClass }}">
                                 </div>
 
                                 <div>
-                                    <label class="mb-2 block text-xs font-bold text-gray-800">Stock Saat Ini</label>
+                                    <label class="{{ $labelClass }}">Stok Saat Ini</label>
                                     <input type="text" value="{{ $item->productStock->stock }}" readonly
-                                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                                        class="{{ $readonlyClass }}">
                                 </div>
 
                                 <div>
-                                    <label class="mb-2 block text-xs font-bold text-gray-800">Jumlah</label>
+                                    <label class="{{ $labelClass }}">Jumlah</label>
                                     <input type="text" value="{{ $item->quantity }}" readonly
-                                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                                        class="{{ $readonlyClass }}">
                                 </div>
                             </div>
                         </div>
@@ -138,80 +178,56 @@
                 </div>
             </section>
 
-            <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            {{-- STATUS --}}
+            <section class="{{ $sectionClass }}">
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Tanggal Ubah Status</label>
-
-                        @php
-                            $status = strtolower($shippment->status);
-                            $tanggalStatus = null;
-
-                            if ($status === 'ditolak') {
-                                $tanggalStatus = $shippment->rejected_at;
-                            }
-
-                            if (in_array($status, ['disetujui', 'selesai'])) {
-                                $tanggalStatus = $shippment->approved_at;
-                            }
-                        @endphp
-
-                        <input type="text" readonly value="{{ $tanggalStatus ? $tanggalStatus->format('d-m-Y') : '-' }}"
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                        <label class="{{ $labelClass }}">Tanggal Ubah Status</label>
+                        <input type="text" readonly value="{{ $statusDate ? $statusDate->format('d-m-Y') : '-' }}"
+                            class="{{ $readonlyClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Penanggung Jawab</label>
-
-                        <input type="text" readonly
-                            value="{{ strtolower($shippment->status) === 'ditolak'
-                                ? optional($shippment->rejectedBy)->name
-                                : (in_array(strtolower($shippment->status), ['disetujui', 'selesai'])
-                                    ? optional($shippment->approvedBy)->name
-                                    : '-') }}"
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold">
+                        <label class="{{ $labelClass }}">Penanggung Jawab Status</label>
+                        <input type="text" readonly value="{{ $statusUser }}" class="{{ $readonlyClass }}">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Status Permintaan</label>
-
-                        <select name="status" x-model="statusPermintaan"
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold"
-                            @if (in_array(strtolower($shippment->status), ['ditolak', 'selesai']) || !auth()->user()->can('update-shippments')) disabled @endif>
-                            <option value="Menunggu">Menunggu</option>
-                            <option value="Ditolak">Ditolak</option>
-                            <option value="disetujui">Disetujui</option>
-                            <option value="Selesai">Selesai</option>
+                        <label class="{{ $labelClass }}">Status Permintaan</label>
+                        <select name="status" x-model="statusPermintaan" class="{{ $inputNormalClass }}"
+                            @if ($isStatusLocked) disabled @endif>
+                            @foreach ($statusOptions as $statusOption)
+                                <option value="{{ $statusOption }}">{{ $statusOption }}</option>
+                            @endforeach
                         </select>
 
-                        @if (in_array(strtolower($shippment->status), ['ditolak', 'selesai']))
-                            <input type="hidden" name="status" value="{{ $shippment->status }}">
+                        @if ($isStatusLocked)
+                            <input type="hidden" name="status" value="{{ $status }}">
                         @endif
                     </div>
                 </div>
             </section>
 
-            <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl" x-show="showReason" x-cloak>
-                <label class="block text-xs font-bold text-gray-800 mb-2.5">Alasan</label>
-
-                <textarea name="reason" rows="3"
-                    class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold"
-                    @if ($shippment->reason) readonly @endif>{{ old('reason', $shippment->reason) }}</textarea>
+            {{-- ALASAN --}}
+            <section class="{{ $sectionClass }}" x-show="showReason" x-cloak>
+                <label class="{{ $labelClass }}">Alasan</label>
+                <textarea name="reason" rows="3" class="{{ $shippment->reason ? $readonlyClass : $inputNormalClass }}"
+                    @if ($shippment->reason) readonly @endif>{{ $shippment->reason }}</textarea>
             </section>
 
-            <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl" x-show="showInvoiceSection"
-                x-cloak>
-                <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm mb-5">
+            {{-- INVOICE + TANGGAL PENGIRIMAN --}}
+            <section class="{{ $sectionClass }}" x-show="showInvoiceSection" x-cloak>
+                <div class="mb-5 overflow-hidden rounded-lg border border-gray-400 shadow-sm">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left text-gray-800">
+                        <table class="w-full text-left text-sm text-gray-800">
                             <thead class="bg-[#5aba6f]/70 text-gray-900">
                                 <tr>
-                                    <th scope="col" class="px-6 py-4 font-extrabold text-left">File</th>
-                                    <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
+                                    <th class="px-6 py-4 text-left font-extrabold">File</th>
+                                    <th class="px-6 py-4 text-left font-extrabold">Aksi</th>
                                 </tr>
                             </thead>
 
-                            <tbody class="bg-gray-200 divide-y divide-gray-500">
+                            <tbody class="divide-y divide-gray-500 bg-gray-200">
                                 @forelse ($invoices as $invoice)
                                     <tr class="hover:bg-gray-300">
                                         <td class="px-6 py-4 font-semibold">
@@ -221,7 +237,7 @@
                                         </td>
                                         <td class="px-6 py-3">
                                             <div class="flex items-center justify-start gap-6 font-semibold">
-                                                @if (strtolower($shippment->status) !== 'selesai')
+                                                @if ($status !== 'Selesai')
                                                     <button type="button" class="text-[#EC0000] hover:underline"
                                                         @click="confirmDelete('{{ route('media.delete', ['mediaId' => $invoice->id]) }}')">
                                                         Hapus
@@ -245,11 +261,10 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Tanggal Pengiriman</label>
-                    <input type="date" name="shippment_at"
-                        value="{{ old('shippment_at', $shippment->shippment_at?->format('Y-m-d')) }}"
+                    <label class="{{ $labelClass }}">Tanggal Pengiriman</label>
+                    <input type="date" name="shippment_at" value="{{ $shippment->shippment_at?->format('Y-m-d') }}"
                         @if ($shippment->shippment_at) readonly disabled @endif
-                        class="w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 @error('shippment_at') border-red-500 bg-red-50 @else border-gray-400 bg-white @enderror">
+                        class="@error('shippment_at') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
 
                     @if ($shippment->shippment_at)
                         <input type="hidden" name="shippment_at"
@@ -261,9 +276,9 @@
                     @enderror
                 </div>
 
-                @if (strtolower($shippment->status) !== 'selesai')
+                @if ($status !== 'Selesai')
                     <div class="mt-5">
-                        <label class="block text-sm font-bold mb-3 text-gray-800">Invoice Pembelian Barang</label>
+                        <label class="mb-3 block text-sm font-bold text-gray-800">Invoice Pembelian Barang</label>
 
                         <input x-ref="invoices" type="file" name="invoices[]" multiple
                             accept="image/png,image/jpeg,application/pdf">
@@ -275,6 +290,7 @@
                         @error('invoices')
                             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                         @enderror
+
                         @error('invoices.*')
                             <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                         @enderror
@@ -283,14 +299,13 @@
             </section>
 
             @can('update-shippments')
-                <div class="flex justify-end pt-2">
-                    @if (strtolower($shippment->status) !== 'selesai')
-                        <button type="submit"
-                            class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
+                @if ($status !== 'Selesai')
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" class="{{ $actionBtnClass }} bg-[#2D2ACD] hover:bg-blue-800">
                             Simpan
                         </button>
-                    @endif
-                </div>
+                    </div>
+                @endif
             @endcan
         </form>
 
@@ -310,19 +325,42 @@
     <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
 
     <script>
-        function shipmentForm() {
+        function shipmentEditForm(config) {
             return {
-                statusPermintaan: @js(old('status', $shippment->status)),
+                statusPermintaan: config.status || 'Menunggu',
+                successMessage: config.successMessage || '',
+                errorMessage: config.errorMessage || '',
                 pond: null,
 
                 get showInvoiceSection() {
                     const status = (this.statusPermintaan || '').toLowerCase();
-                    return status === 'selesai';
+                    return status === 'dikirim' || status === 'selesai';
                 },
 
                 get showReason() {
-                    const status = (this.statusPermintaan || '').toLowerCase();
-                    return status === 'ditolak';
+                    return (this.statusPermintaan || '').toLowerCase() === 'ditolak';
+                },
+
+                init() {
+                    this.$nextTick(() => this.initFilePond());
+
+                    if (this.successMessage) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: this.successMessage,
+                            confirmButtonColor: '#2D2ACD'
+                        });
+                    }
+
+                    if (this.errorMessage) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: this.errorMessage,
+                            confirmButtonColor: '#dc2626'
+                        });
+                    }
                 },
 
                 confirmDelete(url) {
@@ -343,35 +381,12 @@
                     });
                 },
 
-                init() {
-                    this.$nextTick(() => {
-                        this.initFilePond();
-                    });
-
-                    @if (session('success'))
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil',
-                            text: @js(session('success')),
-                            confirmButtonColor: '#2D2ACD'
-                        });
-                    @endif
-
-                    @if (session('error'))
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            text: @js(session('error')),
-                            confirmButtonColor: '#dc2626'
-                        });
-                    @endif
-                },
-
                 initFilePond() {
                     const input = this.$refs.invoices;
 
-                    if (!input || typeof FilePond === 'undefined') return;
-                    if (this.pond) return;
+                    if (!input || typeof FilePond === 'undefined' || this.pond) {
+                        return;
+                    }
 
                     FilePond.registerPlugin(
                         FilePondPluginFileValidateType,

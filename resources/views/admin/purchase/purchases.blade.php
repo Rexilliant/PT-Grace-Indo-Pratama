@@ -26,10 +26,17 @@
                 </div>
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
-                        Provinsi
+                        Warehouse
                     </label>
-                    <input type="text" name="province" value="{{ request('province') }}" placeholder="Provinsi"
-                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                    <select name="warehouse_id"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none">
+                        <option value="">Semua Gudang</option>
+                        @foreach ($warehouses as $warehouse)
+                            <option value="{{ $warehouse->id }}" @selected(request('warehouse_id') == $warehouse->id)>
+                                {{ $warehouse->name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
@@ -102,7 +109,7 @@
                         <tr>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Masuk</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama Penerima</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Gudang</th>
                             {{-- ✅ tambah kolom --}}
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
                         </tr>
@@ -113,17 +120,18 @@
                             <tr class="hover:bg-gray-300">
                                 <td class="px-6 py-4 font-semibold">{{ $receipt->received_at->format('d/m/Y') }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $receipt->receivedBy->name }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $receipt->province }}</td> {{-- ✅ isi provinsi --}}
+                                <td class="px-6 py-4 font-semibold">{{ $receipt->warehouse->name }}</td>
                                 <td class="px-6 py-3">
                                     <div class="flex items-center justify-start gap-6 font-semibold">
                                         <a href="{{ route('edit-barang-masuk', $receipt->id) }}"
                                             class="text-[#2E7E3F] hover:underline">Sunting</a>
-                                        <form action="{{ route('purchase-receipts.destroy', $receipt->id) }}"
-                                            method="post" class="delete-receipt-form">
+                                        <form action="{{ route('purchase-receipts.destroy', ['id' => $receipt->id]) }}"
+                                            method="POST" class="inline-block form-delete">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="button"
-                                                class="btn-delete-receipt text-red-600 hover:underline">Hapus</button>
+                                            <button type="submit" class="text-red-600 hover:underline">
+                                                Hapus
+                                            </button>
                                         </form>
                                     </div>
                                 </td>
@@ -154,36 +162,42 @@
 
 @endsection
 @section('addJs')
-    <script src="{{ asset('assets/js/sweetalert.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            document.querySelectorAll('.btn-delete-receipt').forEach(function(button) {
-
-                button.addEventListener('click', function() {
-
-                    const form = this.closest('form');
-
-                    Swal.fire({
-                        title: 'Yakin ingin menghapus?',
-                        text: "Data barang masuk akan dibatalkan dan stok akan direverse!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#dc2626',
-                        cancelButtonColor: '#6b7280',
-                        confirmButtonText: 'Ya, hapus!',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.submit();
-                        }
-                    });
-
-                });
-
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session('success') }}',
             });
+        @endif
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
+            });
+        @endif
+        document.querySelectorAll('.form-delete').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
 
+                Swal.fire({
+                    title: 'Anda yakin?',
+                    text: 'Data Pengadaan yang dihapus tidak bisa dikembalikan.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
         });
     </script>
 @endsection

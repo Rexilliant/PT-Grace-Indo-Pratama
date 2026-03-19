@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
-use App\Models\ProcurementItem;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Procurement extends Model
 {
     use SoftDeletes;
+
     protected $fillable = [
         'request_by',
-        'province',
+        'warehouse_id',
         'status',
         'total_price',
         'purchase_at',
@@ -22,6 +21,13 @@ class Procurement extends Model
         'rejected_at',
         'reason',
         'note',
+    ];
+
+    protected $casts = [
+        'purchase_at' => 'datetime',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
+        'total_price' => 'integer',
     ];
 
     public function procurement_items()
@@ -42,5 +48,10 @@ class Procurement extends Model
     public function userRejected()
     {
         return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 }
