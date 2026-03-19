@@ -3,7 +3,7 @@
 
 @section('open-gudang', 'open')
 @section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
-@section('menu-pengadaan', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-gudang-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('content')
 
     {{-- breadcrumb --}}
