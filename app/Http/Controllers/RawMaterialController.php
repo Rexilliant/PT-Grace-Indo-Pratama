@@ -79,25 +79,28 @@ class RawMaterialController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'kode_barang' => 'required|unique:raw_materials,code',
-            'bahan_baku' => 'required',
-            'unit' => 'required',
-            'status' => 'required',
+            'items' => 'required|array|min:1',
+            'items.*.kode_barang' => 'required|unique:raw_materials,code',
+            'items.*.bahan_baku' => 'required',
+            'items.*.unit' => 'required',
+            'items.*.status' => 'required',
         ]);
 
-        $material = RawMaterial::create([
-            'code' => $request->kode_barang,
-            'name' => $request->bahan_baku,
-            'unit' => $request->unit,
-            'status' => $request->status,
-        ]);
+        foreach ($request->items as $item) {
+            RawMaterial::create([
+                'code' => $item['kode_barang'],
+                'name' => $item['bahan_baku'],
+                'unit' => $item['unit'],
+                'status' => $item['status'],
+            ]);
 
-        // bikin stok default supaya stok page ada row-nya
-        // RawMaterialStock::create([
-        //     'raw_material_id' => $material->id,
-        //     'province' => 'Belum diisi',
-        //     'stock' => 0,
-        // ]);
+            // kalau nanti mau bikin stok default per bahan baku, buka ini lagi
+            // RawMaterialStock::create([
+            //     'raw_material_id' => $material->id,
+            //     'province' => 'Belum diisi',
+            //     'stock' => 0,
+            // ]);
+        }
 
         return redirect()
             ->route('admin.gudang-bahan-baku')
@@ -120,7 +123,7 @@ class RawMaterialController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'kode_barang' => 'required|unique:raw_materials,code,'.$id,
+            'kode_barang' => 'required|unique:raw_materials,code,' . $id,
             'bahan_baku' => 'required',
             'unit' => 'required',
             'status' => 'required',

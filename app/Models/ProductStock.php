@@ -15,6 +15,11 @@ class ProductStock extends Model
         'stock',
     ];
 
+    protected $casts = [
+        'stock' => 'integer',
+    ];
+
+
     public function productVariant()
     {
         return $this->belongsTo(ProductVariant::class);
@@ -28,5 +33,10 @@ class ProductStock extends Model
     public function shipmentItems()
     {
         return $this->hasMany(ShippmentItem::class);
+    }
+
+    public function movements()
+    {
+        return $this->hasMany(ProductStockMovement::class);
     }
 }
