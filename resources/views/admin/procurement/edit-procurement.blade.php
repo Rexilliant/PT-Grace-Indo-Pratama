@@ -50,8 +50,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold mb-2">Provinsi</label>
-                    <input type="text" readonly value="{{ $procurement->province }}"
+                    <label class="block text-xs font-bold mb-2">Gudang</label>
+                    <input type="text" readonly value="{{ $procurement->warehouse->name }}"
                         class="w-full rounded-md border px-3 py-2.5 text-sm font-semibold {{ $disabledClass }}">
                 </div>
 
@@ -66,7 +66,7 @@
                     <select name="status" x-model="status"
                         class="w-full rounded-md border px-3 py-2.5 text-sm font-semibold @if ($procurement->status !== 'Menunggu' || !auth()->user()->can('update-procurements')) {{ $disabledClass }} @endif"
                         @if ($procurement->status !== 'Menunggu' || !auth()->user()->can('update-procurements')) disabled @endif>
-                        @foreach (['Menunggu', 'Diterima', 'Ditolak'] as $st)
+                        @foreach (['Menunggu', 'Disetujui', 'Ditolak'] as $st)
                             <option value="{{ $st }}">{{ $st }}</option>
                         @endforeach
                     </select>
@@ -133,7 +133,7 @@
         {{-- HISTORI: tampil sesuai status yang dipilih --}}
         @if ($procurement->status !== 'Menunggu')
             <section class="bg-white p-5 shadow border border-gray-300 rounded-lg"
-                x-show="status === 'Ditolak' || status === 'Diterima'" x-transition x-cloak>
+                x-show="status === 'Ditolak' || status === 'Disetujui'" x-transition x-cloak>
                 <h3 class="text-sm font-bold mb-4">Histori</h3>
 
                 {{-- Ditolak --}}
@@ -152,8 +152,8 @@
                     </div>
                 </div>
 
-                {{-- Diterima --}}
-                <div x-show="status === 'Diterima'" x-transition>
+                {{-- Disetujui --}}
+                <div x-show="status === 'Disetujui'" x-transition>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold mb-2">approved_by</label>

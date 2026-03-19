@@ -12,7 +12,7 @@
         <div class="mb-4 text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Executive</span>
             <span class="mx-1 text-gray-400">›</span>
-            <a href="#" class="text-blue-600 hover:underline">Pengadaan Barang</a>
+            <a href="#" class="text-blue-600 hover:underline">Warehouse</a>
         </div>
     </section>
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
@@ -25,58 +25,16 @@
                     <label class="text-xs font-semibold text-gray-700 mb-1">
                         Nama
                     </label>
-                    <input type="text" name="name" value="{{ request('name') }}" placeholder="Nama"
+                    <input type="text" name="name" value="{{ request('search') }}" placeholder="Nama"
                         class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
                 </div>
-
-                {{-- Status --}}
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
-                        Status
+                        Province
                     </label>
-                    <select name="status"
-                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none">
-                        <option value="">Semua Status</option>
-                        @foreach ($statuses as $st)
-                            <option value="{{ $st }}" @selected(request('status') == $st)>
-                                {{ $st }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="flex flex-col w-full">
-                    <label class="text-xs font-semibold text-gray-700 mb-1">
-                        Warehouse
-                    </label>
-                    <select name="warehouse_id"
-                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none">
-                        <option value="">Semua Gudang</option>
-                        @foreach ($warehouses as $warehouse)
-                            <option value="{{ $warehouse->id }}" @selected(request('warehouse_id') == $warehouse->id)>
-                                {{ $warehouse->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- Date From --}}
-                <div class="flex flex-col w-full">
-                    <label class="text-xs font-semibold text-gray-700 mb-1">
-                        Tanggal Dari
-                    </label>
-                    <input type="date" name="date_from" value="{{ request('date_from') }}"
+                    <input type="text" name="province" value="{{ request('search') }}" placeholder="Provinsi"
                         class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
                 </div>
-
-                {{-- Date To --}}
-                <div class="flex flex-col w-full">
-                    <label class="text-xs font-semibold text-gray-700 mb-1">
-                        Sampai
-                    </label>
-                    <input type="date" name="date_to" value="{{ request('date_to') }}"
-                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
-                </div>
-
                 {{-- Per Page --}}
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
@@ -98,7 +56,7 @@
                     Filter
                 </button>
 
-                <a href="{{ route('procurements') }}"
+                <a href="{{ route('warehouses') }}"
                     class="rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-800 transition text-center">
                     Reset
                 </a>
@@ -120,7 +78,7 @@
             </a>
 
             @can('create-procurements')
-                <a href="{{ route('create-procurement') }}"
+                <a href="{{ route('create-warehouse') }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
                     <span class="text-lg leading-none">+</span>
                     Tambah Baru
@@ -134,41 +92,39 @@
                 <table class="w-full text-sm text-left text-gray-900">
                     <thead class="bg-[#5aba6f]/70 text-gray-900">
                         <tr class="[&>th]:border-b [&>th]:border-gray-500">
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Id Pengadaan</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Pemesanan</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama Pemesan</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Gudang</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Status</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Id Gudang</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Kota</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Penanggung Jawab</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
                         </tr>
                     </thead>
 
                     <tbody class="bg-gray-200 divide-y divide-gray-500">
-                        @forelse ($procurements as $procurement)
+                        @forelse ($warehouses as $warehouse)
                             <tr class="[&>td]:border-b [&>td]:border-gray-400 hover:bg-gray-100">
-                                <td class="px-6 py-4 font-medium">{{ $procurement->id }}</td>
+
+                                <td class="px-6 py-4">{{ $warehouse->id }}</td>
+                                <td class="px-6 py-4">{{ $warehouse->name }}</td>
+                                <td class="px-6 py-4">{{ $warehouse->province }}</td>
+                                <td class="px-6 py-4">{{ $warehouse->city }}</td>
+                                <td class="px-6 py-4">{{ $warehouse->responsible->name }}</td>
                                 <td class="px-6 py-4">
-                                    {{ \Carbon\Carbon::parse($procurement->purchase_at)->format('d/m/Y') }}</td>
-                                <td class="px-6 py-4">{{ $procurement->userRequest->name ?? '-' }}</td>
-                                <td class="px-6 py-4">{{ $procurement->warehouse->name }}</td>
-                                <td class="px-6 py-4">{{ $procurement->status }}</td>
-                                <td class="px-6 py-4">
-                                    <a href="{{ route('edit-procurement', ['id' => $procurement->id]) }}"
+                                    <a href="{{ route('edit-warehouse', ['id' => $warehouse->id]) }}"
                                         class="text-blue-600 hover:underline">
                                         Sunting
                                     </a>
+                                    |
 
-                                    @if ($procurement->status == 'Menunggu')
-                                        |
-                                        <form action="{{ route('delete-procurement', ['id' => $procurement->id]) }}"
-                                            method="POST" class="inline-block form-delete">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:underline">
-                                                Hapus
-                                            </button>
-                                        </form>
-                                    @endif
+                                    <form action="{{ route('delete-warehouse', ['id' => $warehouse->id]) }}" method="POST"
+                                        class="inline-block form-delete">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:underline">
+                                            Hapus
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         @empty
@@ -186,13 +142,13 @@
                        bg-gray-200 px-3 sm:px-4 md:px-5 py-3 sm:py-4 border-t border-gray-400">
 
                 <div class="text-xs sm:text-sm font-semibold text-gray-800">
-                    Showing {{ $procurements->firstItem() ?? 0 }}–{{ $procurements->lastItem() ?? 0 }} of
-                    {{ $procurements->total() }}
+                    Showing {{ $warehouses->firstItem() ?? 0 }}–{{ $warehouses->lastItem() ?? 0 }} of
+                    {{ $warehouses->total() }}
                 </div>
 
                 <div class="w-full sm:w-auto overflow-x-auto">
                     <div class="pagination">
-                        {{ $procurements->links() }}
+                        {{ $warehouses->links() }}
                     </div>
                 </div>
             </div>
@@ -209,22 +165,17 @@
                 icon: 'success',
                 title: 'Berhasil',
                 text: '{{ session('success') }}',
+                confirmButtonColor: '#16a34a'
             });
         @endif
-        @if (session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: '{{ session('error') }}',
-            });
-        @endif
+
         document.querySelectorAll('.form-delete').forEach(form => {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
 
                 Swal.fire({
                     title: 'Anda yakin?',
-                    text: 'Data Pengadaan yang dihapus tidak bisa dikembalikan.',
+                    text: 'Data gudang yang dihapus tidak bisa dikembalikan.',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#dc2626',

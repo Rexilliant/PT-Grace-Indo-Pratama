@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->date('sale_at');
             $table->foreignId('person_responsible_id')->constrained('users')->cascadeOnDelete();
-            $table->string('province');
+            $table->foreignId('warehouse_id')->constrained('warehouses');
             $table->text('address');
             $table->string('customer_name');
             $table->string('customer_contact');

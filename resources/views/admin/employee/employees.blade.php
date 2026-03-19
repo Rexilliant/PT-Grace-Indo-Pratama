@@ -171,7 +171,7 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="flex justify-end gap-2">
+                                    <div class="flex justify-end gap-2 bg-transparent">
                                         <a href="{{ route('edit.employee', $employee->id) }}"
                                             class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-500">
                                             Edit

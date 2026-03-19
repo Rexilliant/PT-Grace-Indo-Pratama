@@ -49,13 +49,15 @@
     </section>
 
     @php
-        $hasProvinces = !empty($provinces) && count($provinces) > 0;
-        $oldItems = old('items'); // bisa null / array
+        $oldItems = old('items');
     @endphp
 
     <form x-data="barangMasukUI()" x-init="init(@js($oldItems))" class="space-y-5" action="{{ route('store-purchase-receipt') }}"
         method="POST" enctype="multipart/form-data">
         @csrf
+
+        {{-- hidden input kalau warehouse select hanya display --}}
+        <input type="hidden" name="warehouse_id" x-model="warehouse_id">
 
         {{-- ROW 1 --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
@@ -63,11 +65,11 @@
                 {{-- ID Pengadaan --}}
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Id Pengadaan</label>
-                    <select name="procurement_id" x-ref="procurementSelect"
+                    <select name="procurement_id" x-ref="procurementSelect" x-model="procurement_id"
                         class="w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900 @error('procurement_id') border-red-500 @enderror">
                         <option value="">-- Pilih Id Pengadaan --</option>
                         @foreach ($procurements as $procurement)
-                            <option value="{{ $procurement->id }}"
+                            <option value="{{ $procurement->id }}" data-warehouse-id="{{ $procurement->warehouse_id }}"
                                 {{ old('procurement_id') == $procurement->id ? 'selected' : '' }}>
                                 {{ $procurement->id }}
                             </option>
@@ -78,28 +80,20 @@
                     @enderror
                 </div>
 
-                {{-- Provinsi --}}
+                {{-- Warehouse --}}
                 <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">Provinsi</label>
+                    <label class="block text-sm font-bold text-gray-800 mb-2">Gudang</label>
+                    <select x-ref="warehouseSelect" x-model="warehouse_id" disabled
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 @error('warehouse_id') border-red-500 @enderror">
+                        <option value="">-- Pilih Gudang --</option>
+                        @foreach ($warehouses as $warehouse)
+                            <option value="{{ $warehouse->id }}">
+                                {{ $warehouse->name }}
+                            </option>
+                        @endforeach
+                    </select>
 
-                    @if ($hasProvinces)
-                        <select name="province" x-ref="provinceSelect"
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 @error('province') border-red-500 @enderror">
-                            <option value="">-- Pilih Provinsi --</option>
-                            @foreach ($provinces as $province)
-                                <option value="{{ $province['name'] }}"
-                                    {{ old('province') == $province['name'] ? 'selected' : '' }}>
-                                    {{ $province['name'] }}
-                                </option>
-                            @endforeach
-                        </select>
-                    @else
-                        <input type="text" name="province" value="{{ old('province') }}" placeholder="Tulis provinsi..."
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 @error('province') border-red-500 @enderror" />
-                        <p class="mt-1 text-xs text-gray-600">Data provinsi tidak tersedia, silakan input manual.</p>
-                    @endif
-
-                    @error('province')
+                    @error('warehouse_id')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
@@ -140,13 +134,12 @@
                 </button>
             </div>
 
-            {{-- error global untuk items --}}
             @error('items')
                 <p class="mt-2 text-xs text-red-600">{{ $message }}</p>
             @enderror
         </section>
 
-        {{-- ITEMS (REPEATABLE) --}}
+        {{-- ITEMS --}}
         <template x-for="(item, index) in items" :key="item.key">
             <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
                 <div class="flex items-center justify-between mb-4">
@@ -175,9 +168,6 @@
                             @endforeach
                         </select>
 
-                        {{-- Error per item --}}
-                        @php $errKey = 'items.' . '__INDEX__' . '.raw_material_id'; @endphp
-                        <template x-if="$store && false"></template>
                         <p class="mt-1 text-xs text-red-600" x-show="fieldError(`items.${index}.raw_material_id`)"
                             x-text="fieldError(`items.${index}.raw_material_id`)"></p>
                     </div>
@@ -229,7 +219,8 @@
     <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
     <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
-    <script src="{{ asset('assets/js/sweetalert.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
     @if (session('success'))
         <script>
@@ -256,13 +247,13 @@
     <script>
         function barangMasukUI() {
             return {
-                items: [null],
-
-                // ✅ ambil error dari Laravel $errors supaya bisa tampil per items dinamis
+                items: [],
                 errors: @js($errors->toArray()),
+                procurement_id: @js(old('procurement_id', '')),
+                warehouse_id: @js(old('warehouse_id', '')),
+                pond: null,
 
                 init(oldItems) {
-                    // ✅ restore items dari old() kalau ada
                     if (Array.isArray(oldItems) && oldItems.length > 0) {
                         this.items = oldItems.map((x) => ({
                             key: crypto.randomUUID(),
@@ -273,14 +264,15 @@
                         this.items = [this.createItem()];
                     }
 
-                    this.initSelect2(this.$refs.procurementSelect, '-- Pilih Id Pengadaan --');
-                    this.initSelect2(this.$refs.provinceSelect, '-- Pilih Provinsi --');
-
-                    this.$nextTick(() => this.initMaterialSelects());
-                    this.initFilePond();
+                    this.$nextTick(() => {
+                        this.initSelect2Procurement();
+                        this.initSelect2Warehouse();
+                        this.initMaterialSelects();
+                        this.syncWarehouseFromProcurement();
+                        this.initFilePond();
+                    });
                 },
 
-                // ✅ helper ambil error message by dot key: items.0.raw_material_id
                 fieldError(key) {
                     const e = this.errors?.[key];
                     if (!e) return '';
@@ -288,18 +280,7 @@
                 },
 
                 hasSelect2() {
-                    return (typeof $ !== 'undefined' && typeof $.fn.select2 === 'function');
-                },
-
-                initSelect2(el, placeholder) {
-                    if (!el) return;
-                    if (!this.hasSelect2()) return;
-
-                    $(el).select2({
-                        width: '100%',
-                        placeholder,
-                        allowClear: true
-                    });
+                    return typeof $ !== 'undefined' && typeof $.fn.select2 === 'function';
                 },
 
                 createItem() {
@@ -320,7 +301,73 @@
                     if (key) this.destroyMaterialSelect(key);
 
                     this.items.splice(index, 1);
-                    if (this.items.length === 0) this.addItem();
+
+                    if (this.items.length === 0) {
+                        this.items.push(this.createItem());
+                        this.$nextTick(() => this.initMaterialSelects());
+                    }
+                },
+
+                initSelect2Procurement() {
+                    const el = this.$refs.procurementSelect;
+                    if (!el || !this.hasSelect2()) return;
+
+                    if ($(el).hasClass('select2-hidden-accessible')) {
+                        $(el).select2('destroy');
+                    }
+
+                    $(el).select2({
+                        width: '100%',
+                        placeholder: '-- Pilih Id Pengadaan --',
+                        allowClear: true
+                    });
+
+                    $(el).on('change', () => {
+                        this.procurement_id = $(el).val() || '';
+                        this.syncWarehouseFromProcurement();
+                    });
+
+                    if (this.procurement_id) {
+                        $(el).val(String(this.procurement_id)).trigger('change.select2');
+                    }
+                },
+
+                initSelect2Warehouse() {
+                    const el = this.$refs.warehouseSelect;
+                    if (!el || !this.hasSelect2()) return;
+
+                    if ($(el).hasClass('select2-hidden-accessible')) {
+                        $(el).select2('destroy');
+                    }
+
+                    $(el).select2({
+                        width: '100%',
+                        placeholder: '-- Pilih Gudang --',
+                        allowClear: true,
+                        disabled: true
+                    });
+
+                    if (this.warehouse_id) {
+                        $(el).val(String(this.warehouse_id)).trigger('change.select2');
+                    }
+                },
+
+                syncWarehouseFromProcurement() {
+                    const procurementEl = this.$refs.procurementSelect;
+                    const warehouseEl = this.$refs.warehouseSelect;
+
+                    if (!procurementEl || !warehouseEl) return;
+
+                    const selectedOption = procurementEl.options[procurementEl.selectedIndex];
+                    const warehouseId = selectedOption ? (selectedOption.dataset.warehouseId || '') : '';
+
+                    this.warehouse_id = warehouseId;
+
+                    if (this.hasSelect2()) {
+                        $(warehouseEl).val(warehouseId).trigger('change.select2');
+                    } else {
+                        warehouseEl.value = warehouseId;
+                    }
                 },
 
                 initMaterialSelects() {
@@ -332,7 +379,7 @@
                     const els = Array.isArray(refs) ? refs : [refs];
 
                     els.forEach((el) => {
-                        if (el.dataset.inited === '1') return;
+                        if (!el || el.dataset.inited === '1') return;
 
                         $(el).select2({
                             width: '100%',
@@ -343,18 +390,19 @@
                         el.dataset.inited = '1';
 
                         const key = el.dataset.key;
-
-                        // ✅ set initial value dari old item (kalau ada)
                         const idxInit = this.items.findIndex(x => x.key === key);
+
                         if (idxInit !== -1 && this.items[idxInit].raw_material_id) {
                             $(el).val(String(this.items[idxInit].raw_material_id)).trigger('change.select2');
                         }
 
-                        // sync ke state
                         $(el).on('change', () => {
                             const val = $(el).val() || '';
                             const idx = this.items.findIndex(x => x.key === key);
-                            if (idx !== -1) this.items[idx].raw_material_id = val ? parseInt(val, 10) : '';
+
+                            if (idx !== -1) {
+                                this.items[idx].raw_material_id = val ? parseInt(val, 10) : '';
+                            }
                         });
                     });
                 },
@@ -374,7 +422,10 @@
 
                 initFilePond() {
                     const input = this.$refs.invoices;
+
                     if (!input || typeof FilePond === 'undefined') return;
+                    if (!input.parentNode) return;
+                    if (this.pond) return;
 
                     FilePond.registerPlugin(
                         FilePondPluginFileValidateType,
@@ -382,7 +433,7 @@
                         FilePondPluginImagePreview
                     );
 
-                    FilePond.create(input, {
+                    this.pond = FilePond.create(input, {
                         required: true,
                         storeAsFile: true,
                         instantUpload: false,

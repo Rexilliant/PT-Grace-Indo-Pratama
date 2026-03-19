@@ -8,7 +8,7 @@ class LogErrorController extends Controller
 {
     public function index()
     {
-        $logerrors = LogError::paginate(10);
+        $logerrors = LogError::orderBy('created_at', 'desc')->paginate(10);
 
         return view('admin.logerrors.logerrors', compact('logerrors'));
     }

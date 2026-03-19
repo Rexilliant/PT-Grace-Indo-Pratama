@@ -3,10 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Employee;
+use App\Models\Procurement;
+use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -58,16 +62,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(Log::class);
     }
+
     public function requestProcurements()
     {
         return $this->hasMany(Procurement::class, 'request_by');
     }
+
     public function approvedProcurements()
     {
         return $this->hasMany(Procurement::class, 'approved_by');
     }
+
     public function rejectedProcurements()
     {
         return $this->hasMany(Procurement::class, 'rejected_by');
+    }
+
+    public function warehouses()
+    {
+        return $this->hasMany(Warehouse::class, 'responsible_id');
     }
 }

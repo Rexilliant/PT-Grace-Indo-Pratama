@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('procurements', function (Blueprint $table) {
             $table->id();
             $table->foreignId('request_by')->constrained('users')->cascadeOnDelete();
-            $table->string('province');
+            $table->foreignId('warehouse_id')->constrained('warehouses');
             $table->string('status');
             $table->integer('total_price')->default(0);
             $table->timestamp('purchase_at');

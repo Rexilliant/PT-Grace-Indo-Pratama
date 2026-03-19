@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('product_stock_movements', function (Blueprint $table) {
             $table->id();
-            $table->string('province');
+            $table->foreignId('warehouse_id')->constrained('warehouses');
             $table->foreignId('product_stock_id')->constrained('product_stocks')->cascadeOnDelete();
             $table->string('type');
             $table->integer('quantity');
@@ -21,6 +21,7 @@ return new class extends Migration
             $table->bigInteger('ref_id');
             $table->text('note')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
