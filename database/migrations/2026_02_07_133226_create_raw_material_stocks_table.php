@@ -13,10 +13,13 @@ return new class extends Migration
     {
         Schema::create('raw_material_stocks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('raw_material_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('raw_material_id')->constrained();
+            $table->foreignId('warehouse_id')->constrained();
             $table->integer('stock')->default(0);
-            $table->string('province');
-            $table->unique(['raw_material_id', 'province', 'deleted_at']);
+            $table->unique(
+                ['raw_material_id', 'warehouse_id', 'deleted_at'],
+                'rm_stock_unique'
+            );
             $table->timestamps();
             $table->softDeletes();
         });

@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\ShippmentItem;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
@@ -18,15 +16,15 @@ class Shippment extends Model implements HasMedia
         'shippment_type',
         'person_responsible_id',
         'status',
-        'province',
+        'warehouse_id',
         'address',
         'shippment_request_at',
         'created_by_id',
         'received_by_id',
         'approved_at',
         'approved_by_id',
-        'rejected_by_id',
         'rejected_at',
+        'rejected_by_id',
         'reason',
         'cancelled_by_id',
         'cancelled_at',
@@ -62,10 +60,12 @@ class Shippment extends Model implements HasMedia
     {
         return $this->belongsTo(User::class, 'created_by_id');
     }
+
     public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by_id');
     }
+
     public function receivedBy()
     {
         return $this->belongsTo(User::class, 'received_by_id');
@@ -84,5 +84,10 @@ class Shippment extends Model implements HasMedia
     public function shippmentItems()
     {
         return $this->hasMany(ShippmentItem::class);
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 }

@@ -25,6 +25,7 @@ return new class extends Migration {
             $table->string('customer_province');
             $table->string('customer_city')->nullable();
             $table->text('customer_address')->nullable();
+            $table->foreignId('warehouse_id')->constrained('warehouses');
 
             $table->string('customer_name');
             $table->string('customer_contact');

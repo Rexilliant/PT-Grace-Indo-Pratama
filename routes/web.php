@@ -14,6 +14,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ShippmentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/phpinfo', function () {
@@ -112,8 +113,8 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::post('/pemasaran/laporan-penjualan', [SaleController::class, 'store'])
             ->name('admin.pemasaran-laporan-penjualan.store');
 
-        Route::get('/pemasaran/laporan-penjualan/stocks-by-province', [SaleController::class, 'getStocksByProvince'])
-            ->name('admin.pemasaran-laporan-penjualan.stocks-by-province');
+        Route::get('/pemasaran/laporan-penjualan/stocks-by-warehouse', [SaleController::class, 'getStocksByWarehouse'])
+            ->name('admin.pemasaran-laporan-penjualan.stocks-by-warehouse');
 
         Route::get('/pemasaran/laporan-penjualan/{id}/edit', [SaleController::class, 'edit'])
             ->name('admin.pemasaran-laporan-penjualan.edit');
@@ -142,7 +143,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
             Route::get('/add-produk/{productVariant}', [ProductionController::class, 'create'])
                 ->name('add-produk');
 
-            Route::get('/production/materials', [ProductionController::class, 'getMaterialsByProvince'])
+            Route::get('/production/materials', [ProductionController::class, 'getMaterialsByWarehouse'])
                 ->name('production.materials');
 
             Route::post('/production/store', [ProductionController::class, 'store'])
@@ -235,6 +236,8 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::post('/store', 'store')->middleware(['auth', 'permission:create-procurements'])->name('store-procurement');
         Route::get('/', 'index')->middleware(['auth', 'permission:read-procurements'])->name('procurements');
         Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:show-procurements'])->name('edit-procurement');
+        Route::delete('/delete/{id}', 'destroy')->name('delete-procurement');
+
         Route::put('/edit/{id}', 'update')->name('update-procurement');
     });
     Route::controller(PurchaseReceiptController::class)->prefix('purchase-receipts')->middleware(['auth', 'role:admin|executive|admin_gudang'])->group(function () {
@@ -261,6 +264,15 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:show-shippments'])->name('edit-shippment');
         Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:update-shippments'])->name('update-shippment');
         Route::delete('/delete/{id}', 'destroy')->name('delete-shippment');
+    });
+    Route::controller(WarehouseController::class)->prefix('warehouses')->group(function () {
+        Route::get('/', 'index')->name('warehouses');
+        Route::get('/create', 'create')->name('create-warehouse');
+        Route::post('/create', 'store')->name('store-warehouse');
+        Route::get('/edit/{id}', 'edit')->name('edit-warehouse');
+        Route::put('/update/{id}', 'update')->name('update-warehouse');
+        Route::get('/cities/{adminCode1}', 'getCities')->name('warehouse-cities');
+        Route::delete('/delete/{id}', 'destroy')->name('delete-warehouse');
     });
 });
 require __DIR__ . '/auth.php';

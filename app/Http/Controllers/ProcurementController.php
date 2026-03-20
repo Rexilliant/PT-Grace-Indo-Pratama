@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Procurement;
 use App\Models\ProcurementItem;
 use App\Models\RawMaterial;
+use App\Models\Warehouse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Facades\Excel;
@@ -21,23 +19,12 @@ class ProcurementController extends Controller
             ->with('userRequest')
             ->orderBy('created_at', 'desc');
 
-        // FILTER sama seperti index kamu
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($sub) use ($search) {
-                $sub->where('province', 'like', "%{$search}%")
-                    ->orWhereHas('userRequest', function ($u) use ($search) {
-                        $u->where('name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('province')) {
-            $query->where('province', $request->province);
+        if ($request->filled('warehouse_id')) {
+            $query->where('warehouse_id', $request->warehouse_id);
         }
 
         if ($request->filled('date_from')) {
@@ -53,7 +40,6 @@ class ProcurementController extends Controller
                 'id Pengadaan' => $p->id,
                 'Tanggal Pemesanan' => $p->purchase_at,
                 'Nama Pemesan' => $p->userRequest->name ?? '-',
-                'Provinsi' => $p->province ?? '-',
                 'Status' => $p->status ?? '-',
             ];
         });
@@ -79,18 +65,12 @@ class ProcurementController extends Controller
     public function index(Request $request)
     {
         $q = Procurement::query()
-            ->with(['procurement_items', 'userRequest'])
+            ->with(['procurement_items', 'userRequest', 'warehouse'])
             ->orderBy('created_at', 'desc');
 
-        // SEARCH (contoh: cari nama pemesan / provinsi)
-        if ($request->filled('search')) {
-            $search = $request->search;
-
-            $q->where(function ($sub) use ($search) {
-                $sub->where('province', 'like', "%{$search}%")
-                    ->orWhereHas('userRequest', function ($u) use ($search) {
-                        $u->where('name', 'like', "%{$search}%");
-                    });
+        if ($request->filled('name')) {
+            $q->whereHas('userRequest', function ($query) use ($request) {
+                $query->where('name', 'like', '%'.$request->name.'%');
             });
         }
 
@@ -99,9 +79,8 @@ class ProcurementController extends Controller
             $q->where('status', $request->status);
         }
 
-        // FILTER PROVINCE
-        if ($request->filled('province')) {
-            $q->where('province', $request->province);
+        if ($request->filled('warehouse_id')) {
+            $q->where('warehouse_id', $request->warehouse_id);
         }
 
         // FILTER TANGGAL (purchase_at)
@@ -117,14 +96,7 @@ class ProcurementController extends Controller
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
 
         $procurements = $q->paginate($perPage)->withQueryString();
-
-        // buat dropdown province (opsional)
-        $provinces = Procurement::query()
-            ->select('province')
-            ->whereNotNull('province')
-            ->distinct()
-            ->orderBy('province')
-            ->pluck('province');
+        $warehouses = Warehouse::all();
 
         $statuses = Procurement::query()
             ->select('status')
@@ -133,46 +105,25 @@ class ProcurementController extends Controller
             ->orderBy('status')
             ->pluck('status');
 
-        return view('admin.procurement.procurements', compact('procurements', 'provinces', 'statuses'));
+        return view('admin.procurement.procurements', compact('procurements', 'warehouses', 'statuses'));
     }
 
     public function create()
     {
-        /**
-         * GeoNames: ambil provinsi Indonesia
-         * Indonesia geonameId = 1643084
-         */
-        // $response = Http::get('http://api.geonames.org/childrenJSON', [
-        //     'geonameId' => 1643084,
-        //     'username' => 'hier',
-        // ]);
 
-        $path = public_path('assets/data/provinceAndCity.json');
-
-        $json = File::get($path);
-
-        $data = json_decode($json, true);
-
-        $provinces = collect($data['geonames'] ?? [])
-            ->map(fn ($p) => [
-                'id' => $p['geonameId'] ?? null,
-                'name' => $p['name'] ?? null,
-            ])
-            ->filter(fn ($p) => ! empty($p['name']))
-            ->values();
-
+        $warehouses = Warehouse::all();
         $rawMaterials = RawMaterial::select('id', 'code', 'name', 'unit')
             ->orderBy('name')
             ->get();
 
-        return view('admin.procurement.create-procurement', compact('provinces', 'rawMaterials'));
+        return view('admin.procurement.create-procurement', compact('warehouses', 'rawMaterials'));
     }
 
     public function store(Request $request)
     {
         // Validasi input
         $validated = $request->validate([
-            'province' => 'required|string|max:255',
+            'warehouse_id' => 'required|exists:warehouses,id',
             'note' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.raw_material_id' => 'required|exists:raw_materials,id',
@@ -181,16 +132,13 @@ class ProcurementController extends Controller
         ]);
 
         try {
-            // Simpan data procurement
             $procurement = Procurement::create([
                 'request_by' => auth()->user()->id,
-                'province' => $validated['province'],
+                'warehouse_id' => $validated['warehouse_id'],
                 'note' => $validated['note'] ?? null,
                 'status' => 'Menunggu',
                 'purchase_at' => $validated['purchase_at'],
             ]);
-
-            // Simpan data procurement items
             foreach ($validated['items'] as $item) {
                 ProcurementItem::create([
                     'procurement_id' => $procurement->id,
@@ -199,7 +147,7 @@ class ProcurementController extends Controller
                 ]);
             }
 
-            return redirect()->back()->with('success', 'Pengadaan berhasil dibuat.');
+            return redirect()->route('procurements')->with('success', 'Pengadaan berhasil dibuat.');
         } catch (\Throwable $th) {
             save_log_error($th);
 
@@ -210,24 +158,11 @@ class ProcurementController extends Controller
     public function edit(Request $request, $id)
     {
 
-        $path = public_path('assets/data/provinceAndCity.json');
-
-        $json = File::get($path);
-
-        $data = json_decode($json, true);
-
-        $provinces = collect($data['geonames'] ?? [])
-            ->map(fn ($p) => [
-                'id' => $p['geonameId'] ?? null,
-                'name' => $p['name'] ?? null,
-            ])
-            ->filter(fn ($p) => ! empty($p['name']))
-            ->values();
-
+        $warehouses = Warehouse::all();
         $procurement = Procurement::with('procurement_items.raw_material')
             ->findOrFail($id);
 
-        return view('admin.procurement.edit-procurement', compact('provinces', 'procurement'));
+        return view('admin.procurement.edit-procurement', compact('warehouses', 'procurement'));
     }
 
     public function update(Request $request, $id)
@@ -239,7 +174,7 @@ class ProcurementController extends Controller
 
         try {
             $procurement = Procurement::findOrFail($id);
-            if ($validated['status'] === 'Diterima') {
+            if ($validated['status'] === 'Disetujui') {
                 $procurement->update([
                     'status' => $validated['status'],
                     'approved_at' => now(),
@@ -255,7 +190,7 @@ class ProcurementController extends Controller
                     'rejected_by' => auth()->user()->id,
                 ]);
 
-                return redirect()->back()->with('success', 'Pengadaan berhasil diperbarui.');
+                return redirect()->route('procurements')->with('success', 'Pengadaan berhasil diperbarui.');
             } else {
                 return redirect()->back()->with('error', 'Status tidak valid.');
             }
@@ -265,5 +200,15 @@ class ProcurementController extends Controller
 
             return redirect()->back()->withInput($request->all())->with('error', 'Terjadi kesalahan saat memperbarui pengadaan.');
         }
+    }
+
+    public function destroy($id)
+    {
+        $procurement = Procurement::findOrFail($id);
+        $procurement->delete();
+
+        return redirect()
+            ->route('procurements')
+            ->with('success', 'Data Pengadaan berhasil dihapus');
     }
 }

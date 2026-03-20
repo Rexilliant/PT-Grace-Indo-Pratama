@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\RawMaterial;
 use App\Models\RawMaterialStock;
+use App\Models\Warehouse;
 use Illuminate\Http\Request;
 
 class RawMaterialController extends Controller
@@ -54,14 +55,15 @@ class RawMaterialController extends Controller
                 $u->where('name', 'like', "%{$search}%");
             });
         }
-        if ($request->filled('province')) {
-            $q->where('province', 'like', "%{$request->province}%");
+        if ($request->filled('warehouse_id')) {
+            $q->where('warehouse_id', $request->warehouse_id);
         }
         $perPage = (int) ($request->get('per_page', 10));
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
         $stocks = $q->paginate(5)->withQueryString();
+        $warehouses = Warehouse::all();
 
-        return view('admin.gudang-stok-bahan-baku', compact('stocks'));
+        return view('admin.gudang-stok-bahan-baku', compact('stocks', 'warehouses'));
     }
 
     /**

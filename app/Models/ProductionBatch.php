@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\ProductionHasMaterial;
+use App\Models\ProductStock;
+use App\Models\User;
+use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -12,7 +16,7 @@ class ProductionBatch extends Model
     protected $fillable = [
         'person_responsible_id',
         'product_stock_id',
-        'province',
+        'warehouse_id',
         'entry_date',
         'quantity',
         'note',
@@ -31,6 +35,10 @@ class ProductionBatch extends Model
     public function productStock()
     {
         return $this->belongsTo(ProductStock::class);
+    }
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 
     public function materials()

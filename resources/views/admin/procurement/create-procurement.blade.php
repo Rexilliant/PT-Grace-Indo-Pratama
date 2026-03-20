@@ -59,21 +59,21 @@
                         class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed" />
                 </div>
 
-                {{-- PROVINSI (Search Select - Alpine) --}}
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-2">Provinsi</label>
+                    <label class="block text-xs font-bold text-gray-700 mb-2">Gudang</label>
 
-                    <select name="province" id="provinceSelect"
+                    <select name="warehouse_id" id="warehouse_id"
                         class="w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900">
-                        <option value="">-- Pilih Provinsi --</option>
-                        @foreach ($provinces as $prov)
-                            <option value="{{ $prov['name'] }}" {{ old('province') == $prov['name'] ? 'selected' : '' }}>
-                                {{ $prov['name'] }}
+                        <option value="">-- Pilih Gudang --</option>
+                        @foreach ($warehouses as $warehouse)
+                            <option value="{{ $warehouse->id }}"
+                                {{ old('warehouse_id') == $warehouse->id ? 'selected' : '' }}>
+                                {{ $warehouse->name }}
                             </option>
                         @endforeach
                     </select>
 
-                    @error('province')
+                    @error('warehouse_id')
                         <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -253,9 +253,8 @@
 
         $(document).ready(function() {
 
-            // province select2 tetap
-            $('#provinceSelect').select2({
-                placeholder: "Cari provinsi...",
+            $('#warehouse_id').select2({
+                placeholder: "Cari Gudang",
                 allowClear: true,
                 width: '100%'
             });

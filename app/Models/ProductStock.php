@@ -2,16 +2,13 @@
 
 namespace App\Models;
 
-use App\Models\ProductionBatch;
-use App\Models\ProductVariant;
-use App\Models\ShippmentItem;
 use Illuminate\Database\Eloquent\Model;
 
 class ProductStock extends Model
 {
     protected $fillable = [
         'product_variant_id',
-        'province',
+        'warehouse_id',
         'stock',
     ];
 
@@ -38,5 +35,10 @@ class ProductStock extends Model
     public function movements()
     {
         return $this->hasMany(ProductStockMovement::class);
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 }

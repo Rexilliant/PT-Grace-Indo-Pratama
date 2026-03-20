@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('receipt_number');
             $table->foreignId('procurement_id')->constrained('procurements')->cascadeOnDelete();
-            $table->string('province');
+            $table->foreignId('warehouse_id')->constrained('warehouses');
             $table->timestamp('received_at');
             $table->foreignId('received_by')->constrained('users')->cascadeOnDelete();
             $table->string('status');

@@ -7,6 +7,7 @@ use App\Models\ProductStock;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Models\Warehouse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -27,39 +28,49 @@ class SaleController extends Controller
 
     public function create()
     {
+        $warehouses = Warehouse::query()
+            ->orderBy('name')
+            ->get(['id', 'name', 'province', 'city']);
+
         return view('admin.add-laporan-penjualan', [
             'reportDate' => now()->format('Y-m-d'),
             'personResponsibleName' => Auth::user()?->name ?? '-',
             'provinceJsonUrl' => asset('assets/data/provinceAndCity.json'),
-            'stocksByProvinceUrl' => route('admin.pemasaran-laporan-penjualan.stocks-by-province'),
+            'stocksByWarehouseUrl' => route('admin.pemasaran-laporan-penjualan.stocks-by-warehouse'),
+            'warehouses' => $warehouses,
         ]);
     }
 
-    public function getStocksByProvince(Request $request)
+    public function getStocksByWarehouse(Request $request)
     {
         $request->validate([
-            'province' => ['required', 'string', 'max:255'],
+            'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
         ]);
 
-        $province = trim((string) $request->province);
+        $warehouseId = (int) $request->warehouse_id;
 
         $stocks = ProductStock::query()
             ->with([
-                'productVariant:id,product_id,sku,name,price',
+                'warehouse:id,name,province,city',
+                'productVariant:id,product_id,sku,name,price,unit',
                 'productVariant.product:id,name',
             ])
-            ->whereRaw('LOWER(TRIM(province)) = ?', [strtolower($province)])
+            ->where('warehouse_id', $warehouseId)
             ->where('stock', '>', 0)
             ->orderBy('id')
             ->get()
             ->map(function ($stock) {
                 return [
                     'id' => $stock->id,
-                    'province' => $stock->province,
+                    'warehouse_id' => $stock->warehouse_id,
+                    'warehouse_name' => $stock->warehouse?->name ?? '-',
+                    'warehouse_province' => $stock->warehouse?->province ?? '-',
+                    'warehouse_city' => $stock->warehouse?->city ?? '-',
                     'stock' => (int) $stock->stock,
                     'sku' => $stock->productVariant?->sku ?? '-',
                     'product_name' => $stock->productVariant?->name ?? ($stock->productVariant?->product?->name ?? '-'),
                     'price' => (int) ($stock->productVariant?->price ?? 0),
+                    'unit' => $stock->productVariant?->unit ?? '-',
                 ];
             })
             ->values();
@@ -74,6 +85,7 @@ class SaleController extends Controller
         $request->validate([
             'sale_date' => ['required', 'date'],
             'sale_type' => ['required', 'in:Perseorangan,Instansi,Pesanan'],
+            'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
             'customer_province' => ['required', 'string', 'max:255'],
             'customer_city' => ['required', 'string', 'max:255'],
             'customer_address' => ['nullable', 'string'],
@@ -105,6 +117,8 @@ class SaleController extends Controller
                 ->unique()
                 ->values();
 
+            $warehouseId = (int) $request->warehouse_id;
+
             $stocks = ProductStock::query()
                 ->with([
                     'productVariant:id,product_id,sku,name,price',
@@ -117,7 +131,6 @@ class SaleController extends Controller
 
             $normalizedItems = [];
             $grandTotal = 0;
-            $customerProvince = trim((string) $request->customer_province);
 
             foreach ($itemsInput as $index => $item) {
                 $productStockId = (int) ($item['product_stock_id'] ?? 0);
@@ -132,9 +145,9 @@ class SaleController extends Controller
                     ]);
                 }
 
-                if ($stock->province !== $customerProvince) {
+                if ((int) $stock->warehouse_id !== $warehouseId) {
                     throw ValidationException::withMessages([
-                        "items.$index.product_stock_id" => 'Barang tidak sesuai dengan provinsi yang dipilih.',
+                        "items.$index.product_stock_id" => 'Barang tidak sesuai dengan gudang yang dipilih.',
                     ]);
                 }
 
@@ -177,13 +190,21 @@ class SaleController extends Controller
             $debtAmount = max(0, $grandTotal - $paidAmount);
             $finalStatus = $debtAmount > 0 ? 'Terhutang' : 'Lunas';
 
+            $warehouseId = (int) $request->input('warehouse_id');
+            if (!$warehouseId) {
+                throw ValidationException::withMessages([
+                    'warehouse_id' => 'Gudang wajib dipilih.',
+                ]);
+            }
+
             $sale = Sale::create([
                 'report_date' => now()->toDateString(),
                 'sale_date' => $request->sale_date,
                 'person_responsible_id' => Auth::id(),
+                'warehouse_id' => $warehouseId,
                 'sale_type' => $request->sale_type,
-                'customer_province' => $customerProvince,
-                'customer_city' => $request->customer_city,
+                'customer_province' => trim((string) $request->customer_province),
+                'customer_city' => trim((string) $request->customer_city),
                 'customer_address' => $request->customer_address,
                 'customer_name' => $request->customer_name,
                 'customer_contact' => $request->customer_contact,
@@ -201,6 +222,7 @@ class SaleController extends Controller
                 $stock->decrement('stock', $item['quantity']);
 
                 ProductStockMovement::create([
+                    'warehouse_id' => $stock->warehouse_id,
                     'province' => $stock->province,
                     'product_stock_id' => $stock->id,
                     'type' => 'Out',
@@ -234,10 +256,15 @@ class SaleController extends Controller
     public function edit($id)
     {
         $sale = Sale::with([
+            'warehouse',
             'personResponsible',
             'items.productStock.productVariant.product',
             'paymentHistories',
         ])->findOrFail($id);
+
+        $warehouses = Warehouse::query()
+            ->orderBy('name')
+            ->get(['id', 'name', 'province', 'city']);
 
         $initialItems = $sale->items->map(function ($item) {
             return [
@@ -249,10 +276,11 @@ class SaleController extends Controller
 
         return view('admin.edit-laporan-penjualan', [
             'sale' => $sale,
-            'reportDate' => \Carbon\Carbon::parse($sale->report_date)->format('Y-m-d'),
+            'reportDate' => Carbon::parse($sale->report_date)->format('Y-m-d'),
             'personResponsibleName' => $sale->personResponsible?->name ?? '-',
             'provinceJsonUrl' => asset('assets/data/provinceAndCity.json'),
-            'stocksByProvinceUrl' => route('admin.pemasaran-laporan-penjualan.stocks-by-province'),
+            'stocksByWarehouseUrl' => route('admin.pemasaran-laporan-penjualan.stocks-by-warehouse'),
+            'warehouses' => $warehouses,
             'initialItems' => $initialItems,
             'currentPaidAmount' => (int) $sale->paymentHistories()->sum('amount'),
         ]);
@@ -276,7 +304,7 @@ class SaleController extends Controller
             'notes' => ['nullable', 'string'],
             'payment_amount' => ['nullable', 'string'],
             'invoice' => ['nullable', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
-
+            'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_stock_id' => ['required', 'integer', 'exists:product_stocks,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
@@ -319,7 +347,8 @@ class SaleController extends Controller
                 ->get()
                 ->keyBy('id');
 
-            $customerProvince = trim((string) $request->customer_province);
+
+            $warehouseId = (int) $request->warehouse_id;
 
             // 1. Balikin stok lama dulu + movement IN rollback
             foreach ($sale->items as $oldItem) {
@@ -329,6 +358,7 @@ class SaleController extends Controller
                     $oldStock->increment('stock', (int) $oldItem->quantity);
 
                     ProductStockMovement::create([
+                        'warehouse_id' => $oldStock->warehouse_id,
                         'province' => $oldStock->province,
                         'product_stock_id' => $oldStock->id,
                         'type' => 'In',
@@ -360,9 +390,9 @@ class SaleController extends Controller
                     ]);
                 }
 
-                if (trim((string) $stock->province) !== $customerProvince) {
+                if ((int) $stock->warehouse_id !== $warehouseId) {
                     throw ValidationException::withMessages([
-                        "items.$index.product_stock_id" => 'Barang tidak sesuai dengan provinsi yang dipilih.',
+                        "items.$index.product_stock_id" => 'Barang tidak sesuai dengan gudang yang dipilih.',
                     ]);
                 }
 
@@ -417,7 +447,7 @@ class SaleController extends Controller
             $sale->update([
                 'sale_date' => $request->sale_date,
                 'sale_type' => $request->sale_type,
-                'customer_province' => $customerProvince,
+                // 'customer_province' => $customerProvince,
                 'customer_city' => $request->customer_city,
                 'customer_address' => $request->customer_address,
                 'customer_name' => $request->customer_name,
@@ -427,6 +457,7 @@ class SaleController extends Controller
                 'debt_amount' => $debtAmount,
                 'notes' => $request->notes,
                 'status' => $finalStatus,
+                'warehouse_id' => $warehouseId,
             ]);
 
             // 6. Simpan item baru + kurangi stok + movement OUT
@@ -437,6 +468,7 @@ class SaleController extends Controller
                 $stock->decrement('stock', $item['quantity']);
 
                 ProductStockMovement::create([
+                    'warehouse_id' => $stock->warehouse_id,
                     'province' => $stock->province,
                     'product_stock_id' => $stock->id,
                     'type' => 'Out',

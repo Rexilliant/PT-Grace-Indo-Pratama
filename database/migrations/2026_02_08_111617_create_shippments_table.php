@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('shippment_type');
             $table->foreignId('person_responsible_id')->constrained('users')->cascadeOnDelete();
             $table->string('status');
-            $table->string('province');
+            $table->foreignId('warehouse_id')->constrained('warehouses');
             $table->text('address');
             $table->dateTime('shippment_request_at');
             $table->foreignId('created_by_id')->constrained('users')->cascadeOnDelete();

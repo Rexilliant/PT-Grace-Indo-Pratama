@@ -15,11 +15,15 @@ class RawMaterialStock extends Model
     protected $fillable = [
         'raw_material_id',
         'stock',
-        'province',
+        'warehouse_id',
     ];
 
     public function rawMaterial()
     {
         return $this->belongsTo(RawMaterial::class);
+    }
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
 }

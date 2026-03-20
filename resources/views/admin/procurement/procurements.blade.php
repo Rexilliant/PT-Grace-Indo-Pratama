@@ -25,7 +25,7 @@
                     <label class="text-xs font-semibold text-gray-700 mb-1">
                         Nama
                     </label>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Nama"
+                    <input type="text" name="name" value="{{ request('name') }}" placeholder="Nama"
                         class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
                 </div>
 
@@ -44,18 +44,16 @@
                         @endforeach
                     </select>
                 </div>
-
-                {{-- Province --}}
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
-                        Provinsi
+                        Warehouse
                     </label>
-                    <select name="province"
+                    <select name="warehouse_id"
                         class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none">
-                        <option value="">Semua Provinsi</option>
-                        @foreach ($provinces as $prov)
-                            <option value="{{ $prov }}" @selected(request('province') == $prov)>
-                                {{ $prov }}
+                        <option value="">Semua Gudang</option>
+                        @foreach ($warehouses as $warehouse)
+                            <option value="{{ $warehouse->id }}" @selected(request('warehouse_id') == $warehouse->id)>
+                                {{ $warehouse->name }}
                             </option>
                         @endforeach
                     </select>
@@ -139,9 +137,9 @@
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Id Pengadaan</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Pemesanan</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama Pemesan</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Gudang</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Status</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
                         </tr>
                     </thead>
 
@@ -152,13 +150,25 @@
                                 <td class="px-6 py-4">
                                     {{ \Carbon\Carbon::parse($procurement->purchase_at)->format('d/m/Y') }}</td>
                                 <td class="px-6 py-4">{{ $procurement->userRequest->name ?? '-' }}</td>
-                                <td class="px-6 py-4">{{ $procurement->province }}</td>
+                                <td class="px-6 py-4">{{ $procurement->warehouse->name }}</td>
+                                <td class="px-6 py-4">{{ $procurement->status }}</td>
                                 <td class="px-6 py-4">
-                                    <a href="{{ route('edit-procurement', $procurement->id) }}"
-                                        class="text-blue-600 hover:underline">Sunting</a>
-                                </td>
-                                <td class="px-6 py-4"><span
-                                        class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{{ $procurement->status }}</span>
+                                    <a href="{{ route('edit-procurement', ['id' => $procurement->id]) }}"
+                                        class="text-blue-600 hover:underline">
+                                        Sunting
+                                    </a>
+
+                                    @if ($procurement->status == 'Menunggu')
+                                        |
+                                        <form action="{{ route('delete-procurement', ['id' => $procurement->id]) }}"
+                                            method="POST" class="inline-block form-delete">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:underline">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -189,4 +199,44 @@
 
         </div>
     </section>
+@endsection
+@section('addJs')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session('success') }}',
+            });
+        @endif
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
+            });
+        @endif
+        document.querySelectorAll('.form-delete').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Anda yakin?',
+                    text: 'Data Pengadaan yang dihapus tidak bisa dikembalikan.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 @endsection

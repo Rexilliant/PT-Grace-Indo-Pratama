@@ -15,6 +15,7 @@ class Sale extends Model implements HasMedia
         'report_date',
         'sale_date',
         'person_responsible_id',
+        'warehouse_id',
         'sale_type',
         'customer_province',
         'customer_city',
@@ -54,5 +55,10 @@ class Sale extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('invoice_payment')->singleFile();
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 }

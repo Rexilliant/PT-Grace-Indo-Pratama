@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Download Wilayah Indonesia</title>
+</head>
+<body>
+
+<h2>Download Data Wilayah Indonesia</h2>
+<button onclick="downloadData()">Download JSON</button>
+
+<script>
+async function downloadData() {
+  const result = [];
+
+  // Ambil provinsi
+  const provRes = await fetch("https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json");
+  const provinces = await provRes.json();
+
+  for (const prov of provinces) {
+    console.log("Ambil:", prov.name);
+
+    // Ambil kota per provinsi
+    const cityRes = await fetch(
+      `https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${prov.id}.json`
+    );
+    const cities = await cityRes.json();
+
+    result.push({
+      province_id: prov.id,
+      province_name: prov.name,
+      cities: cities
+    });
+  }
+
+  // Convert ke JSON
+  const jsonString = JSON.stringify(result, null, 2);
+
+  // Buat file download
+  const blob = new Blob([jsonString], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "wilayah-indonesia.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+
+  alert("✅ Download selesai!");
+}
+</script>
+
+</body>
+</html>

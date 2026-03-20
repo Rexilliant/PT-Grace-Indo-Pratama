@@ -6,10 +6,12 @@
 
 @section('addCss')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
-    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
+
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
+    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
 
     <style>
         .select2-container .select2-selection--single {
@@ -28,6 +30,10 @@
         .select2-dropdown {
             border-radius: 0.375rem;
         }
+
+        .filepond--root {
+            font-family: inherit;
+        }
     </style>
 @endsection
 
@@ -43,11 +49,6 @@
     </section>
 
     @php
-        $hasProvinces = !empty($provinces) && count($provinces) > 0;
-
-        // ==== INIT ITEMS: old() menang, kalau tidak ada pakai DB ====
-        $oldItems = old('items');
-
         $dbItems = $receipt
             ->items()
             ->orderBy('id')
@@ -61,35 +62,43 @@
             ->values()
             ->all();
 
-        $initItems = is_array($oldItems) ? $oldItems : $dbItems;
+        $initItems = $dbItems;
+
         if (empty($initItems)) {
             $initItems = [['raw_material_id' => '', 'quantity_received' => '']];
         }
 
-        $selectedProcId = old('procurement_id', $receipt->procurement_id);
-        $selectedProvince = old('province', $receipt->province);
+        $selectedProcurementId = $receipt->procurement_id;
+        $selectedWarehouseId = $receipt->warehouse_id;
     @endphp
 
-    <form x-data="purchaseReceiptEdit({ initItems: @js($initItems) })" x-init="init()" class="space-y-5 mb-5"
+    <form x-data="purchaseReceiptEdit({
+        initItems: @js($initItems),
+        oldProcurementId: @js($selectedProcurementId),
+        oldWarehouseId: @js($selectedWarehouseId),
+    })" x-init="init()" class="space-y-5 mb-5"
         action="{{ route('update-barang-masuk', $receipt->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
+
+        <input type="hidden" name="warehouse_id" x-model="warehouse_id">
 
         {{-- ROW 1 --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <div class="mb-5">
                 <p>Nomor Barang Masuk: {{ $receipt->receipt_number }}</p>
             </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 {{-- ID Pengadaan --}}
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Id Pengadaan</label>
-                    <select name="procurement_id" x-ref="procurementSelect"
+                    <select disabled readonly x-ref="procurementSelect" x-model="procurement_id"
                         class="w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900 @error('procurement_id') border-red-500 @enderror">
                         <option value="">-- Pilih Id Pengadaan --</option>
                         @foreach ($procurements as $procurement)
-                            <option value="{{ $procurement->id }}"
-                                {{ (int) $selectedProcId === (int) $procurement->id ? 'selected' : '' }}>
+                            <option value="{{ $procurement->id }}" data-warehouse-id="{{ $procurement->warehouse_id }}"
+                                {{ (int) $selectedProcurementId === (int) $procurement->id ? 'selected' : '' }}>
                                 {{ $procurement->id }}
                             </option>
                         @endforeach
@@ -99,29 +108,19 @@
                     @enderror
                 </div>
 
-                {{-- Provinsi --}}
+                {{-- Warehouse --}}
                 <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-2">Provinsi</label>
-
-                    @if ($hasProvinces)
-                        <select name="province" x-ref="provinceSelect"
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 @error('province') border-red-500 @enderror">
-                            <option value="">-- Pilih Provinsi --</option>
-                            @foreach ($provinces as $province)
-                                <option value="{{ $province['name'] }}"
-                                    {{ (string) $selectedProvince === (string) $province['name'] ? 'selected' : '' }}>
-                                    {{ $province['name'] }}
-                                </option>
-                            @endforeach
-                        </select>
-                    @else
-                        <input type="text" name="province" value="{{ $selectedProvince }}"
-                            placeholder="Tulis provinsi..."
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 @error('province') border-red-500 @enderror" />
-                        <p class="mt-1 text-xs text-gray-600">Data provinsi tidak tersedia, silakan input manual.</p>
-                    @endif
-
-                    @error('province')
+                    <label class="block text-sm font-bold text-gray-800 mb-2">Gudang</label>
+                    <select x-ref="warehouseSelect" x-model="warehouse_id" disabled
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 @error('warehouse_id') border-red-500 @enderror">
+                        <option value="">-- Pilih Gudang --</option>
+                        @foreach ($warehouses as $warehouse)
+                            <option value="{{ $warehouse->id }}">
+                                {{ $warehouse->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('warehouse_id')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
@@ -129,7 +128,7 @@
                 {{-- Total Pesanan --}}
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Total Pesanan</label>
-                    <input type="number" name="total_price" value="{{ old('total_price', (int) $receipt->total_price) }}"
+                    <input type="number" name="total_price" value="{{ (int) $receipt->total_price }}"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 @error('total_price') border-red-500 @enderror" />
                     @error('total_price')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -139,8 +138,7 @@
                 {{-- Tanggal --}}
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Tanggal Barang Masuk</label>
-                    <input type="date" name="received_at"
-                        value="{{ old('received_at', optional($receipt->received_at)->format('Y-m-d')) }}"
+                    <input type="date" name="received_at" value="{{ optional($receipt->received_at)->format('Y-m-d') }}"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 @error('received_at') border-red-500 @enderror">
                     @error('received_at')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -170,7 +168,7 @@
             @enderror
         </section>
 
-        {{-- ITEMS (REPEATABLE) --}}
+        {{-- ITEMS --}}
         <template x-for="(item, index) in items" :key="item.key">
             <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
                 <div class="flex items-center justify-between mb-4">
@@ -190,16 +188,12 @@
                     <div>
                         <label class="block text-sm font-bold mb-2">Nama Barang</label>
 
-                        <select
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900"
-                            x-ref="materialSelects" :data-key="item.key" :name="`items[${index}][raw_material_id]`"
-                            :id="`material_${item.key}`">
+                        <select :id="`material_${item.key}`" :name="`items[${index}][raw_material_id]`"
+                            x-ref="materialSelects" x-bind:data-key="item.key"
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
                             <option value="">-- Pilih Barang --</option>
                             @foreach ($rawMaterials as $rm)
-                                <option value="{{ $rm->id }}"
-                                    :selected="String(item.raw_material_id) === '{{ (string) $rm->id }}'">
-                                    {{ $rm->name }}
-                                </option>
+                                <option value="{{ $rm->id }}">{{ $rm->name }}</option>
                             @endforeach
                         </select>
 
@@ -232,6 +226,7 @@
             </div>
         @endcan
     </form>
+
     <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm mb-5">
         <div class="overflow-x-auto">
             <table class="w-full text-sm text-left text-gray-800">
@@ -245,8 +240,9 @@
                 <tbody class="bg-gray-200 divide-y divide-gray-500">
                     @forelse ($invoices as $invoice)
                         <tr class="hover:bg-gray-300">
-                            <td class="px-6 py-4 font-semibold"><a target="_blank"
-                                    href="{{ $invoice->getUrl() }}">{{ $invoice->file_name }}</a></td>
+                            <td class="px-6 py-4 font-semibold">
+                                <a target="_blank" href="{{ $invoice->getUrl() }}">{{ $invoice->file_name }}</a>
+                            </td>
                             <td class="px-6 py-3">
                                 @can('update-purchase-receipts')
                                     <div class="flex items-center justify-start gap-6 font-semibold">
@@ -261,23 +257,24 @@
                                     </div>
                                 @endcan
                             </td>
-                        @empty
+                        </tr>
+                    @empty
                     @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 
-    {{-- FILEPOND --}}
     @can('update-purchase-receipts')
         <form action="{{ route('purchase-receipts.add-media', $receipt->id) }}" method="post"
             enctype="multipart/form-data">
             @csrf
+
             <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
                 <label class="block text-sm font-bold mb-3 text-gray-800">Invoice Pembelian Barang</label>
 
                 <input id="invoicesPond" type="file" name="invoices[]" multiple
-                    accept="image/png,image/jpeg,application/pdf" />
+                    accept="image/png,image/jpeg,application/pdf">
 
                 <p class="mt-2 text-xs text-gray-600">
                     Format: PNG/JPG/JPEG/PDF • Maks 3MB per file • Bisa upload multiple.
@@ -291,7 +288,6 @@
                 @enderror
             </section>
 
-            {{-- ACTIONS --}}
             <div class="flex items-center justify-end gap-4 pt-2">
                 <button type="submit"
                     class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
@@ -302,9 +298,8 @@
     @endcan
 @endsection
 
-
 @section('addJs')
-    <script src="{{ asset('assets/js/sweetalert.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
@@ -334,11 +329,15 @@
 
     <script>
         function purchaseReceiptEdit({
-            initItems
+            initItems,
+            oldProcurementId,
+            oldWarehouseId
         }) {
             return {
                 items: [],
                 errors: @js($errors->toArray()),
+                procurement_id: oldProcurementId || '',
+                warehouse_id: oldWarehouseId || '',
                 _settingSelect2: false,
 
                 init() {
@@ -355,8 +354,12 @@
                             .quantity_received, 10),
                     }));
 
-                    this.initSelect2Static();
-                    this.$nextTick(() => this.reInitMaterialSelect2All());
+                    this.$nextTick(() => {
+                        this.initSelect2Procurement();
+                        this.initSelect2Warehouse();
+                        this.reInitMaterialSelect2All();
+                        this.syncWarehouseFromProcurement();
+                    });
                 },
 
                 err(key) {
@@ -366,7 +369,7 @@
                 },
 
                 hasSelect2() {
-                    return (typeof $ !== 'undefined' && typeof $.fn.select2 === 'function');
+                    return typeof $ !== 'undefined' && typeof $.fn.select2 === 'function';
                 },
 
                 addItem() {
@@ -375,6 +378,7 @@
                         raw_material_id: '',
                         quantity_received: ''
                     });
+
                     this.$nextTick(() => this.reInitMaterialSelect2All());
                 },
 
@@ -383,28 +387,78 @@
                     if (key) this.destroyMaterialSelect2(key);
 
                     this.items.splice(index, 1);
-                    if (this.items.length === 0) this.addItem();
+
+                    if (this.items.length === 0) {
+                        this.items.push({
+                            key: crypto.randomUUID(),
+                            raw_material_id: '',
+                            quantity_received: ''
+                        });
+                    }
 
                     this.$nextTick(() => this.reInitMaterialSelect2All());
                 },
 
-                initSelect2Static() {
-                    if (!this.hasSelect2()) return;
+                initSelect2Procurement() {
+                    const el = this.$refs.procurementSelect;
+                    if (!el || !this.hasSelect2()) return;
 
-                    if (this.$refs.procurementSelect) {
-                        $(this.$refs.procurementSelect).select2({
-                            width: '100%',
-                            placeholder: '-- Pilih Id Pengadaan --',
-                            allowClear: true
-                        });
+                    if ($(el).hasClass('select2-hidden-accessible')) {
+                        $(el).off('change.receiptProc');
+                        $(el).select2('destroy');
                     }
 
-                    if (this.$refs.provinceSelect) {
-                        $(this.$refs.provinceSelect).select2({
-                            width: '100%',
-                            placeholder: '-- Pilih Provinsi --',
-                            allowClear: true
-                        });
+                    $(el).select2({
+                        width: '100%',
+                        placeholder: '-- Pilih Id Pengadaan --',
+                        allowClear: true
+                    });
+
+                    $(el).on('change.receiptProc', () => {
+                        this.procurement_id = $(el).val() || '';
+                        this.syncWarehouseFromProcurement();
+                    });
+
+                    if (this.procurement_id) {
+                        $(el).val(String(this.procurement_id)).trigger('change.select2');
+                    }
+                },
+
+                initSelect2Warehouse() {
+                    const el = this.$refs.warehouseSelect;
+                    if (!el || !this.hasSelect2()) return;
+
+                    if ($(el).hasClass('select2-hidden-accessible')) {
+                        $(el).select2('destroy');
+                    }
+
+                    $(el).select2({
+                        width: '100%',
+                        placeholder: '-- Pilih Gudang --',
+                        allowClear: true,
+                        disabled: true
+                    });
+
+                    if (this.warehouse_id) {
+                        $(el).val(String(this.warehouse_id)).trigger('change.select2');
+                    }
+                },
+
+                syncWarehouseFromProcurement() {
+                    const procurementEl = this.$refs.procurementSelect;
+                    const warehouseEl = this.$refs.warehouseSelect;
+
+                    if (!procurementEl || !warehouseEl) return;
+
+                    const selectedOption = procurementEl.options[procurementEl.selectedIndex];
+                    const warehouseId = selectedOption ? (selectedOption.dataset.warehouseId || '') : '';
+
+                    this.warehouse_id = warehouseId;
+
+                    if (this.hasSelect2()) {
+                        $(warehouseEl).val(String(warehouseId)).trigger('change.select2');
+                    } else {
+                        warehouseEl.value = warehouseId;
                     }
                 },
 
@@ -420,7 +474,7 @@
                         const key = el.dataset.key;
 
                         if (el.dataset.inited === '1') {
-                            $(el).off('change.receipt');
+                            $(el).off('change.receiptItem');
                             $(el).select2('destroy');
                             el.dataset.inited = '0';
                         }
@@ -435,12 +489,15 @@
 
                         this.setSelect2ValueByKey(el, key);
 
-                        $(el).on('change.receipt', () => {
+                        $(el).on('change.receiptItem', () => {
                             if (this._settingSelect2) return;
 
                             const val = $(el).val() || '';
                             const idx = this.items.findIndex(x => x.key === key);
-                            if (idx !== -1) this.items[idx].raw_material_id = val ? parseInt(val, 10) : '';
+
+                            if (idx !== -1) {
+                                this.items[idx].raw_material_id = val ? parseInt(val, 10) : '';
+                            }
                         });
                     });
                 },
@@ -449,13 +506,14 @@
                     const idx = this.items.findIndex(x => x.key === key);
                     if (idx === -1) return;
 
-                    const v = this.items[idx].raw_material_id ? String(this.items[idx].raw_material_id) : '';
+                    const value = this.items[idx].raw_material_id ? String(this.items[idx].raw_material_id) : '';
+
                     this._settingSelect2 = true;
 
                     this.$nextTick(() => {
                         requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
-                                $(el).val(v).trigger('change');
+                                $(el).val(value).trigger('change');
                                 this._settingSelect2 = false;
                             });
                         });
@@ -469,16 +527,15 @@
                     if (!el) return;
 
                     if (el.dataset.inited === '1') {
-                        $(el).off('change.receipt');
+                        $(el).off('change.receiptItem');
                         $(el).select2('destroy');
                         el.dataset.inited = '0';
                     }
                 },
-
             }
-
         }
     </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof FilePond === 'undefined') return;
@@ -491,21 +548,19 @@
 
             const input = document.getElementById('invoicesPond');
             if (!input) return;
-
-            // Hindari double-init kalau halaman kena re-render / turbolinks sejenis
             if (input.dataset.pondInited === '1') return;
+            if (!input.parentNode) return;
+
             input.dataset.pondInited = '1';
 
             FilePond.create(input, {
-                storeAsFile: true, // biar masuk request normal Laravel (multipart)
-                instantUpload: false, // karena submit via form biasa
+                storeAsFile: true,
+                instantUpload: false,
                 allowMultiple: true,
                 maxFiles: 10,
                 credits: false,
-
                 acceptedFileTypes: ['image/png', 'image/jpeg', 'application/pdf'],
                 maxFileSize: '3MB',
-
                 labelIdle: 'Drag & Drop file atau <span class="filepond--label-action">Browse</span>',
                 labelFileTypeNotAllowed: 'Format file tidak didukung',
                 fileValidateTypeLabelExpectedTypes: 'Hanya PNG/JPG/JPEG/PDF',
@@ -514,17 +569,16 @@
             });
         });
     </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-
             document.querySelectorAll('.btn-delete-invoice').forEach(function(button) {
                 button.addEventListener('click', function() {
-
                     const form = this.closest('form');
 
                     Swal.fire({
                         title: 'Yakin ingin menghapus?',
-                        text: "File invoice akan dihapus permanen!",
+                        text: 'File invoice akan dihapus permanen!',
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#dc2626',
@@ -536,10 +590,8 @@
                             form.submit();
                         }
                     });
-
                 });
             });
-
         });
     </script>
 @endsection
