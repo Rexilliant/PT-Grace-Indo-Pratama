@@ -13,6 +13,7 @@ use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ShippmentController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SaleController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
@@ -44,9 +45,9 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.pemasaran-permintaan-pengiriman');
     })->name('admin.pemasaran-permintaan-pengiriman');
 
-    Route::get('/pemasaran-laporan-penjualan', function () {
-        return view('admin.pemasaran-laporan-penjualan');
-    })->name('admin.pemasaran-laporan-penjualan');
+    // Route::get('/pemasaran-laporan-penjualan', function () {
+    //     return view('admin.pemasaran-laporan-penjualan');
+    // })->name('admin.pemasaran-laporan-penjualan');
 
     Route::get('/profile', function () {
         return view('admin.profile');
@@ -73,9 +74,9 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.add-pemasaran-permintaan-pengiriman');
     })->name('admin.add-pemasaran-permintaan-pengiriman');
 
-    Route::get('/add-laporan-penjualan', function () {
-        return view('admin.add-laporan-penjualan');
-    })->name('admin.add-laporan-penjualan');
+    // Route::get('/add-laporan-penjualan', function () {
+    //     return view('admin.add-laporan-penjualan');
+    // })->name('admin.add-laporan-penjualan');
 
     // Route::get('/add-produk', function () {
     //     return view('admin.add-produk');
@@ -100,6 +101,33 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         '/add-pilih-produk',
         [ProductionController::class, 'pilihProduk']
     )->name('admin.add-pilih-produk');
+
+    //Laporan Penjualan
+    Route::prefix('admin')->middleware(['auth'])->group(function () {
+        Route::get('/pemasaran/laporan-penjualan', [SaleController::class, 'index'])
+            ->name('admin.pemasaran-laporan-penjualan');
+
+        Route::get('/pemasaran/laporan-penjualan/create', [SaleController::class, 'create'])
+            ->name('admin.pemasaran-laporan-penjualan.create');
+
+        Route::post('/pemasaran/laporan-penjualan', [SaleController::class, 'store'])
+            ->name('admin.pemasaran-laporan-penjualan.store');
+
+        Route::get('/pemasaran/laporan-penjualan/stocks-by-warehouse', [SaleController::class, 'getStocksByWarehouse'])
+            ->name('admin.pemasaran-laporan-penjualan.stocks-by-warehouse');
+
+        Route::get('/pemasaran/laporan-penjualan/{id}/edit', [SaleController::class, 'edit'])
+            ->name('admin.pemasaran-laporan-penjualan.edit');
+
+        Route::put('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'update'])
+            ->name('admin.pemasaran-laporan-penjualan.update');
+
+        Route::get('/pemasaran/laporan-penjualan/{id}/history-pembayaran', [SaleController::class, 'historyPayment'])
+            ->name('admin.pemasaran-laporan-penjualan.history-pembayaran');
+
+        Route::get('/pemasaran/laporan-penjualan/{id}/invoice', [SaleController::class, 'invoice'])
+            ->name('admin.pemasaran-laporan-penjualan.invoice');
+    });
 
     // This Point
     Route::prefix('admin')
@@ -247,4 +275,4 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::delete('/delete/{id}', 'destroy')->name('delete-warehouse');
     });
 });
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

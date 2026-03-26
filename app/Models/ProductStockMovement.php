@@ -21,14 +21,16 @@ class ProductStockMovement extends Model
         'note',
     ];
 
+    protected $casts = [
+        'quantity' => 'integer',
+        'ref_id' => 'integer',
+    ];
+
     public function productStock()
     {
         return $this->belongsTo(ProductStock::class);
     }
 
-    /**
-     * Polymorphic reference (optional)
-     */
     public function reference()
     {
         return $this->morphTo(null, 'ref_type', 'ref_id');

@@ -20,9 +20,19 @@ class ProductVariant extends Model implements HasMedia
         'status',
     ];
 
+    protected $casts = [
+        'pack_size' => 'integer',
+        'price' => 'integer',
+    ];
+
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function productStocks()
+    {
+        return $this->hasMany(ProductStock::class);
     }
 
     public function registerMediaCollections(): void

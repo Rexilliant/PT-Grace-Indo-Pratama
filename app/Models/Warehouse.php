@@ -39,7 +39,18 @@ class Warehouse extends Model
     {
         return $this->hasMany(RawMaterialStock::class);
     }
-    public function procurements(){
-        return this->hasMany(procurements::class);
+    public function procurements()
+    {
+        return $this->hasMany(Procurement::class);
+    }
+
+    public function productStocks()
+    {
+        return $this->hasMany(ProductStock::class);
+    }
+
+    public function sales()
+    {
+        return $this->hasMany(Sale::class);
     }
 }

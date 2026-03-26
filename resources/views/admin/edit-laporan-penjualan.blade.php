@@ -9,9 +9,11 @@
         <div class="text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Pemasaran</span>
             <span class="mx-1 text-gray-400">›</span>
-            <span class="text-gray-700">Laporan Penjualan</span>
+            <a href="{{ route('admin.pemasaran-laporan-penjualan') }}" class="text-gray-700 hover:underline">
+                Laporan Penjualan
+            </a>
             <span class="mx-1 text-gray-400">›</span>
-            <span class="text-blue-600 font-bold">Tambah Laporan</span>
+            <span class="text-blue-600 font-bold">Sunting Laporan</span>
         </div>
     </section>
 
@@ -26,9 +28,10 @@
         </div>
     @endif
 
-    <form action="{{ route('admin.pemasaran-laporan-penjualan.store') }}" method="POST" enctype="multipart/form-data"
-        class="space-y-5">
+    <form action="{{ route('admin.pemasaran-laporan-penjualan.update', $sale->id) }}" method="POST"
+        enctype="multipart/form-data" class="space-y-5">
         @csrf
+        @method('PUT')
 
         {{-- BLOK HEADER --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
@@ -42,7 +45,8 @@
 
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Tanggal Penjualan</label>
-                    <input type="date" name="sale_date" value="{{ old('sale_date') }}"
+                    <input type="date" name="sale_date"
+                        value="{{ old('sale_date', \Carbon\Carbon::parse($sale->sale_date)->format('Y-m-d')) }}"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
                 </div>
 
@@ -58,7 +62,7 @@
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
                         @foreach (['Perseorangan', 'Instansi', 'Pesanan'] as $type)
                             <option value="{{ $type }}"
-                                {{ old('sale_type', 'Perseorangan') === $type ? 'selected' : '' }}>
+                                {{ old('sale_type', $sale->sale_type) === $type ? 'selected' : '' }}>
                                 {{ $type }}
                             </option>
                         @endforeach
@@ -72,7 +76,7 @@
                         <option value="">Pilih gudang</option>
                         @foreach ($warehouses as $warehouse)
                             <option value="{{ $warehouse->id }}"
-                                {{ old('warehouse_id') == $warehouse->id ? 'selected' : '' }}>
+                                {{ old('warehouse_id', $sale->warehouse_id) == $warehouse->id ? 'selected' : '' }}>
                                 {{ $warehouse->name }} — {{ $warehouse->province }} / {{ $warehouse->city }}
                             </option>
                         @endforeach
@@ -99,19 +103,20 @@
                 <div class="md:col-span-2">
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Alamat Lengkap</label>
                     <textarea name="customer_address" rows="3" placeholder="Masukkan alamat lengkap"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">{{ old('customer_address') }}</textarea>
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">{{ old('customer_address', $sale->customer_address) }}</textarea>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Nama Pembeli</label>
-                    <input type="text" name="customer_name" value="{{ old('customer_name') }}"
+                    <input type="text" name="customer_name" value="{{ old('customer_name', $sale->customer_name) }}"
                         placeholder="Masukkan nama pembeli"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Kontak Pembeli</label>
-                    <input type="text" name="customer_contact" value="{{ old('customer_contact') }}"
+                    <input type="text" name="customer_contact"
+                        value="{{ old('customer_contact', $sale->customer_contact) }}"
                         placeholder="Masukkan kontak pembeli"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
                 </div>
@@ -132,7 +137,7 @@
             <div id="itemsContainer" class="space-y-4"></div>
         </section>
 
-        {{-- TOTAL + STATUS --}}
+        {{-- TOTAL + PEMBAYARAN --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
@@ -142,40 +147,47 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Status</label>
-                    <select id="statusSelect" name="status"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
-                        <option value="Terhutang" {{ old('status', 'Terhutang') === 'Terhutang' ? 'selected' : '' }}>
-                            Terhutang
-                        </option>
-                        <option value="Lunas" {{ old('status') === 'Lunas' ? 'selected' : '' }}>
-                            Lunas
-                        </option>
-                    </select>
-                </div>
-
-                <div id="blokTerhutang">
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Down Payment</label>
-                    <input name="down_payment" id="downPayment" value="{{ old('down_payment', 0) }}" inputmode="numeric"
-                        placeholder="Contoh: 400000"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
-                </div>
-
-                <div id="blokTerhutang2">
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Jumlah Terhutang</label>
-                    <input id="jumlahTerhutang" readonly
+                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Status Saat Ini</label>
+                    <input id="statusDisplay" value="{{ $sale->status }}" readonly
                         class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Total Sudah Dibayar</label>
+                    <input id="currentPaidDisplay" value="Rp {{ number_format((int) $currentPaidAmount, 0, ',', '.') }}"
+                        readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Tambahan Pembayaran</label>
+                    <input name="payment_amount" id="paymentAmount" value="{{ old('payment_amount', 0) }}"
+                        inputmode="numeric" placeholder="Contoh: 400000"
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Sisa Tagihan Setelah Update</label>
+                    <input id="remainingDebtDisplay" readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
+                </div>
+
+                <div class="flex items-end">
+                    <a href="{{ route('admin.pemasaran-laporan-penjualan.history-pembayaran', $sale->id) }}"
+                        class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-6 py-3 text-sm font-bold text-white hover:bg-blue-800">
+                        Lihat History Pembayaran
+                    </a>
                 </div>
 
                 <div class="md:col-span-2">
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Catatan</label>
                     <textarea name="notes" rows="4"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">{{ old('notes') }}</textarea>
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">{{ old('notes', $sale->notes) }}</textarea>
                 </div>
             </div>
         </section>
 
-        {{-- INVOICE --}}
+        {{-- BUKTI PEMBAYARAN --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <label for="invoice" class="block text-sm font-bold mb-3 text-gray-800">Bukti Pembayaran</label>
 
@@ -207,7 +219,7 @@
 
             <button type="submit"
                 class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
-                Simpan
+                Simpan Perubahan
             </button>
         </div>
     </form>
@@ -291,11 +303,12 @@
 
     <script>
         const provinceJsonUrl = '/assets/data/provinceAndCity.json';
-        const stocksByWarehouseUrl = @json(route('admin.pemasaran-laporan-penjualan.stocks-by-warehouse'));
-        const oldProvince = @json(old('customer_province'));
-        const oldCity = @json(old('customer_city'));
-        const oldWarehouseId = @json(old('warehouse_id'));
-        const oldItems = @json(old('items', []));
+        const stocksByWarehouseUrl = @json($stocksByWarehouseUrl);
+        const oldProvince = @json(old('customer_province', $sale->customer_province));
+        const oldCity = @json(old('customer_city', $sale->customer_city));
+        const oldWarehouseId = @json(old('warehouse_id', $sale->warehouse_id));
+        const oldItems = @json(old('items', $initialItems));
+        const currentPaidAmount = @json((int) $currentPaidAmount);
     </script>
 
     <script>
@@ -307,11 +320,11 @@
         const addItemBtn = document.getElementById('addItemBtn');
         const saleItemTemplate = document.getElementById('saleItemTemplate');
         const grandTotalDisplay = document.getElementById('grandTotalDisplay');
-        const statusSelect = document.getElementById('statusSelect');
-        const downPayment = document.getElementById('downPayment');
-        const jumlahTerhutang = document.getElementById('jumlahTerhutang');
-        const blokTerhutang = document.getElementById('blokTerhutang');
-        const blokTerhutang2 = document.getElementById('blokTerhutang2');
+
+        const paymentAmount = document.getElementById('paymentAmount');
+        const currentPaidDisplay = document.getElementById('currentPaidDisplay');
+        const remainingDebtDisplay = document.getElementById('remainingDebtDisplay');
+        const statusDisplay = document.getElementById('statusDisplay');
 
         const invoiceInput = document.getElementById('invoice');
         const dropzone = document.getElementById('dropzone');
@@ -533,6 +546,25 @@
             priceDisplay.value = formatRupiah(price);
         }
 
+        function syncPaymentSummary(grandTotal = 0) {
+            const additional = parseNumber(paymentAmount?.value || 0);
+            const totalPaid = currentPaidAmount + additional;
+            const debt = Math.max(0, grandTotal - totalPaid);
+            const status = debt > 0 ? 'Terhutang' : 'Lunas';
+
+            if (currentPaidDisplay) {
+                currentPaidDisplay.value = formatRupiah(currentPaidAmount);
+            }
+
+            if (remainingDebtDisplay) {
+                remainingDebtDisplay.value = formatRupiah(debt);
+            }
+
+            if (statusDisplay) {
+                statusDisplay.value = status;
+            }
+        }
+
         function recalculateCard(card) {
             const price = parseNumber(card.querySelector('.item-price-hidden')?.value || 0);
             const quantityInput = card.querySelector('.item-quantity');
@@ -573,31 +605,7 @@
             });
 
             grandTotalDisplay.value = formatRupiah(total);
-            syncTerhutang(total);
-        }
-
-        function syncTerhutang(grandTotal = 0) {
-            const status = statusSelect?.value || 'Terhutang';
-
-            if (status === 'Lunas') {
-                blokTerhutang.classList.add('hidden');
-                blokTerhutang2.classList.add('hidden');
-
-                if (downPayment) downPayment.value = grandTotal;
-                if (jumlahTerhutang) jumlahTerhutang.value = formatRupiah(0);
-                return;
-            }
-
-            blokTerhutang.classList.remove('hidden');
-            blokTerhutang2.classList.remove('hidden');
-
-            let dp = parseNumber(downPayment?.value || 0);
-            if (dp > grandTotal) dp = grandTotal;
-
-            if (downPayment) downPayment.value = dp;
-
-            const debt = Math.max(0, grandTotal - dp);
-            if (jumlahTerhutang) jumlahTerhutang.value = formatRupiah(debt);
+            syncPaymentSummary(total);
         }
 
         function bindCardEvents(card) {
@@ -680,8 +688,7 @@
             createNewItemCard();
         });
 
-        statusSelect?.addEventListener('change', () => recalculateGrandTotal());
-        downPayment?.addEventListener('input', () => recalculateGrandTotal());
+        paymentAmount?.addEventListener('input', () => recalculateGrandTotal());
 
         async function initForm() {
             await loadProvinces();
@@ -722,16 +729,16 @@
 
         function getDefaultDropzoneContent() {
             return `
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-700" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
-                    d="M3 15a4 4 0 004 4h10a4 4 0 004-4m-4-4l-4-4m0 0L9 11m4-4v12" />
-            </svg>
-            <div class="text-sm text-gray-800">
-                <span class="font-bold">Click to upload</span> or drag and drop
-            </div>
-            <div class="text-xs text-gray-600">PNG, JPG, JPEG, or PDF (MAX 3 Mb)</div>
-        `;
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-700" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+                        d="M3 15a4 4 0 004 4h10a4 4 0 004-4m-4-4l-4-4m0 0L9 11m4-4v12" />
+                </svg>
+                <div class="text-sm text-gray-800">
+                    <span class="font-bold">Click to upload</span> or drag and drop
+                </div>
+                <div class="text-xs text-gray-600">PNG, JPG, JPEG, or PDF (MAX 3 Mb)</div>
+            `;
         }
 
         function showDropzonePreview(file) {
@@ -743,13 +750,13 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     dropzoneContent.innerHTML = `
-                    <div class="flex flex-col items-center gap-3 w-full">
-                        <img src="${e.target.result}" alt="Preview invoice"
-                            class="max-h-40 w-auto rounded-lg border border-gray-300 shadow-sm object-contain bg-white p-1">
-                        <div class="text-sm font-bold text-gray-800 break-all">${file.name}</div>
-                        <div class="text-xs text-gray-600">${fileSizeKb} KB</div>
-                    </div>
-                `;
+                        <div class="flex flex-col items-center gap-3 w-full">
+                            <img src="${e.target.result}" alt="Preview invoice"
+                                class="max-h-40 w-auto rounded-lg border border-gray-300 shadow-sm object-contain bg-white p-1">
+                            <div class="text-sm font-bold text-gray-800 break-all">${file.name}</div>
+                            <div class="text-xs text-gray-600">${fileSizeKb} KB</div>
+                        </div>
+                    `;
                 };
                 reader.readAsDataURL(file);
                 return;
@@ -757,14 +764,14 @@
 
             if (isPdf) {
                 dropzoneContent.innerHTML = `
-                <div class="flex flex-col items-center gap-3 w-full">
-                    <div class="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600 font-bold text-sm border border-red-200">
-                        PDF
+                    <div class="flex flex-col items-center gap-3 w-full">
+                        <div class="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600 font-bold text-sm border border-red-200">
+                            PDF
+                        </div>
+                        <div class="text-sm font-bold text-gray-800 break-all">${file.name}</div>
+                        <div class="text-xs text-gray-600">${fileSizeKb} KB</div>
                     </div>
-                    <div class="text-sm font-bold text-gray-800 break-all">${file.name}</div>
-                    <div class="text-xs text-gray-600">${fileSizeKb} KB</div>
-                </div>
-            `;
+                `;
             }
         }
 
@@ -822,5 +829,4 @@
             });
         }
     </script>
-
 @endsection
