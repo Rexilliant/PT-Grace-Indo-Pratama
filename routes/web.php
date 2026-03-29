@@ -11,9 +11,10 @@ use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\PurchaseReceiptController;
 use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\ShippmentController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\ShipmentController;
+use App\Http\Controllers\ShipmentReceiptController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
@@ -102,7 +103,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         [ProductionController::class, 'pilihProduk']
     )->name('admin.add-pilih-produk');
 
-    //Laporan Penjualan
+    // Laporan Penjualan
     Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::get('/pemasaran/laporan-penjualan', [SaleController::class, 'index'])
             ->name('admin.pemasaran-laporan-penjualan');
@@ -257,13 +258,14 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     });
     Route::get('/procurements/export', [ProcurementController::class, 'export'])
         ->name('procurements.export');
-    Route::controller(ShippmentController::class)->prefix('shippments')->middleware(['auth', 'role:admin|executive|admin_pemasaran'])->group(function () {
-        Route::get('/', 'index')->middleware(['auth', 'permission:read-shippments'])->name('shippments');
-        Route::get('/create', 'create')->middleware(['auth', 'permission:create-shippments'])->name('create-shippment');
-        Route::post('/store', 'store')->middleware(['auth', 'permission:create-shippments'])->name('store-shippment');
-        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:show-shippments'])->name('edit-shippment');
-        Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:update-shippments'])->name('update-shippment');
-        Route::delete('/delete/{id}', 'destroy')->name('delete-shippment');
+    Route::controller(ShipmentController::class)->prefix('shipments')->middleware(['auth', 'role:admin|executive|admin_pemasaran'])->group(function () {
+        Route::get('/', 'index')->middleware(['auth', 'permission:read-shipments'])->name('shipments');
+        Route::get('/create', 'create')->middleware(['auth', 'permission:create-shipments'])->name('create-shipment');
+        Route::post('/store', 'store')->middleware(['auth', 'permission:create-shipments'])->name('store-shipment');
+        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:show-shipments'])->name('edit-shipment');
+        Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:update-shipments'])->name('update-shipment');
+        Route::delete('/delete/{id}', 'destroy')->name('delete-shipment');
+        Route::get('/{id}/items', 'getShipmentItems')->name('shipments.items');
     });
     Route::controller(WarehouseController::class)->prefix('warehouses')->group(function () {
         Route::get('/', 'index')->name('warehouses');
@@ -274,5 +276,13 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/cities/{adminCode1}', 'getCities')->name('warehouse-cities');
         Route::delete('/delete/{id}', 'destroy')->name('delete-warehouse');
     });
+    Route::controller(ShipmentReceiptController::class)->prefix('shipment-receipts')->group(function () {
+        Route::get('/', 'index')->name('shipment-receipts');
+        Route::get('/create', 'create')->name('create-shipment-receipt');
+        Route::post('/store', 'store')->name('store-shipment-receipt');
+        Route::get('/edit/{id}', 'edit')->name('edit-shipment-receipt');
+        Route::put('/edit/{id}', 'update')->name('update-shipment-receipt');
+        Route::delete('/delete/{id}', 'destroy')->name('delete-shipment-receipt');
+    });
 });
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

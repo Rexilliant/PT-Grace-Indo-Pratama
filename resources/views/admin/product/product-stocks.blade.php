@@ -51,7 +51,7 @@
                     Filter
                 </button>
 
-                <a href="{{ route('shippments') }}"
+                <a href="{{ route('shipments') }}"
                     class="rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-800 transition text-center">
                     Reset
                 </a>
@@ -72,7 +72,7 @@
                 Export .xlsx
             </a>
 
-            <a href="{{ route('create-shippment') }}"
+            <a href="{{ route('create-shipment') }}"
                 class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
                 <span class="text-lg leading-none">+</span>
                 Tambah Baru

@@ -13,9 +13,15 @@ return new class extends Migration
     {
         Schema::create('shipment_receipts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('shipment_id')->constrained('shippments')->cascadeOnDelete();
+            $table->foreignId('shipment_id')->constrained('shipments')->cascadeOnDelete();
+            $table->string('status');
             $table->foreignId('received_by_id')->constrained('users')->cascadeOnDelete();
             $table->dateTime('received_at');
+            $table->foreignId('approved_by_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->dateTime('approved_at')->nullable();
+            $table->foreignId('rejected_by_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->dateTime('rejected_at')->nullable();
+            $table->text('reject_reason')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();
