@@ -2,10 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\ProductionBatch;
+use App\Models\ProductStockMovement;
+use App\Models\ProductVariant;
+use App\Models\ShipmentItem;
+use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductStock extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'product_variant_id',
         'warehouse_id',
@@ -29,7 +36,7 @@ class ProductStock extends Model
 
     public function shipmentItems()
     {
-        return $this->hasMany(ShippmentItem::class);
+        return $this->hasMany(ShipmentItem::class);
     }
 
     public function movements()
