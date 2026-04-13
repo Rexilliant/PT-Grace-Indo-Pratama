@@ -22,7 +22,7 @@ class ProductController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'status' => ['required', 'in:aktif,nonaktif'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'], // Ubah nullable jadi required
         ]);
 
         $product = Product::create([
@@ -64,7 +64,7 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         $validated = $request->validate([
-            'code' => ['required', 'string', 'max:255', 'unique:products,code,'.$product->id],
+            'code' => ['required', 'string', 'max:255', 'unique:products,code,' . $product->id],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'status' => ['required', 'in:aktif,nonaktif'],

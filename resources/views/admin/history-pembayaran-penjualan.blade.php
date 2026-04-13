@@ -71,7 +71,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-2 xl:grid-cols-4">
+        <div class="grid grid-cols-1 gap-4 p-6 md:grid-cols-2 xl:grid-cols-6">
             <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
                 <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Pesanan</div>
                 <div class="mt-2 text-2xl font-extrabold text-gray-900">
@@ -97,6 +97,20 @@
                 <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Pembayaran Tercatat</div>
                 <div class="mt-2 text-2xl font-extrabold text-gray-900">
                     {{ $paymentCount }}
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Penanggung Jawab Create</div>
+                <div class="mt-2 text-base font-extrabold text-gray-900 break-words">
+                    {{ $sale->personResponsible?->name ?? '-' }}
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Penanggung Jawab Edit</div>
+                <div class="mt-2 text-base font-extrabold text-gray-900 break-words">
+                    {{ $sale->updatedBy?->name ?? '-' }}
                 </div>
             </div>
         </div>
@@ -268,11 +282,13 @@
                     <table class="min-w-full text-sm text-left text-gray-900">
                         <thead class="bg-gray-50 text-gray-700">
                             <tr class="[&>th]:border-b [&>th]:border-gray-200">
-                                <th class="px-6 py-4 font-extrabold">No.</th>
-                                <th class="px-6 py-4 font-extrabold">Tanggal Pembayaran</th>
-                                <th class="px-6 py-4 font-extrabold">Jumlah</th>
-                                <th class="px-6 py-4 font-extrabold">Status Setelah Pembayaran</th>
-                                <th class="px-6 py-4 font-extrabold">Bukti Pembayaran</th>
+                                <th class="px-6 py-4 font-extrabold whitespace-nowrap">No.</th>
+                                <th class="px-6 py-4 font-extrabold whitespace-nowrap">Diinput Oleh</th>
+                                <th class="px-6 py-4 font-extrabold whitespace-nowrap">Waktu Input</th>
+                                <th class="px-6 py-4 font-extrabold whitespace-nowrap">Tanggal Pembayaran</th>
+                                <th class="px-6 py-4 font-extrabold whitespace-nowrap">Jumlah</th>
+                                <th class="px-6 py-4 font-extrabold whitespace-nowrap">Status Setelah Pembayaran</th>
+                                <th class="px-6 py-4 font-extrabold whitespace-nowrap">Bukti Pembayaran</th>
                             </tr>
                         </thead>
 
@@ -291,19 +307,27 @@
                                 @endphp
 
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 font-semibold">
+                                    <td class="px-6 py-4 font-semibold whitespace-nowrap">
                                         {{ $loop->iteration }}
                                     </td>
 
-                                    <td class="px-6 py-4 font-semibold">
+                                    <td class="px-6 py-4 font-semibold whitespace-nowrap">
+                                        {{ $payment->createdBy?->name ?? '-' }}
+                                    </td>
+
+                                    <td class="px-6 py-4 font-semibold whitespace-nowrap">
+                                        {{ $payment->created_at ? $payment->created_at->format('d/m/Y H:i') : '-' }}
+                                    </td>
+
+                                    <td class="px-6 py-4 font-semibold whitespace-nowrap">
                                         {{ \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') }}
                                     </td>
 
-                                    <td class="px-6 py-4 font-bold text-gray-900">
+                                    <td class="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">
                                         Rp {{ number_format($payment->amount, 0, ',', '.') }}
                                     </td>
 
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4 whitespace-nowrap">
                                         @if ($remainingAfterPayment > 0)
                                             <span
                                                 class="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-700">
@@ -318,7 +342,7 @@
                                         @endif
                                     </td>
 
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4 whitespace-nowrap">
                                         @if ($proofUrl)
                                             <a href="{{ $proofUrl }}" target="_blank"
                                                 class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-3 py-2 text-xs font-bold text-white hover:bg-blue-800">
@@ -333,7 +357,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-6 text-center font-semibold text-gray-500">
+                                    <td colspan="7" class="px-6 py-6 text-center font-semibold text-gray-500">
                                         Belum ada riwayat pembayaran
                                     </td>
                                 </tr>

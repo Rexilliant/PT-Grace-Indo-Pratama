@@ -268,7 +268,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Jumlah Terjual</label>
-                    <input type="number" min="1" step="1" name="items[__INDEX__][quantity]"
+                    <input type="number" min="0" step="1" name="items[__INDEX__][quantity]"
                         value="1"
                         class="item-quantity w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
                 </div>
@@ -614,6 +614,14 @@
             }
 
             if (quantityInput) {
+                quantityInput.addEventListener('focus', function() {
+                    this.select();
+                });
+
+                quantityInput.addEventListener('click', function() {
+                    this.select();
+                });
+
                 quantityInput.addEventListener('input', () => recalculateCard(card));
             }
 

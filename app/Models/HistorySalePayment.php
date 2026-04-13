@@ -13,6 +13,7 @@ class HistorySalePayment extends Model implements HasMedia
 
     protected $fillable = [
         'sale_id',
+        'created_by',
         'payment_date',
         'amount',
     ];
@@ -25,6 +26,11 @@ class HistorySalePayment extends Model implements HasMedia
     public function sale()
     {
         return $this->belongsTo(Sale::class);
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function registerMediaCollections(): void

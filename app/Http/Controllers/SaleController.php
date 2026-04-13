@@ -201,6 +201,7 @@ class SaleController extends Controller
                 'report_date' => now()->toDateString(),
                 'sale_date' => $request->sale_date,
                 'person_responsible_id' => Auth::id(),
+                'updated_by' => Auth::id(),
                 'warehouse_id' => $warehouseId,
                 'sale_type' => $request->sale_type,
                 'customer_province' => trim((string) $request->customer_province),
@@ -236,6 +237,7 @@ class SaleController extends Controller
             if ($paidAmount > 0) {
                 $paymentHistory = HistorySalePayment::create([
                     'sale_id' => $sale->id,
+                    'created_by' => Auth::id(),
                     'payment_date' => now()->toDateString(),
                     'amount' => $paidAmount,
                 ]);
@@ -262,26 +264,10 @@ class SaleController extends Controller
             'paymentHistories',
         ])->findOrFail($id);
 
-        $warehouses = Warehouse::query()
-            ->orderBy('name')
-            ->get(['id', 'name', 'province', 'city']);
-
-        $initialItems = $sale->items->map(function ($item) {
-            return [
-                'product_stock_id' => $item->product_stock_id,
-                'quantity' => $item->quantity,
-                'discount' => $item->discount,
-            ];
-        })->values()->all();
-
         return view('admin.edit-laporan-penjualan', [
             'sale' => $sale,
             'reportDate' => Carbon::parse($sale->report_date)->format('Y-m-d'),
             'personResponsibleName' => $sale->personResponsible?->name ?? '-',
-            'provinceJsonUrl' => asset('assets/data/provinceAndCity.json'),
-            'stocksByWarehouseUrl' => route('admin.pemasaran-laporan-penjualan.stocks-by-warehouse'),
-            'warehouses' => $warehouses,
-            'initialItems' => $initialItems,
             'currentPaidAmount' => (int) $sale->paymentHistories()->sum('amount'),
         ]);
     }
@@ -289,231 +275,148 @@ class SaleController extends Controller
     public function update(Request $request, $id)
     {
         $sale = Sale::with([
-            'items',
             'paymentHistories',
         ])->findOrFail($id);
 
         $request->validate([
-            'sale_date' => ['required', 'date'],
-            'sale_type' => ['required', 'in:Perseorangan,Instansi,Pesanan'],
-            'customer_province' => ['required', 'string', 'max:255'],
-            'customer_city' => ['required', 'string', 'max:255'],
-            'customer_address' => ['nullable', 'string'],
-            'customer_name' => ['required', 'string', 'max:255'],
-            'customer_contact' => ['required', 'string', 'max:255'],
-            'notes' => ['nullable', 'string'],
-            'payment_amount' => ['nullable', 'string'],
-            'invoice' => ['nullable', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
-            'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.product_stock_id' => ['required', 'integer', 'exists:product_stocks,id'],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
-            'items.*.discount' => ['nullable', 'string'],
+            'payment_amount' => ['required', 'string'],
+            'invoice' => ['required', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'payment_amount.required' => 'Nominal cicilan wajib diisi.',
+            'invoice.required' => 'Bukti pembayaran wajib diupload.',
+            'invoice.file' => 'Bukti pembayaran tidak valid.',
+            'invoice.mimes' => 'Bukti pembayaran harus berupa PNG, JPG, JPEG, atau PDF.',
+            'invoice.max' => 'Ukuran bukti pembayaran maksimal 3 MB.',
         ]);
 
-        $itemsInput = collect($request->input('items', []))->values();
+        return DB::transaction(function () use ($request, $sale) {
+            if ($sale->status === 'Lunas' || (int) $sale->debt_amount <= 0) {
+                throw ValidationException::withMessages([
+                    'payment_amount' => 'Transaksi ini sudah lunas, tidak bisa menambah pembayaran lagi.',
+                ]);
+            }
 
-        if ($itemsInput->isEmpty()) {
-            throw ValidationException::withMessages([
-                'items' => 'Minimal harus ada 1 barang.',
+            $additionalPayment = $this->parseMoney($request->input('payment_amount'));
+
+            if ($additionalPayment <= 0) {
+                throw ValidationException::withMessages([
+                    'payment_amount' => 'Nominal cicilan harus lebih dari 0.',
+                ]);
+            }
+
+            if (!$request->hasFile('invoice')) {
+                throw ValidationException::withMessages([
+                    'invoice' => 'Bukti pembayaran wajib diupload.',
+                ]);
+            }
+
+            $existingPaid = (int) $sale->paymentHistories()->sum('amount');
+            $newPaid = $existingPaid + $additionalPayment;
+
+            if ($newPaid > (int) $sale->total_amount) {
+                $remainingDebt = max(0, (int) $sale->total_amount - $existingPaid);
+
+                throw ValidationException::withMessages([
+                    'payment_amount' => 'Nominal cicilan melebihi sisa tagihan. Maksimal pembayaran yang bisa ditambahkan adalah Rp ' . number_format($remainingDebt, 0, ',', '.') . '.',
+                ]);
+            }
+
+            $debtAmount = max(0, (int) $sale->total_amount - $newPaid);
+            $finalStatus = $debtAmount <= 0 ? 'Lunas' : 'Terhutang';
+
+            $sale->update([
+                'paid_amount' => $newPaid,
+                'debt_amount' => $debtAmount,
+                'status' => $finalStatus,
+                'notes' => $request->input('notes'),
+                'updated_by' => Auth::id(),
             ]);
-        }
 
-        return DB::transaction(function () use ($request, $sale, $itemsInput) {
-            $newStockIds = $itemsInput
+            $paymentHistory = HistorySalePayment::create([
+                'sale_id' => $sale->id,
+                'created_by' => Auth::id(),
+                'payment_date' => now()->toDateString(),
+                'amount' => $additionalPayment,
+            ]);
+
+            $paymentHistory
+                ->addMedia($request->file('invoice'))
+                ->toMediaCollection('payment_proof');
+
+            return redirect()
+                ->route('admin.pemasaran-laporan-penjualan.edit', $sale->id)
+                ->with('success', $finalStatus === 'Lunas'
+                    ? 'Pembayaran berhasil ditambahkan. Transaksi sekarang sudah lunas.'
+                    : 'Pembayaran berhasil ditambahkan.');
+        });
+    }
+
+    public function destroy($id)
+    {
+        $sale = Sale::with([
+            'items.productStock.productVariant.product',
+            'paymentHistories',
+        ])->findOrFail($id);
+
+        DB::transaction(function () use ($sale) {
+            $stockIds = $sale->items
                 ->pluck('product_stock_id')
+                ->filter()
                 ->map(fn($id) => (int) $id)
-                ->unique()
-                ->values();
-
-            $oldStockIds = $sale->items
-                ->pluck('product_stock_id')
-                ->map(fn($id) => (int) $id)
-                ->unique()
-                ->values();
-
-            $allStockIds = $newStockIds
-                ->merge($oldStockIds)
                 ->unique()
                 ->values();
 
             $stocks = ProductStock::query()
-                ->with([
-                    'productVariant:id,product_id,sku,name,price',
-                    'productVariant.product:id,name',
-                ])
-                ->whereIn('id', $allStockIds)
+                ->whereIn('id', $stockIds)
                 ->lockForUpdate()
                 ->get()
                 ->keyBy('id');
 
-
-            $warehouseId = (int) $request->warehouse_id;
-
-            // 1. Balikin stok lama dulu + movement IN rollback
-            foreach ($sale->items as $oldItem) {
-                $oldStock = $stocks->get((int) $oldItem->product_stock_id);
-
-                if ($oldStock) {
-                    $oldStock->increment('stock', (int) $oldItem->quantity);
-
-                    ProductStockMovement::create([
-                        'warehouse_id' => $oldStock->warehouse_id,
-                        'province' => $oldStock->province,
-                        'product_stock_id' => $oldStock->id,
-                        'type' => 'In',
-                        'quantity' => (int) $oldItem->quantity,
-                        'ref_type' => Sale::class,
-                        'ref_id' => $sale->id,
-                        'note' => 'Rollback stok karena sunting sale #' . $sale->id,
-                    ]);
-                }
-            }
-
-            // 2. Hapus item lama
-            $sale->items()->delete();
-
-            // 3. Validasi ulang item baru setelah stok dikembalikan
-            $normalizedItems = [];
-            $grandTotal = 0;
-
-            foreach ($itemsInput as $index => $item) {
-                $productStockId = (int) ($item['product_stock_id'] ?? 0);
-                $quantity = (int) ($item['quantity'] ?? 0);
-                $discount = $this->parseMoney($item['discount'] ?? 0);
-
-                $stock = $stocks->get($productStockId);
+            foreach ($sale->items as $item) {
+                $stock = $stocks->get((int) $item->product_stock_id);
 
                 if (!$stock) {
-                    throw ValidationException::withMessages([
-                        "items.$index.product_stock_id" => 'Barang tidak ditemukan.',
-                    ]);
+                    continue;
                 }
 
-                if ((int) $stock->warehouse_id !== $warehouseId) {
-                    throw ValidationException::withMessages([
-                        "items.$index.product_stock_id" => 'Barang tidak sesuai dengan gudang yang dipilih.',
-                    ]);
-                }
-
-                if ($quantity < 1) {
-                    throw ValidationException::withMessages([
-                        "items.$index.quantity" => 'Jumlah terjual minimal 1.',
-                    ]);
-                }
-
-                if ($stock->stock < $quantity) {
-                    throw ValidationException::withMessages([
-                        "items.$index.quantity" => "Stok untuk {$stock->productVariant?->name} tidak cukup. Stok tersedia: {$stock->stock}.",
-                    ]);
-                }
-
-                $price = (int) ($stock->productVariant?->price ?? 0);
-                $finalUnitPrice = max(0, $price - $discount);
-                $subtotal = $finalUnitPrice * $quantity;
-
-                $normalizedItems[] = [
-                    'product_stock_id' => $stock->id,
-                    'quantity' => $quantity,
-                    'price' => $price,
-                    'discount' => $discount,
-                    'subtotal' => $subtotal,
-                ];
-
-                $grandTotal += $subtotal;
-            }
-
-            // 4. Hitung pembayaran
-            $existingPaid = (int) $sale->paymentHistories()->sum('amount');
-            $additionalPayment = $this->parseMoney($request->input('payment_amount', 0));
-
-            if ($existingPaid > $grandTotal) {
-                throw ValidationException::withMessages([
-                    'items' => 'Total penjualan baru lebih kecil dari total pembayaran yang sudah tercatat. Sesuaikan item atau tangani refund secara terpisah.',
-                ]);
-            }
-
-            if (($existingPaid + $additionalPayment) > $grandTotal) {
-                throw ValidationException::withMessages([
-                    'payment_amount' => 'Pembayaran tambahan melebihi sisa tagihan.',
-                ]);
-            }
-
-            $paidAmount = $existingPaid + $additionalPayment;
-            $debtAmount = max(0, $grandTotal - $paidAmount);
-            $finalStatus = $debtAmount > 0 ? 'Terhutang' : 'Lunas';
-
-            // 5. Update sale header
-            $sale->update([
-                'sale_date' => $request->sale_date,
-                'sale_type' => $request->sale_type,
-                // 'customer_province' => $customerProvince,
-                'customer_city' => $request->customer_city,
-                'customer_address' => $request->customer_address,
-                'customer_name' => $request->customer_name,
-                'customer_contact' => $request->customer_contact,
-                'total_amount' => $grandTotal,
-                'paid_amount' => $paidAmount,
-                'debt_amount' => $debtAmount,
-                'notes' => $request->notes,
-                'status' => $finalStatus,
-                'warehouse_id' => $warehouseId,
-            ]);
-
-            // 6. Simpan item baru + kurangi stok + movement OUT
-            foreach ($normalizedItems as $item) {
-                $sale->items()->create($item);
-
-                $stock = $stocks->get($item['product_stock_id']);
-                $stock->decrement('stock', $item['quantity']);
+                $stock->increment('stock', (int) $item->quantity);
 
                 ProductStockMovement::create([
                     'warehouse_id' => $stock->warehouse_id,
                     'province' => $stock->province,
                     'product_stock_id' => $stock->id,
-                    'type' => 'Out',
-                    'quantity' => $item['quantity'],
+                    'type' => 'In',
+                    'quantity' => (int) $item->quantity,
                     'ref_type' => Sale::class,
                     'ref_id' => $sale->id,
-                    'note' => 'Pengeluaran stok karena sunting sale #' . $sale->id,
+                    'note' => 'Pengembalian stok karena hapus sale #' . $sale->id,
                 ]);
             }
 
-            // 7. Simpan pembayaran tambahan ke history + lampirkan bukti pembayaran
-            if ($request->hasFile('invoice') && $additionalPayment <= 0) {
-                throw ValidationException::withMessages([
-                    'payment_amount' => 'Isi tambahan pembayaran terlebih dahulu jika ingin mengunggah bukti pembayaran.',
-                ]);
-            }
+            // soft delete history pembayaran dulu
+            $sale->paymentHistories()->delete();
 
-            if ($additionalPayment > 0) {
-                $paymentHistory = HistorySalePayment::create([
-                    'sale_id' => $sale->id,
-                    'payment_date' => now()->toDateString(),
-                    'amount' => $additionalPayment,
-                ]);
+            // soft delete item penjualan
+            $sale->items()->delete();
 
-                if ($request->hasFile('invoice')) {
-                    $paymentHistory
-                        ->addMedia($request->file('invoice'))
-                        ->toMediaCollection('payment_proof');
-                }
-            }
-
-            return redirect()
-                ->route('admin.pemasaran-laporan-penjualan')
-                ->with('success', 'Laporan penjualan berhasil diperbarui.');
+            // soft delete sale utama
+            $sale->delete();
         });
+
+        return redirect()
+            ->route('admin.pemasaran-laporan-penjualan')
+            ->with('success', 'Laporan penjualan berhasil dihapus dan stok dikembalikan.');
     }
 
     public function historyPayment($id)
     {
         $sale = Sale::with([
+            'warehouse',
             'personResponsible',
+            'updatedBy',
             'items.productStock.productVariant.product',
-            'paymentHistories' => function ($query) {
-                $query->orderBy('payment_date')->orderBy('id');
-            },
+            'paymentHistories.createdBy',
         ])->findOrFail($id);
 
         return view('admin.history-pembayaran-penjualan', compact('sale'));
