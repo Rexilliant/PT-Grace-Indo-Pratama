@@ -65,6 +65,28 @@
                     </select>
                 </div>
 
+                {{-- Contoh pada Nama Pembeli --}}
+                <div>
+                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Nama Pembeli</label>
+                    <input type="text" name="customer_name" value="{{ old('customer_name') }}"
+                        placeholder="Masukkan nama pembeli" required
+                        class="w-full rounded-md border @error('customer_name') border-red-500 @else border-gray-400 @enderror bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
+                    @error('customer_name')
+                        <p class="text-red-500 text-[10px] mt-1 font-bold">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Contoh pada Kontak Pembeli --}}
+                <div>
+                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Kontak Pembeli</label>
+                    <input type="text" name="customer_contact" value="{{ old('customer_contact') }}"
+                        placeholder="Masukkan kontak pembeli" required
+                        class="w-full rounded-md border @error('customer_contact') border-red-500 @else border-gray-400 @enderror bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
+                    @error('customer_contact')
+                        <p class="text-red-500 text-[10px] mt-1 font-bold">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Gudang</label>
                     <select id="warehouseSelect" name="warehouse_id"
@@ -100,20 +122,6 @@
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Alamat Lengkap</label>
                     <textarea name="customer_address" rows="3" placeholder="Masukkan alamat lengkap"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">{{ old('customer_address') }}</textarea>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Nama Pembeli</label>
-                    <input type="text" name="customer_name" value="{{ old('customer_name') }}"
-                        placeholder="Masukkan nama pembeli"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Kontak Pembeli</label>
-                    <input type="text" name="customer_contact" value="{{ old('customer_contact') }}"
-                        placeholder="Masukkan kontak pembeli"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
                 </div>
             </div>
         </section>
@@ -155,10 +163,16 @@
                 </div>
 
                 <div id="blokTerhutang">
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Down Payment</label>
+                    <label
+                        class="block text-xs font-bold @error('down_payment') text-red-600 @else text-gray-800 @enderror mb-2.5">
+                        Down Payment <span class="text-red-600">*</span>
+                    </label>
                     <input name="down_payment" id="downPayment" value="{{ old('down_payment', 0) }}" inputmode="numeric"
-                        placeholder="Contoh: 400000"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
+                        required min="1" {{-- Tambahkan min 1 --}}
+                        class="w-full rounded-md border @error('down_payment') border-red-500 bg-red-50 @else border-gray-400 @enderror px-3 py-2.5 text-sm font-semibold text-gray-900">
+                    @error('down_payment')
+                        <p class="text-red-500 text-[10px] mt-1 font-bold">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div id="blokTerhutang2">
@@ -316,6 +330,8 @@
         const invoiceInput = document.getElementById('invoice');
         const dropzone = document.getElementById('dropzone');
         const dropzoneContent = document.getElementById('dropzoneContent');
+        // Tambahkan ini di dalam tag <script> Anda
+        const saleForm = document.querySelector('form[action*="store"]');
 
         let currentStocks = [];
         let provinceData = [];
@@ -582,18 +598,25 @@
             if (status === 'Lunas') {
                 blokTerhutang.classList.add('hidden');
                 blokTerhutang2.classList.add('hidden');
-
                 if (downPayment) downPayment.value = grandTotal;
                 if (jumlahTerhutang) jumlahTerhutang.value = formatRupiah(0);
                 return;
             }
 
+            // Jika Status Terhutang
             blokTerhutang.classList.remove('hidden');
             blokTerhutang2.classList.remove('hidden');
 
             let dp = parseNumber(downPayment?.value || 0);
-            if (dp > grandTotal) dp = grandTotal;
 
+            // PROFESIONAL VALIDATION: Jika DP 0 saat status terhutang, beri tanda visual
+            if (dp <= 0) {
+                downPayment.classList.add('border-red-500', 'bg-red-50');
+            } else {
+                downPayment.classList.remove('border-red-500', 'bg-red-50');
+            }
+
+            if (dp > grandTotal) dp = grandTotal;
             if (downPayment) downPayment.value = dp;
 
             const debt = Math.max(0, grandTotal - dp);
@@ -829,6 +852,23 @@
                 showDropzonePreview(file);
             });
         }
+
+        saleForm.addEventListener('submit', function(e) {
+            const status = statusSelect.value;
+            const dpRaw = downPayment.value;
+            const dpAmount = parseNumber(dpRaw);
+
+            if (status === 'Terhutang' && dpAmount <= 0) {
+                e.preventDefault(); // STOP FORM DARI TERKIRIM
+
+                // Beri peringatan visual
+                downPayment.classList.add('border-red-600', 'ring-2', 'ring-red-200');
+                downPayment.focus();
+
+                // Tampilkan alert profesional
+                alert('Gagal Simpan: Jika status Terhutang, Down Payment tidak boleh 0.');
+            }
+        });
     </script>
 
 @endsection

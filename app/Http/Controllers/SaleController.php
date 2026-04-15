@@ -82,48 +82,58 @@ class SaleController extends Controller
 
     public function store(Request $request)
     {
+        // 1. Bersihkan nilai Down Payment dari format mata uang menjadi integer murni
+        $dpValue = $this->parseMoney($request->input('down_payment', 0));
+
+        // 2. Validasi Input
         $request->validate([
             'sale_date' => ['required', 'date'],
             'sale_type' => ['required', 'in:Perseorangan,Instansi,Pesanan'],
             'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
             'customer_province' => ['required', 'string', 'max:255'],
             'customer_city' => ['required', 'string', 'max:255'],
-            'customer_address' => ['nullable', 'string'],
+            'customer_address' => ['required', 'string'], // Wajib diisi
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_contact' => ['required', 'string', 'max:255'],
             'status' => ['required', 'in:Lunas,Terhutang'],
-            'down_payment' => ['nullable', 'string'],
+            'down_payment' => [
+                'required',
+                function ($attribute, $value, $fail) use ($request, $dpValue) {
+                    // Validasi: Jika Terhutang, DP harus lebih dari 0
+                    if ($request->status === 'Terhutang' && $dpValue <= 0) {
+                        $fail('Down Payment (DP) wajib diisi lebih dari 0 jika status Terhutang.');
+                    }
+                },
+            ],
             'notes' => ['nullable', 'string'],
-            'invoice' => ['nullable', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
+            'invoice' => ['required', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'], // Bukti Bayar Wajib
 
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_stock_id' => ['required', 'integer', 'exists:product_stocks,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.discount' => ['nullable', 'string'],
+        ], [
+            // Pesan Error Kustom (Muncul di peringatan kolom)
+            'sale_date.required' => 'Tanggal penjualan wajib dipilih.',
+            'customer_name.required' => 'Nama pembeli wajib diisi.',
+            'customer_contact.required' => 'Nomor kontak pembeli wajib diisi.',
+            'customer_address.required' => 'Alamat lengkap wajib diisi.',
+            'invoice.required' => 'Bukti pembayaran wajib diunggah.',
+            'invoice.mimes' => 'Format bukti bayar harus PNG, JPG, JPEG, atau PDF.',
+            'items.required' => 'Minimal harus ada 1 barang yang terjual.',
         ]);
 
         $itemsInput = collect($request->input('items', []))->values();
 
-        if ($itemsInput->isEmpty()) {
-            throw ValidationException::withMessages([
-                'items' => 'Minimal harus ada 1 barang.',
-            ]);
-        }
+        // 3. Eksekusi Database Transaction
+        return DB::transaction(function () use ($request, $itemsInput, $dpValue) {
 
-        return DB::transaction(function () use ($request, $itemsInput) {
-            $stockIds = $itemsInput
-                ->pluck('product_stock_id')
-                ->map(fn($id) => (int) $id)
-                ->unique()
-                ->values();
-
+            $stockIds = $itemsInput->pluck('product_stock_id')->map(fn($id) => (int) $id)->unique()->values();
             $warehouseId = (int) $request->warehouse_id;
 
+            // Ambil data stok dan kunci untuk update (Pencegahan Race Condition)
             $stocks = ProductStock::query()
-                ->with([
-                    'productVariant:id,product_id,sku,name,price',
-                    'productVariant.product:id,name',
-                ])
+                ->with(['productVariant:id,product_id,sku,name,price'])
                 ->whereIn('id', $stockIds)
                 ->lockForUpdate()
                 ->get()
@@ -132,6 +142,7 @@ class SaleController extends Controller
             $normalizedItems = [];
             $grandTotal = 0;
 
+            // Validasi item dan hitung total
             foreach ($itemsInput as $index => $item) {
                 $productStockId = (int) ($item['product_stock_id'] ?? 0);
                 $quantity = (int) ($item['quantity'] ?? 0);
@@ -139,28 +150,12 @@ class SaleController extends Controller
 
                 $stock = $stocks->get($productStockId);
 
-                if (!$stock) {
-                    throw ValidationException::withMessages([
-                        "items.$index.product_stock_id" => 'Barang tidak ditemukan.',
-                    ]);
-                }
-
-                if ((int) $stock->warehouse_id !== $warehouseId) {
-                    throw ValidationException::withMessages([
-                        "items.$index.product_stock_id" => 'Barang tidak sesuai dengan gudang yang dipilih.',
-                    ]);
-                }
-
-                if ($quantity < 1) {
-                    throw ValidationException::withMessages([
-                        "items.$index.quantity" => 'Jumlah terjual minimal 1.',
-                    ]);
+                if (!$stock || (int) $stock->warehouse_id !== $warehouseId) {
+                    throw ValidationException::withMessages(["items.$index.product_stock_id" => 'Barang tidak valid atau tidak ada di gudang ini.']);
                 }
 
                 if ($stock->stock < $quantity) {
-                    throw ValidationException::withMessages([
-                        "items.$index.quantity" => "Stok untuk {$stock->productVariant?->name} tidak cukup. Stok tersedia: {$stock->stock}.",
-                    ]);
+                    throw ValidationException::withMessages(["items.$index.quantity" => "Stok {$stock->productVariant?->name} tidak cukup (Tersedia: {$stock->stock})."]);
                 }
 
                 $price = (int) ($stock->productVariant?->price ?? 0);
@@ -178,25 +173,18 @@ class SaleController extends Controller
                 $grandTotal += $subtotal;
             }
 
-            $inputStatus = $request->input('status');
-            $downPayment = $this->parseMoney($request->input('down_payment', 0));
-
-            if ($inputStatus === 'Lunas') {
+            // Hitung Nominal Pembayaran dan Hutang
+            if ($request->status === 'Lunas') {
                 $paidAmount = $grandTotal;
             } else {
-                $paidAmount = min($downPayment, $grandTotal);
+                // Pastikan dibayar tidak melebihi total pesanan
+                $paidAmount = min($dpValue, $grandTotal);
             }
 
             $debtAmount = max(0, $grandTotal - $paidAmount);
             $finalStatus = $debtAmount > 0 ? 'Terhutang' : 'Lunas';
 
-            $warehouseId = (int) $request->input('warehouse_id');
-            if (!$warehouseId) {
-                throw ValidationException::withMessages([
-                    'warehouse_id' => 'Gudang wajib dipilih.',
-                ]);
-            }
-
+            // 4. Simpan Data Penjualan Utama
             $sale = Sale::create([
                 'report_date' => now()->toDateString(),
                 'sale_date' => $request->sale_date,
@@ -216,12 +204,14 @@ class SaleController extends Controller
                 'status' => $finalStatus,
             ]);
 
+            // 5. Simpan Items & Kurangi Stok
             foreach ($normalizedItems as $item) {
                 $sale->items()->create($item);
 
                 $stock = $stocks->get($item['product_stock_id']);
                 $stock->decrement('stock', $item['quantity']);
 
+                // Catat mutasi stok
                 ProductStockMovement::create([
                     'warehouse_id' => $stock->warehouse_id,
                     'province' => $stock->province,
@@ -230,10 +220,11 @@ class SaleController extends Controller
                     'quantity' => $item['quantity'],
                     'ref_type' => Sale::class,
                     'ref_id' => $sale->id,
-                    'note' => 'Pengeluaran stok karena penjualan sale #' . $sale->id,
+                    'note' => 'Penjualan #' . $sale->id,
                 ]);
             }
 
+            // 6. Simpan History Pembayaran Pertama & Upload Bukti
             if ($paidAmount > 0) {
                 $paymentHistory = HistorySalePayment::create([
                     'sale_id' => $sale->id,

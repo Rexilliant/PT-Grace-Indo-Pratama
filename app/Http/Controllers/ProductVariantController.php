@@ -50,7 +50,7 @@ class ProductVariantController extends Controller
             'unit' => ['required', 'string', 'max:255'],
             'price' => ['required', 'integer', 'min:0'],
             'status' => ['required', 'in:aktif,nonaktif'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
         $variant = ProductVariant::create([
