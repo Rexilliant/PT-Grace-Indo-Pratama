@@ -15,6 +15,7 @@ class Sale extends Model implements HasMedia
         'report_date',
         'sale_date',
         'person_responsible_id',
+        'updated_by',
         'warehouse_id',
         'sale_type',
         'customer_province',
@@ -40,6 +41,11 @@ class Sale extends Model implements HasMedia
     public function personResponsible()
     {
         return $this->belongsTo(User::class, 'person_responsible_id');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function items()

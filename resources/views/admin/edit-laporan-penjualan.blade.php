@@ -28,10 +28,28 @@
         </div>
     @endif
 
+    @if (session('success'))
+        <div class="mb-5 rounded-xl border border-green-300 bg-green-50 p-4 text-sm text-green-700">
+            <div class="font-bold">{{ session('success') }}</div>
+        </div>
+    @endif
+
+    @php
+        $isPaidOff = $sale->status === 'Lunas' || (int) $sale->debt_amount <= 0;
+    @endphp
+
     <form action="{{ route('admin.pemasaran-laporan-penjualan.update', $sale->id) }}" method="POST"
         enctype="multipart/form-data" class="space-y-5">
         @csrf
         @method('PUT')
+
+        @if ($isPaidOff)
+            <div class="rounded-xl border border-green-300 bg-green-50 p-4 text-sm text-green-700">
+                <div class="font-bold">Transaksi ini sudah lunas.</div>
+                <div class="mt-1">Cicilan tambahan dan upload bukti pembayaran dinonaktifkan supaya nggak bikin bug aneh
+                    lagi.</div>
+            </div>
+        @endif
 
         {{-- BLOK HEADER --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
@@ -45,9 +63,8 @@
 
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Tanggal Penjualan</label>
-                    <input type="date" name="sale_date"
-                        value="{{ old('sale_date', \Carbon\Carbon::parse($sale->sale_date)->format('Y-m-d')) }}"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
+                    <input type="date" value="{{ \Carbon\Carbon::parse($sale->sale_date)->format('Y-m-d') }}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
 
                 <div>
@@ -58,83 +75,100 @@
 
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Jenis Penjualan</label>
-                    <select name="sale_type"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
-                        @foreach (['Perseorangan', 'Instansi', 'Pesanan'] as $type)
-                            <option value="{{ $type }}"
-                                {{ old('sale_type', $sale->sale_type) === $type ? 'selected' : '' }}>
-                                {{ $type }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <input type="text" value="{{ $sale->sale_type }}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Gudang</label>
-                    <select id="warehouseSelect" name="warehouse_id"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
-                        <option value="">Pilih gudang</option>
-                        @foreach ($warehouses as $warehouse)
-                            <option value="{{ $warehouse->id }}"
-                                {{ old('warehouse_id', $sale->warehouse_id) == $warehouse->id ? 'selected' : '' }}>
-                                {{ $warehouse->name }} — {{ $warehouse->province }} / {{ $warehouse->city }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <input type="text"
+                        value="{{ $sale->warehouse?->name ? $sale->warehouse->name . ' — ' . $sale->warehouse->province . ' / ' . $sale->warehouse->city : '-' }}"
+                        readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Provinsi</label>
-                    <select id="customerProvince" name="customer_province"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
-                        <option value="">Memuat provinsi...</option>
-                    </select>
+                    <input type="text" value="{{ $sale->customer_province }}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Daerah</label>
-                    <select id="customerCity" name="customer_city"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900"
-                        disabled>
-                        <option value="">Pilih provinsi terlebih dahulu</option>
-                    </select>
+                    <input type="text" value="{{ $sale->customer_city }}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
 
                 <div class="md:col-span-2">
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Alamat Lengkap</label>
-                    <textarea name="customer_address" rows="3" placeholder="Masukkan alamat lengkap"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">{{ old('customer_address', $sale->customer_address) }}</textarea>
+                    <textarea rows="3" readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">{{ $sale->customer_address }}</textarea>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Nama Pembeli</label>
-                    <input type="text" name="customer_name" value="{{ old('customer_name', $sale->customer_name) }}"
-                        placeholder="Masukkan nama pembeli"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
+                    <input type="text" value="{{ $sale->customer_name }}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Kontak Pembeli</label>
-                    <input type="text" name="customer_contact"
-                        value="{{ old('customer_contact', $sale->customer_contact) }}"
-                        placeholder="Masukkan kontak pembeli"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
+                    <input type="text" value="{{ $sale->customer_contact }}" readonly
+                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
             </div>
         </section>
 
-        {{-- DAFTAR BARANG --}}
+        {{-- DAFTAR BARANG READ ONLY --}}
         <section class="space-y-4">
             <div class="flex items-center justify-between gap-3">
                 <h2 class="text-sm sm:text-base font-bold text-gray-800">Daftar Barang Terjual</h2>
-
-                <button type="button" id="addItemBtn"
-                    class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">
-                    + Tambah Barang
-                </button>
             </div>
 
-            <div id="itemsContainer" class="space-y-4"></div>
+            <div class="bg-[#a7dfb2] p-5 shadow border border-[#68b97a] rounded-xl overflow-x-auto">
+                <table class="min-w-full text-sm text-left text-gray-900">
+                    <thead class="border-b border-[#68b97a]">
+                        <tr>
+                            <th class="px-3 py-3 font-bold whitespace-nowrap">No</th>
+                            <th class="px-3 py-3 font-bold whitespace-nowrap">SKU</th>
+                            <th class="px-3 py-3 font-bold whitespace-nowrap">Nama Produk</th>
+                            <th class="px-3 py-3 font-bold whitespace-nowrap">Qty</th>
+                            <th class="px-3 py-3 font-bold whitespace-nowrap">Harga</th>
+                            <th class="px-3 py-3 font-bold whitespace-nowrap">Diskon</th>
+                            <th class="px-3 py-3 font-bold whitespace-nowrap">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($sale->items as $item)
+                            <tr class="border-b border-[#8fcf9b] last:border-b-0">
+                                <td class="px-3 py-3 font-semibold whitespace-nowrap">{{ $loop->iteration }}</td>
+                                <td class="px-3 py-3 font-semibold whitespace-nowrap">
+                                    {{ $item->productStock?->productVariant?->sku ?? '-' }}
+                                </td>
+                                <td class="px-3 py-3 font-semibold min-w-[200px]">
+                                    {{ $item->productStock?->productVariant?->name ?? '-' }}
+                                </td>
+                                <td class="px-3 py-3 font-semibold whitespace-nowrap">{{ $item->quantity }}</td>
+                                <td class="px-3 py-3 font-semibold whitespace-nowrap">
+                                    Rp {{ number_format((int) $item->price, 0, ',', '.') }}
+                                </td>
+                                <td class="px-3 py-3 font-semibold whitespace-nowrap">
+                                    Rp {{ number_format((int) $item->discount, 0, ',', '.') }}
+                                </td>
+                                <td class="px-3 py-3 font-bold whitespace-nowrap">
+                                    Rp {{ number_format((int) $item->subtotal, 0, ',', '.') }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="px-3 py-4 text-center font-semibold text-gray-700">
+                                    Tidak ada item penjualan.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </section>
 
         {{-- TOTAL + PEMBAYARAN --}}
@@ -142,7 +176,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Total Pesanan Keseluruhan</label>
-                    <input id="grandTotalDisplay" readonly
+                    <input id="grandTotalDisplay" value="Rp {{ number_format((int) $sale->total_amount, 0, ',', '.') }}"
+                        readonly
                         class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
 
@@ -161,9 +196,12 @@
 
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Tambahan Pembayaran</label>
-                    <input name="payment_amount" id="paymentAmount" value="{{ old('payment_amount', 0) }}"
-                        inputmode="numeric" placeholder="Contoh: 400000"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
+                    <input name="payment_amount" id="paymentAmount" value="{{ old('payment_amount', '') }}"
+                        inputmode="numeric" placeholder="Contoh: 400000" {{ $isPaidOff ? 'disabled' : '' }}
+                        class="w-full rounded-md border border-gray-400 {{ $isPaidOff ? 'bg-gray-100 cursor-not-allowed' : 'bg-white' }} px-3 py-2.5 text-sm font-semibold text-gray-900">
+                    <p class="mt-2 text-xs text-gray-600">
+                        Isi nominal cicilan tambahan. Harus lebih dari 0 dan tidak boleh melebihi sisa tagihan.
+                    </p>
                 </div>
 
                 <div>
@@ -174,14 +212,14 @@
 
                 <div class="flex items-end">
                     <a href="{{ route('admin.pemasaran-laporan-penjualan.history-pembayaran', $sale->id) }}"
-                        class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-6 py-3 text-sm font-bold text-white hover:bg-blue-800">
+                        class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-6 py-3 text-sm font-bold text-white hover:bg-blue-800 w-full md:w-auto">
                         Lihat History Pembayaran
                     </a>
                 </div>
 
                 <div class="md:col-span-2">
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Catatan</label>
-                    <textarea name="notes" rows="4"
+                    <textarea name="notes" rows="4" placeholder="Contoh: Sisa pembayaran akan dilunasi tanggal 10 Mei"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">{{ old('notes', $sale->notes) }}</textarea>
                 </div>
             </div>
@@ -192,9 +230,10 @@
             <label for="invoice" class="block text-sm font-bold mb-3 text-gray-800">Bukti Pembayaran</label>
 
             <div id="dropzone"
-                class="relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-400 bg-gray-100 px-6 py-8 text-center min-h-[220px]">
+                class="relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-400 {{ $isPaidOff ? 'bg-gray-200' : 'bg-gray-100' }} px-6 py-8 text-center min-h-[220px]">
                 <input id="invoice" name="invoice" type="file" accept=".png,.jpg,.jpeg,.pdf"
-                    class="absolute inset-0 h-full w-full cursor-pointer opacity-0 z-10" />
+                    {{ $isPaidOff ? 'disabled' : '' }}
+                    class="absolute inset-0 h-full w-full {{ $isPaidOff ? 'cursor-not-allowed' : 'cursor-pointer' }} opacity-0 z-10" />
 
                 <div id="dropzoneContent" class="flex flex-col items-center gap-3 w-full pointer-events-none">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-700" fill="none"
@@ -208,118 +247,32 @@
                     <div class="text-xs text-gray-600">PNG, JPG, JPEG, or PDF (MAX 3 Mb)</div>
                 </div>
             </div>
+
+            @if (!$isPaidOff)
+                <p class="mt-2 text-xs text-gray-600">
+                    Bukti bayar wajib diupload kalau menambah cicilan.
+                </p>
+            @endif
         </section>
 
         {{-- ACTION --}}
-        <div class="flex items-center justify-end gap-4 pt-2">
+        <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-4 pt-2">
             <a href="{{ route('admin.pemasaran-laporan-penjualan') }}"
                 class="inline-flex items-center justify-center rounded-lg bg-red-600 px-10 py-3 text-sm font-bold text-white hover:bg-red-700">
                 Batal
             </a>
 
-            <button type="submit"
-                class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
+            <button type="submit" {{ $isPaidOff ? 'disabled' : '' }}
+                class="inline-flex items-center justify-center rounded-lg px-10 py-3 text-sm font-bold text-white {{ $isPaidOff ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2D2ACD] hover:bg-blue-800' }}">
                 Simpan Perubahan
             </button>
         </div>
     </form>
 
-    {{-- TEMPLATE ITEM --}}
-    <template id="saleItemTemplate">
-        <section class="sale-item-card bg-[#a7dfb2] p-5 shadow border border-[#68b97a] rounded-xl" data-index="__INDEX__">
-            <input type="hidden" name="items[__INDEX__][product_stock_id]" value=""
-                class="product-stock-id-input">
-
-            <div class="flex items-start justify-between gap-4 mb-4">
-                <div>
-                    <h3 class="text-sm font-bold text-gray-900">Barang #__NUMBER__</h3>
-                    <p class="text-xs text-gray-700 mt-1">Pilih barang sesuai gudang yang dipilih.</p>
-                </div>
-
-                <button type="button"
-                    class="remove-item-btn inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-xs sm:text-sm font-bold text-white hover:bg-red-700">
-                    Hapus
-                </button>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Jenis Barang</label>
-                    <select
-                        class="item-stock-select w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
-                        <option value="">Pilih gudang dulu</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">SKU</label>
-                    <input type="text" readonly
-                        class="item-sku w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Stok Tersedia</label>
-                    <input type="text" readonly
-                        class="item-stock-available w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Nama Produk</label>
-                    <input type="text" readonly
-                        class="item-name w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Harga Satuan</label>
-                    <input type="text" readonly
-                        class="item-price-display w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
-                    <input type="hidden" class="item-price-hidden">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Jumlah Terjual</label>
-                    <input type="number" min="1" step="1" name="items[__INDEX__][quantity]"
-                        value="1"
-                        class="item-quantity w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Diskon Satuan</label>
-                    <input type="text" name="items[__INDEX__][discount]" value="0" inputmode="numeric"
-                        placeholder="Contoh: 200000"
-                        class="item-discount w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
-                </div>
-            </div>
-
-            <div class="mt-4">
-                <label class="block text-xs font-bold text-gray-800 mb-2.5">Subtotal</label>
-                <input type="text" readonly
-                    class="item-subtotal-display w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
-            </div>
-        </section>
-    </template>
-
     <script>
-        const provinceJsonUrl = '/assets/data/provinceAndCity.json';
-        const stocksByWarehouseUrl = @json($stocksByWarehouseUrl);
-        const oldProvince = @json(old('customer_province', $sale->customer_province));
-        const oldCity = @json(old('customer_city', $sale->customer_city));
-        const oldWarehouseId = @json(old('warehouse_id', $sale->warehouse_id));
-        const oldItems = @json(old('items', $initialItems));
+        const totalAmount = @json((int) $sale->total_amount);
         const currentPaidAmount = @json((int) $currentPaidAmount);
-    </script>
-
-    <script>
-        const warehouseSelect = document.getElementById('warehouseSelect');
-        const customerProvince = document.getElementById('customerProvince');
-        const customerCity = document.getElementById('customerCity');
-
-        const itemsContainer = document.getElementById('itemsContainer');
-        const addItemBtn = document.getElementById('addItemBtn');
-        const saleItemTemplate = document.getElementById('saleItemTemplate');
-        const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+        const isPaidOff = @json($isPaidOff);
 
         const paymentAmount = document.getElementById('paymentAmount');
         const currentPaidDisplay = document.getElementById('currentPaidDisplay');
@@ -329,9 +282,6 @@
         const invoiceInput = document.getElementById('invoice');
         const dropzone = document.getElementById('dropzone');
         const dropzoneContent = document.getElementById('dropzoneContent');
-
-        let currentStocks = [];
-        let provinceData = [];
 
         function parseNumber(value) {
             if (value === null || value === undefined) return 0;
@@ -343,372 +293,25 @@
             return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
         }
 
-        async function loadProvinces() {
-            try {
-                const response = await fetch(provinceJsonUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const data = await response.json();
-                provinceData = Array.isArray(data) ? data : [];
-
-                customerProvince.innerHTML = '<option value="">Pilih provinsi</option>';
-
-                if (!provinceData.length) {
-                    customerProvince.innerHTML = '<option value="">Data provinsi kosong</option>';
-                    return;
-                }
-
-                provinceData.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.province_name;
-                    option.textContent = item.province_name;
-
-                    if (oldProvince && oldProvince === item.province_name) {
-                        option.selected = true;
-                    }
-
-                    customerProvince.appendChild(option);
-                });
-
-                populateCities(customerProvince.value);
-            } catch (error) {
-                console.error('Gagal memuat provinceAndCity.json:', error);
-                customerProvince.innerHTML = '<option value="">Gagal memuat provinsi</option>';
-                customerCity.innerHTML = '<option value="">Gagal memuat daerah</option>';
-                customerCity.disabled = true;
-            }
-        }
-
-        function populateCities(selectedProvince) {
-            customerCity.innerHTML = '';
-
-            if (!selectedProvince) {
-                customerCity.innerHTML = '<option value="">Pilih provinsi terlebih dahulu</option>';
-                customerCity.disabled = true;
-                return;
-            }
-
-            const province = provinceData.find(item => item.province_name === selectedProvince);
-
-            if (!province || !Array.isArray(province.cities) || !province.cities.length) {
-                customerCity.innerHTML = '<option value="">Data daerah tidak tersedia</option>';
-                customerCity.disabled = true;
-                return;
-            }
-
-            customerCity.disabled = false;
-            customerCity.innerHTML = '<option value="">Pilih daerah</option>';
-
-            province.cities.forEach(city => {
-                const option = document.createElement('option');
-                option.value = city.name;
-                option.textContent = city.name;
-
-                if (oldCity && oldCity === city.name) {
-                    option.selected = true;
-                }
-
-                customerCity.appendChild(option);
-            });
-        }
-
-        async function loadStocksByWarehouse(warehouseId) {
-            currentStocks = [];
-
-            if (!warehouseId) {
-                updateAllItemOptions();
-                recalculateGrandTotal();
-                return;
-            }
-
-            try {
-                const url = `${stocksByWarehouseUrl}?warehouse_id=${encodeURIComponent(warehouseId)}`;
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const json = await response.json();
-                currentStocks = Array.isArray(json.data) ? json.data : [];
-
-                updateAllItemOptions();
-                recalculateGrandTotal();
-            } catch (error) {
-                console.error('Gagal memuat stok berdasarkan gudang:', error);
-                currentStocks = [];
-                updateAllItemOptions();
-                recalculateGrandTotal();
-            }
-        }
-
-        function updateItemNumbers() {
-            const cards = itemsContainer.querySelectorAll('.sale-item-card');
-
-            cards.forEach((card, index) => {
-                const title = card.querySelector('h3');
-                if (title) title.textContent = `Barang #${index + 1}`;
-            });
-
-            const removeButtons = itemsContainer.querySelectorAll('.remove-item-btn');
-            removeButtons.forEach(btn => {
-                btn.disabled = cards.length <= 1;
-            });
-        }
-
-        function renderItemOptions(card, selectedId = '') {
-            const select = card.querySelector('.item-stock-select');
-            if (!select) return;
-
-            if (!warehouseSelect.value) {
-                select.innerHTML = '<option value="">Pilih gudang dulu</option>';
-                syncStockData(card);
-                return;
-            }
-
-            if (!currentStocks.length) {
-                select.innerHTML = '<option value="">Tidak ada barang tersedia di gudang ini</option>';
-                syncStockData(card);
-                return;
-            }
-
-            select.innerHTML = '<option value="">Pilih jenis barang</option>';
-
-            currentStocks.forEach(stock => {
-                const option = document.createElement('option');
-                option.value = stock.id;
-                option.dataset.sku = stock.sku || '';
-                option.dataset.name = stock.product_name || '';
-                option.dataset.price = stock.price || 0;
-                option.dataset.stock = stock.stock || 0;
-                option.dataset.unit = stock.unit || '';
-                option.textContent =
-                    `${stock.product_name} (${stock.sku}) - Stok: ${stock.stock} ${stock.unit ?? ''}`;
-
-                if (String(selectedId) === String(stock.id)) {
-                    option.selected = true;
-                }
-
-                select.appendChild(option);
-            });
-
-            syncStockData(card);
-        }
-
-        function updateAllItemOptions() {
-            itemsContainer.querySelectorAll('.sale-item-card').forEach(card => {
-                const selectedId = card.querySelector('.product-stock-id-input')?.value || '';
-                renderItemOptions(card, selectedId);
-            });
-        }
-
-        function syncStockData(card) {
-            const select = card.querySelector('.item-stock-select');
-            const selectedOption = select?.options[select.selectedIndex];
-
-            const stockIdInput = card.querySelector('.product-stock-id-input');
-            const skuInput = card.querySelector('.item-sku');
-            const stockAvailableInput = card.querySelector('.item-stock-available');
-            const nameInput = card.querySelector('.item-name');
-            const priceHidden = card.querySelector('.item-price-hidden');
-            const priceDisplay = card.querySelector('.item-price-display');
-
-            if (!selectedOption || !selectedOption.value) {
-                stockIdInput.value = '';
-                skuInput.value = '';
-                stockAvailableInput.value = '';
-                nameInput.value = '';
-                priceHidden.value = 0;
-                priceDisplay.value = formatRupiah(0);
-                return;
-            }
-
-            stockIdInput.value = selectedOption.value;
-            skuInput.value = selectedOption.dataset.sku || '';
-            stockAvailableInput.value = selectedOption.dataset.stock || '0';
-            nameInput.value = selectedOption.dataset.name || '';
-
-            const price = parseNumber(selectedOption.dataset.price || 0);
-            priceHidden.value = price;
-            priceDisplay.value = formatRupiah(price);
-        }
-
-        function syncPaymentSummary(grandTotal = 0) {
+        function syncPaymentSummary() {
             const additional = parseNumber(paymentAmount?.value || 0);
-            const totalPaid = currentPaidAmount + additional;
-            const debt = Math.max(0, grandTotal - totalPaid);
-            const status = debt > 0 ? 'Terhutang' : 'Lunas';
+            const simulatedPaid = currentPaidAmount + additional;
+            const remainingDebtRaw = totalAmount - simulatedPaid;
+            const remainingDebt = Math.max(0, remainingDebtRaw);
+            const status = remainingDebt <= 0 ? 'Lunas' : 'Terhutang';
 
             if (currentPaidDisplay) {
                 currentPaidDisplay.value = formatRupiah(currentPaidAmount);
             }
 
             if (remainingDebtDisplay) {
-                remainingDebtDisplay.value = formatRupiah(debt);
+                remainingDebtDisplay.value = formatRupiah(remainingDebt);
             }
 
             if (statusDisplay) {
                 statusDisplay.value = status;
             }
         }
-
-        function recalculateCard(card) {
-            const price = parseNumber(card.querySelector('.item-price-hidden')?.value || 0);
-            const quantityInput = card.querySelector('.item-quantity');
-            const discountInput = card.querySelector('.item-discount');
-            const subtotalDisplay = card.querySelector('.item-subtotal-display');
-            const stockAvailable = parseNumber(card.querySelector('.item-stock-available')?.value || 0);
-
-            let quantity = parseNumber(quantityInput?.value || 0);
-            let discount = parseNumber(discountInput?.value || 0);
-
-            if (quantity < 1) quantity = 1;
-            if (stockAvailable > 0 && quantity > stockAvailable) {
-                quantity = stockAvailable;
-            }
-
-            const finalUnitPrice = Math.max(0, price - discount);
-            const subtotal = finalUnitPrice * quantity;
-
-            if (quantityInput) quantityInput.value = quantity;
-            if (discountInput) discountInput.value = discount;
-            if (subtotalDisplay) subtotalDisplay.value = formatRupiah(subtotal);
-
-            recalculateGrandTotal();
-        }
-
-        function recalculateGrandTotal() {
-            let total = 0;
-
-            itemsContainer.querySelectorAll('.sale-item-card').forEach(card => {
-                const stockId = card.querySelector('.product-stock-id-input')?.value || '';
-                if (!stockId) return;
-
-                const price = parseNumber(card.querySelector('.item-price-hidden')?.value || 0);
-                const qty = parseNumber(card.querySelector('.item-quantity')?.value || 0);
-                const discount = parseNumber(card.querySelector('.item-discount')?.value || 0);
-
-                total += Math.max(0, price - discount) * Math.max(1, qty);
-            });
-
-            grandTotalDisplay.value = formatRupiah(total);
-            syncPaymentSummary(total);
-        }
-
-        function bindCardEvents(card) {
-            const select = card.querySelector('.item-stock-select');
-            const quantityInput = card.querySelector('.item-quantity');
-            const discountInput = card.querySelector('.item-discount');
-            const removeBtn = card.querySelector('.remove-item-btn');
-
-            if (select) {
-                select.addEventListener('change', () => {
-                    syncStockData(card);
-                    recalculateCard(card);
-                });
-            }
-
-            if (quantityInput) {
-                quantityInput.addEventListener('input', () => recalculateCard(card));
-            }
-
-            if (discountInput) {
-                discountInput.addEventListener('input', () => recalculateCard(card));
-            }
-
-            if (removeBtn) {
-                removeBtn.addEventListener('click', () => {
-                    const cards = itemsContainer.querySelectorAll('.sale-item-card');
-                    if (cards.length <= 1) return;
-
-                    card.remove();
-                    updateItemNumbers();
-                    recalculateGrandTotal();
-                });
-            }
-        }
-
-        function createNewItemCard(selectedData = null) {
-            const index = itemsContainer.querySelectorAll('.sale-item-card').length;
-            const html = saleItemTemplate.innerHTML
-                .replaceAll('__INDEX__', index)
-                .replaceAll('__NUMBER__', index + 1);
-
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = html.trim();
-
-            const card = wrapper.firstElementChild;
-            itemsContainer.appendChild(card);
-
-            bindCardEvents(card);
-
-            const selectedId = selectedData?.product_stock_id ?? '';
-            renderItemOptions(card, selectedId);
-
-            if (selectedData?.quantity) {
-                card.querySelector('.item-quantity').value = selectedData.quantity;
-            }
-
-            if (selectedData?.discount !== undefined) {
-                card.querySelector('.item-discount').value = selectedData.discount;
-            }
-
-            syncStockData(card);
-            recalculateCard(card);
-            updateItemNumbers();
-        }
-
-        customerProvince?.addEventListener('change', function() {
-            populateCities(this.value);
-        });
-
-        warehouseSelect?.addEventListener('change', async function() {
-            await loadStocksByWarehouse(this.value);
-
-            itemsContainer.querySelectorAll('.sale-item-card').forEach(card => {
-                renderItemOptions(card);
-                recalculateCard(card);
-            });
-        });
-
-        addItemBtn?.addEventListener('click', () => {
-            createNewItemCard();
-        });
-
-        paymentAmount?.addEventListener('input', () => recalculateGrandTotal());
-
-        async function initForm() {
-            await loadProvinces();
-
-            if (oldWarehouseId) {
-                warehouseSelect.value = oldWarehouseId;
-                await loadStocksByWarehouse(oldWarehouseId);
-            }
-
-            if (Array.isArray(oldItems) && oldItems.length) {
-                oldItems.forEach(item => createNewItemCard(item));
-            } else {
-                createNewItemCard();
-            }
-
-            updateItemNumbers();
-            recalculateGrandTotal();
-        }
-
-        initForm();
 
         function validateInvoiceFile(file) {
             const allowed = ['image/png', 'image/jpeg', 'application/pdf'];
@@ -775,7 +378,13 @@
             }
         }
 
-        if (invoiceInput) {
+        if (paymentAmount && !isPaidOff) {
+            paymentAmount.addEventListener('input', syncPaymentSummary);
+        }
+
+        syncPaymentSummary();
+
+        if (invoiceInput && !isPaidOff) {
             invoiceInput.addEventListener('change', function() {
                 const file = this.files?.[0];
 
@@ -794,7 +403,7 @@
             });
         }
 
-        if (dropzone) {
+        if (dropzone && !isPaidOff) {
             ['dragenter', 'dragover'].forEach(evt => {
                 dropzone.addEventListener(evt, e => {
                     e.preventDefault();

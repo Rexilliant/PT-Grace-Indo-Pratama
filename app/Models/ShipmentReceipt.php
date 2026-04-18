@@ -5,9 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ShipmentReceipt extends Model
+// WAJIB
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+
+class ShipmentReceipt extends Model implements HasMedia
 {
-    use SoftDeletes;
+    use SoftDeletes, InteractsWithMedia;
 
     protected $table = 'shipment_receipts';
 
@@ -30,6 +34,16 @@ class ShipmentReceipt extends Model
         'rejected_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | MEDIA COLLECTION
+    |--------------------------------------------------------------------------
+    */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('damage_proofs');
+    }
 
     /*
     |--------------------------------------------------------------------------

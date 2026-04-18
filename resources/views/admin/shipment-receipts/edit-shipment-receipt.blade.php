@@ -214,6 +214,31 @@
             </div>
         </section>
 
+        <section class="{{ $sectionClass }}">
+            <div class="md:col-span-2">
+                <label class="{{ $labelClass }}">Bukti Barang Rusak</label>
+
+                @if (isset($damageProofs) && $damageProofs->count())
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        @foreach ($damageProofs as $media)
+                            <div class="border rounded-lg overflow-hidden bg-white">
+                                <a href="{{ $media->getUrl() }}" target="_blank">
+                                    <img src="{{ $media->getUrl() }}"
+                                        class="w-full h-32 object-cover hover:scale-105 transition duration-200">
+                                </a>
+
+                                <div class="p-2 text-center text-[11px] text-gray-600 truncate">
+                                    {{ $media->file_name }}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-xs text-gray-500">Tidak ada bukti kerusakan.</p>
+                @endif
+            </div>
+        </section>
+
         <div class="flex items-center justify-end gap-4 pt-2">
             <a href="{{ route('admin.gudang-permintaan-pengiriman') }}"
                 class="{{ $actionBtnClass }} bg-red-600 hover:bg-red-700">

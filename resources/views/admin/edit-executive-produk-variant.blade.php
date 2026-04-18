@@ -13,7 +13,7 @@
             <span class="mx-1 text-gray-400">›</span>
             <a href="#" class="text-gray-700 hover:underline">Produk Varian</a>
             <span class="mx-1 text-gray-400">›</span>
-            <span class="text-blue-600">Edit Produk</span>
+            <span class="text-blue-600 font-bold">Edit Produk</span>
         </div>
     </section>
 
@@ -46,8 +46,7 @@
                 @enderror
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-4">
-
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-4">
                 {{-- SKU --}}
                 <div>
                     <label class="block text-sm font-bold mb-2">SKU</label>
@@ -133,35 +132,79 @@
                 </div>
             </div>
 
-            {{-- Gambar Produk --}}
-            <div class="mb-2">
-                <label class="block text-sm font-bold mb-2">Gambar Produk</label>
-                <input type="file" name="image" id="image" accept="image/*"
-                    class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900
-                           focus:border-blue-600 focus:ring-0 @error('image') border-red-500 focus:border-red-600 @enderror">
+            {{-- Ambil Data Gambar Lama --}}
+            @php
+                $currentImage = $variant->getFirstMediaUrl('product_variant_image');
+                $hasImage = !empty($currentImage);
+                $displayImage = $currentImage ?: asset('build/image/bhos-logo.png');
+            @endphp
 
-                <p class="mt-1 text-xs text-gray-600 font-semibold">
-                    Format: JPG, JPEG, PNG, WEBP. Maksimal 2MB.
-                </p>
+            {{-- Gambar Produk (Drag & Drop Kelas Dunia - Mode Edit) --}}
+            <div class="mb-2">
+                <label class="block text-sm font-bold mb-2 text-gray-800">
+                    Gambar Produk <span class="text-gray-500 text-xs font-normal ml-1">(Opsional)</span>
+                </label>
+
+                <label for="image" id="dropzone"
+                    class="relative group cursor-pointer mt-1 flex flex-col items-center justify-center min-h-[250px] w-full p-4 border-2 border-dashed rounded-2xl transition-all duration-300 overflow-hidden 
+                    @error('image') border-red-400 bg-red-50 @else border-gray-300 bg-white hover:border-blue-500 hover:bg-blue-50/50 @enderror">
+
+                    {{-- TIDAK ADA REQUIRED DI SINI --}}
+                    <input id="image" name="image" type="file" class="sr-only" accept="image/*">
+
+                    {{-- Tampilan Sebelum Upload (Placeholder) - Sembunyi jika ada gambar lama --}}
+                    <div id="uploadPlaceholder"
+                        class="flex flex-col items-center justify-center space-y-4 py-8 {{ $hasImage ? 'hidden' : '' }}">
+                        <div class="p-4 bg-blue-50 rounded-full group-hover:scale-110 transition-transform duration-300">
+                            <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-base font-bold text-gray-700">Klik di mana saja untuk upload gambar baru</p>
+                            <p class="text-xs text-gray-500 mt-1 font-medium italic">Biarkan kosong jika tidak ingin
+                                mengubah gambar.</p>
+                        </div>
+                    </div>
+
+                    {{-- Tampilan Preview (Muncul otomatis jika ada gambar lama) --}}
+                    <div id="previewContainer"
+                        class="absolute inset-0 flex flex-col items-center justify-center bg-white p-2 animate-scale-in {{ $hasImage ? '' : 'hidden' }}">
+                        <div class="relative w-full h-full flex flex-col items-center justify-center">
+                            <img id="imagePreview" src="{{ $displayImage }}"
+                                class="max-h-[180px] w-auto object-contain rounded-lg shadow-sm" alt="Preview">
+
+                            {{-- Overlay Info Saat Hover --}}
+                            <div class="mt-4 flex flex-col items-center">
+                                <span id="imageStatusBadge"
+                                    class="px-3 py-1 bg-gray-100 text-gray-700 text-[10px] font-bold uppercase tracking-widest rounded-full mb-1">
+                                    Gambar Saat Ini
+                                </span>
+                                <p class="text-xs font-bold text-gray-400 group-hover:text-blue-600 transition-colors">
+                                    Klik lagi untuk mengganti gambar
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </label>
 
                 @error('image')
-                    <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
+                    <div class="flex items-center mt-3 text-red-600 font-bold">
+                        <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        <p class="text-[11px] uppercase tracking-wider">{{ $message }}</p>
+                    </div>
                 @enderror
-
-                @php
-                    $currentImage = $variant->getFirstMediaUrl('product_variant_image');
-                @endphp
-
-                <div class="mt-3">
-                    <p class="mb-2 text-sm font-semibold text-gray-700">Preview Gambar</p>
-                    <img id="imagePreview" src="{{ $currentImage ?: asset('build/image/bhos-logo.png') }}"
-                        alt="Preview Gambar" class="h-32 w-32 rounded-lg object-cover border border-gray-300 bg-white">
-                </div>
             </div>
         </section>
 
         {{-- ACTIONS --}}
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-2">
             <button type="button" onclick="openCancelModal()"
                 class="w-full sm:w-auto inline-flex items-center justify-center rounded-lg
                        bg-red-600 px-10 py-3 text-sm font-bold text-white hover:bg-red-700">
@@ -171,7 +214,7 @@
             <button type="submit"
                 class="w-full sm:w-auto inline-flex items-center justify-center rounded-lg
                        bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
-                Simpan
+                Simpan Perubahan
             </button>
         </div>
     </form>
@@ -217,11 +260,12 @@
         }
 
         .animate-scale-in {
-            animation: scaleIn .15s ease-out;
+            animation: scaleIn .15s ease-out forwards;
         }
     </style>
 
     <script>
+        // Logic Modal Batal
         const modal = document.getElementById('cancelModal');
 
         function openCancelModal() {
@@ -242,19 +286,85 @@
             if (e.key === 'Escape' && modal.classList.contains('flex')) closeCancelModal();
         });
 
-        const imageInput = document.getElementById('image');
-        const imagePreview = document.getElementById('imagePreview');
-        const defaultImage = imagePreview.getAttribute('src');
+        // Logic Drag & Drop Upload untuk Edit Page
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageInput = document.getElementById('image');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewContainer = document.getElementById('previewContainer');
+            const placeholder = document.getElementById('uploadPlaceholder');
+            const dropzone = document.getElementById('dropzone');
+            const statusBadge = document.getElementById('imageStatusBadge');
 
-        imageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
+            // Simpan state awal gambar
+            const defaultImageSrc = "{{ $displayImage }}";
+            const hasInitialImage = {{ $hasImage ? 'true' : 'false' }};
 
-            if (!file) {
-                imagePreview.src = defaultImage;
-                return;
+            function handleFile(file) {
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        placeholder.classList.add('hidden');
+                        previewContainer.classList.remove('hidden');
+
+                        // Ubah badge status jadi menandakan ada gambar baru yang siap diupload
+                        if (statusBadge) {
+                            statusBadge.textContent = "Gambar Baru Terpilih";
+                            statusBadge.className =
+                                "px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-widest rounded-full mb-1";
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                }
             }
 
-            imagePreview.src = URL.createObjectURL(file);
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+
+                if (!file) {
+                    // Kalau user buka dialog file tapi click Cancel
+                    if (hasInitialImage) {
+                        // Kembali ke gambar lama
+                        imagePreview.src = defaultImageSrc;
+                        previewContainer.classList.remove('hidden');
+                        placeholder.classList.add('hidden');
+                        if (statusBadge) {
+                            statusBadge.textContent = "Gambar Saat Ini";
+                            statusBadge.className =
+                                "px-3 py-1 bg-gray-100 text-gray-700 text-[10px] font-bold uppercase tracking-widest rounded-full mb-1";
+                        }
+                    } else {
+                        // Kalau memang dari awal gak ada gambar
+                        imagePreview.src = '';
+                        previewContainer.classList.add('hidden');
+                        placeholder.classList.remove('hidden');
+                    }
+                    return;
+                }
+
+                handleFile(file);
+            });
+
+            // UX Drag & Drop
+            ['dragenter', 'dragover'].forEach(name => {
+                dropzone.addEventListener(name, (e) => {
+                    e.preventDefault();
+                    dropzone.classList.add('border-blue-500', 'bg-blue-50/50');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(name => {
+                dropzone.addEventListener(name, (e) => {
+                    e.preventDefault();
+                    dropzone.classList.remove('border-blue-500', 'bg-blue-50/50');
+                });
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                const file = e.dataTransfer.files[0];
+                imageInput.files = e.dataTransfer.files; // Assign file ke input
+                handleFile(file);
+            });
         });
     </script>
 @endsection

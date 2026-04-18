@@ -6,7 +6,6 @@
 @section('menu-executive-produk', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
-    {{-- breadcrumb --}}
     <section class="mb-5">
         <div class="text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Executive</span>
@@ -22,7 +21,6 @@
         @csrf
         @method('PUT')
 
-        {{-- FORM CARD --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
@@ -30,11 +28,7 @@
                 <div class="sm:col-span-1">
                     <label class="block text-sm font-bold mb-2">ID Produk</label>
                     <input name="code" type="text" value="{{ old('code', $product->code) }}"
-                        placeholder="Contoh: BHOSEXT"
-                        class="w-full rounded-md border border-gray-400 bg-white
-                               px-3 py-2.5 text-sm font-semibold text-gray-900
-                               focus:border-blue-600 focus:ring-0
-                               @error('code') border-red-500 focus:border-red-600 @enderror">
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0 @error('code') border-red-500 @enderror">
                     @error('code')
                         <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
                     @enderror
@@ -44,11 +38,7 @@
                 <div class="sm:col-span-1">
                     <label class="block text-sm font-bold mb-2">Nama Produk</label>
                     <input name="name" type="text" value="{{ old('name', $product->name) }}"
-                        placeholder="Contoh: BHOS Ekstra"
-                        class="w-full rounded-md border border-gray-400 bg-white
-                               px-3 py-2.5 text-sm font-semibold text-gray-900
-                               focus:border-blue-600 focus:ring-0
-                               @error('name') border-red-500 focus:border-red-600 @enderror">
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0 @error('name') border-red-500 @enderror">
                     @error('name')
                         <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
                     @enderror
@@ -58,93 +48,65 @@
                 <div class="sm:col-span-2 lg:col-span-1">
                     <label class="block text-sm font-bold mb-2">Status</label>
                     <select name="status"
-                        class="w-full rounded-md border border-gray-400 bg-white
-                               px-3 py-2.5 text-sm font-semibold text-gray-900
-                               focus:border-blue-600 focus:ring-0
-                               @error('status') border-red-500 focus:border-red-600 @enderror">
-                        <option value="" disabled {{ old('status', $product->status) ? '' : 'selected' }}>
-                            Pilih Status
-                        </option>
-                        <option value="aktif" {{ old('status', $product->status) === 'aktif' ? 'selected' : '' }}>
-                            Active
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
+                        <option value="aktif" {{ old('status', $product->status) === 'aktif' ? 'selected' : '' }}>Active
                         </option>
                         <option value="nonaktif" {{ old('status', $product->status) === 'nonaktif' ? 'selected' : '' }}>
-                            Inactive
-                        </option>
+                            Inactive</option>
                     </select>
-                    @error('status')
-                        <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
-                    @enderror
                 </div>
 
-                {{-- Deskripsi Produk --}}
+                {{-- Deskripsi --}}
                 <div class="sm:col-span-2 lg:col-span-3">
                     <label class="block text-sm font-bold mb-2">Deskripsi Produk</label>
-                    <textarea name="description" rows="5" placeholder="Tuliskan deskripsi produk..."
-                        class="w-full rounded-md border border-gray-400 bg-white
-                               px-3 py-2.5 text-sm font-semibold text-gray-900
-                               focus:border-blue-600 focus:ring-0
-                               @error('description') border-red-500 focus:border-red-600 @enderror">{{ old('description', $product->description) }}</textarea>
-
-                    @error('description')
-                        <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
-                    @enderror
-
-                    <p class="mt-2 text-xs text-gray-600">
-                        Tips: Jelaskan kegunaan, keunggulan, ukuran/varian, dan informasi penting lainnya.
-                    </p>
+                    <textarea name="description" rows="5"
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">{{ old('description', $product->description) }}</textarea>
                 </div>
 
-                {{-- Gambar Produk --}}
+                {{-- Gambar Produk (World Class Upload - Logic Edit) --}}
                 <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="block text-sm font-bold mb-2">Gambar Produk</label>
-                    <input type="file" name="image" id="image" accept="image/*"
-                        class="w-full rounded-md border border-gray-400 bg-white
-                               px-3 py-2.5 text-sm font-semibold text-gray-900
-                               focus:border-blue-600 focus:ring-0
-                               @error('image') border-red-500 focus:border-red-600 @enderror">
-
-                    <p class="mt-1 text-xs text-gray-600 font-semibold">
-                        Format: JPG, JPEG, PNG, WEBP. Maksimal 2MB.
-                    </p>
-
-                    @error('image')
-                        <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
-                    @enderror
-
-                    @php
-                        $currentImage = $product->getFirstMediaUrl('product_image');
-                    @endphp
-
-                    <div class="mt-3">
-                        <p class="mb-2 text-sm font-semibold text-gray-700">Gambar Saat Ini</p>
-
-                        @if ($currentImage)
-                            <img id="imagePreview" src="{{ $currentImage }}" alt="Preview Gambar"
-                                class="h-32 w-32 rounded-lg object-cover border border-gray-300 bg-white">
-                        @else
-                            <img id="imagePreview" alt="Preview Gambar"
-                                class="hidden h-32 w-32 rounded-lg object-cover border border-gray-300 bg-white">
-                        @endif
+                    <label class="block text-sm font-bold mb-2">Ganti Gambar Produk <span
+                            class="text-xs font-normal text-gray-500">(Opsional)</span></label>
+                    <div class="relative group">
+                        <div id="dropzone"
+                            class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-xl transition-all duration-300 border-gray-300 bg-white group-hover:border-blue-500 group-hover:bg-blue-50/30">
+                            <div class="space-y-2 text-center">
+                                @php $currentImage = $product->getFirstMediaUrl('product_image'); @endphp
+                                <div class="flex justify-center">
+                                    <img id="imagePreview" src="{{ $currentImage }}"
+                                        class="{{ $currentImage ? '' : 'hidden' }} h-40 w-40 object-cover rounded-lg shadow-md border-2 border-white transition-all duration-300">
+                                    <div id="uploadPlaceholder" class="{{ $currentImage ? 'hidden' : '' }}">
+                                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none"
+                                            viewBox="0 0 48 48">
+                                            <path
+                                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="flex text-sm text-gray-600 justify-center">
+                                    <label for="image"
+                                        class="relative cursor-pointer rounded-md font-bold text-blue-600 hover:text-blue-500 focus-within:outline-none">
+                                        <span>Ganti file</span>
+                                        <input id="image" name="image" type="file" class="sr-only"
+                                            accept="image/*">
+                                    </label>
+                                    <p class="pl-1 text-gray-500">atau tarik ke sini</p>
+                                </div>
+                                <p class="text-xs text-gray-400 italic">Kosongkan jika tidak ingin mengganti gambar lama</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
             </div>
         </section>
 
-        {{-- ACTIONS --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
             <button type="button" onclick="openCancelModal()"
-                class="w-full sm:w-auto inline-flex items-center justify-center rounded-lg
-                       bg-red-600 px-10 py-3 text-sm font-bold text-white hover:bg-red-700">
-                Batal
-            </button>
-
+                class="w-full sm:w-auto inline-flex items-center justify-center rounded-lg bg-red-600 px-10 py-3 text-sm font-bold text-white hover:bg-red-700">Batal</button>
             <button type="submit"
-                class="w-full sm:w-auto inline-flex items-center justify-center rounded-lg
-                       bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
-                Simpan
-            </button>
+                class="w-full sm:w-auto inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">Simpan
+                Perubahan</button>
         </div>
     </form>
 
@@ -155,43 +117,17 @@
             <div class="px-6 py-4 border-b border-gray-200">
                 <h3 class="text-lg font-bold text-gray-800">Batalkan?</h3>
             </div>
-
-            <div class="px-6 py-4 text-sm text-gray-700 leading-relaxed">
-                Perubahan yang kamu buat <span class="font-semibold">belum disimpan</span>.
-                Kalau dibatalkan, semua perubahan akan hilang.
-            </div>
-
+            <div class="px-6 py-4 text-sm text-gray-700">Perubahan yang kamu buat belum disimpan.</div>
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 px-6 py-4 border-t border-gray-200">
                 <button type="button" onclick="closeCancelModal()"
-                    class="w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-semibold bg-gray-200 hover:bg-gray-300">
-                    Tetap di Halaman
-                </button>
-
+                    class="w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-semibold bg-gray-200 hover:bg-gray-300">Tetap
+                    di Sini</button>
                 <a href="{{ route('admin.executive-produk') }}"
-                    class="w-full sm:w-auto text-center px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700">
-                    Ya, Batalkan
-                </a>
+                    class="w-full sm:w-auto text-center px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700">Ya,
+                    Batalkan</a>
             </div>
         </div>
     </div>
-
-    <style>
-        @keyframes scaleIn {
-            from {
-                transform: scale(.95);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .animate-scale-in {
-            animation: scaleIn .15s ease-out;
-        }
-    </style>
 
     <script>
         const modal = document.getElementById('cancelModal');
@@ -206,36 +142,47 @@
             modal.classList.remove('flex');
         }
 
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeCancelModal();
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal.classList.contains('flex')) closeCancelModal();
-        });
-
         document.addEventListener('DOMContentLoaded', function() {
             const imageInput = document.getElementById('image');
             const imagePreview = document.getElementById('imagePreview');
-
-            if (!imageInput || !imagePreview) return;
+            const placeholder = document.getElementById('uploadPlaceholder');
+            const dropzone = document.getElementById('dropzone');
 
             imageInput.addEventListener('change', function(e) {
                 const file = e.target.files[0];
-
-                if (!file) {
+                if (file) {
+                    imagePreview.src = URL.createObjectURL(file);
+                    imagePreview.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                } else {
                     @if ($currentImage)
                         imagePreview.src = "{{ $currentImage }}";
                         imagePreview.classList.remove('hidden');
+                        placeholder.classList.add('hidden');
                     @else
-                        imagePreview.removeAttribute('src');
                         imagePreview.classList.add('hidden');
+                        placeholder.classList.remove('hidden');
                     @endif
-                    return;
                 }
+            });
 
-                imagePreview.src = URL.createObjectURL(file);
-                imagePreview.classList.remove('hidden');
+            // Drag and Drop Logic
+            ['dragenter', 'dragover'].forEach(name => dropzone.addEventListener(name, (e) => {
+                e.preventDefault();
+                dropzone.classList.add('border-blue-500', 'bg-blue-50/50');
+            }));
+            ['dragleave', 'drop'].forEach(name => dropzone.addEventListener(name, (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('border-blue-500', 'bg-blue-50/50');
+            }));
+            dropzone.addEventListener('drop', (e) => {
+                const file = e.dataTransfer.files[0];
+                imageInput.files = e.dataTransfer.files;
+                if (file) {
+                    imagePreview.src = URL.createObjectURL(file);
+                    imagePreview.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                }
             });
         });
     </script>
