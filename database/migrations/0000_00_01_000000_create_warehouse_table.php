@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('province');
             $table->string('city');
-            $table->bigInteger('responsible_id')->nullable();
+            $table->string('type');
             $table->timestamps();
             $table->softDeletes();
         });

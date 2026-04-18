@@ -8,14 +8,21 @@ use Illuminate\Support\Facades\DB;
 
 class WarehouseSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $warehouses = [
-            ['name' => 'Gudang Produksi Sumatera Utara', 'province' => 'SUMATERA UTARA', 'city' => 'KOTA MEDAN', 'responsible_id' => 1],
-            ['name' => 'Gudang Pemasaran Sumatera Utara', 'province' => 'SUMATERA UTARA', 'city' => 'KOTA MEDAN', 'responsible_id' => 1],
+            [
+                'name' => 'Gudang Produksi Sumatera Utara',
+                'province' => 'SUMATERA UTARA',
+                'city' => 'KOTA MEDAN',
+                'type' => 'produksi',
+            ],
+            [
+                'name' => 'Gudang Pemasaran Sumatera Utara',
+                'province' => 'SUMATERA UTARA',
+                'city' => 'KOTA MEDAN',
+                'type' => 'pemasaran',
+            ],
         ];
 
         foreach ($warehouses as $warehouse) {
@@ -24,9 +31,9 @@ class WarehouseSeeder extends Seeder
                     'name' => $warehouse['name'],
                     'province' => $warehouse['province'],
                     'city' => $warehouse['city'],
-                    'responsible_id' => $warehouse['responsible_id'],
                 ],
                 [
+                    'type' => $warehouse['type'], // ✅ ini penting (tadi hilang)
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]

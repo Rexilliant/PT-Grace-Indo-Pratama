@@ -24,6 +24,7 @@ class Employee extends Model implements HasMedia
         'province',
         'postal_code',
         'country',
+        'warehouse_id',
     ];
 
     // relasi ke user
@@ -31,7 +32,10 @@ class Employee extends Model implements HasMedia
     {
         return $this->hasOne(User::class);
     }
-
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
     public function registerMediaCollections(): void
     {
         // hanya 1 file, upload baru akan replace yang lama

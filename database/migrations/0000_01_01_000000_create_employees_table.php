@@ -24,6 +24,9 @@ return new class extends Migration
             $table->string('province');
             $table->string('postal_code');
             $table->string('country');
+            $table->foreignId('warehouse_id')
+                ->nullable()
+                ->constrained();
             $table->timestamps();
             $table->softDeletes();
         });

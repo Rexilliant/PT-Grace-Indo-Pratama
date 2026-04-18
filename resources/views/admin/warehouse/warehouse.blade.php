@@ -77,13 +77,12 @@
                 Export .xlsx
             </a>
 
-            @can('create-procurements')
-                <a href="{{ route('create-warehouse') }}"
-                    class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                    <span class="text-lg leading-none">+</span>
-                    Tambah Baru
-                </a>
-            @endcan
+
+            <a href="{{ route('create-warehouse') }}"
+                class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                <span class="text-lg leading-none">+</span>
+                Tambah Baru
+            </a>
         </div>
         {{-- table --}}
         <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm">
@@ -96,6 +95,7 @@
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Kota</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Jenis</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Penanggung Jawab</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
                         </tr>
@@ -109,7 +109,7 @@
                                 <td class="px-6 py-4">{{ $warehouse->name }}</td>
                                 <td class="px-6 py-4">{{ $warehouse->province }}</td>
                                 <td class="px-6 py-4">{{ $warehouse->city }}</td>
-                                <td class="px-6 py-4">{{ $warehouse->responsible->name }}</td>
+                                <td class="px-6 py-4">{{ $warehouse->type }}</td>
                                 <td class="px-6 py-4">
                                     <a href="{{ route('edit-warehouse', ['id' => $warehouse->id]) }}"
                                         class="text-blue-600 hover:underline">

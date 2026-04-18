@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\LogErrorController;
 use App\Http\Controllers\MediaController;
@@ -23,9 +24,7 @@ Route::get('/phpinfo', function () {
 });
 
 Route::middleware('auth')->prefix('admin')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
     Route::get('/gudang-pengadaan-barang', function () {
         return view('admin.gudang-pengadaan-barang');
