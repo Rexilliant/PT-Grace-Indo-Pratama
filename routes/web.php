@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\LogErrorController;
 use App\Http\Controllers\MediaController;
@@ -23,9 +24,7 @@ Route::get('/phpinfo', function () {
 });
 
 Route::middleware('auth')->prefix('admin')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
     Route::get('/gudang-pengadaan-barang', function () {
         return view('admin.gudang-pengadaan-barang');
@@ -122,6 +121,9 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
         Route::put('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'update'])
             ->name('admin.pemasaran-laporan-penjualan.update');
+
+        Route::delete('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'destroy'])
+            ->name('admin.pemasaran-laporan-penjualan.destroy');
 
         Route::get('/pemasaran/laporan-penjualan/{id}/history-pembayaran', [SaleController::class, 'historyPayment'])
             ->name('admin.pemasaran-laporan-penjualan.history-pembayaran');
@@ -285,4 +287,4 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::delete('/delete/{id}', 'destroy')->name('delete-shipment-receipt');
     });
 });
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

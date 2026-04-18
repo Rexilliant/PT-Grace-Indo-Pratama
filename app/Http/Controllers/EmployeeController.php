@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
+use App\Models\Warehouse;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,10 +41,11 @@ class EmployeeController extends Controller
         $response = Http::get('http://api.geonames.org/countryInfoJSON', [
             'username' => 'hier',
         ]);
+        $warehouses = Warehouse::all();
 
         $countries = $response->json('geonames');
 
-        return view('admin.employee.create-emplyee', compact('countries'));
+        return view('admin.employee.create-emplyee', compact('countries', 'warehouses'));
     }
 
     public function getProvinces($countryCode)
@@ -108,6 +110,7 @@ class EmployeeController extends Controller
             'postal_code' => 'nullable|string',
             'address' => 'required|string',
             'profile_image' => 'required|image|mimes:jpg,jpeg,png,webp|max:5048',
+            'warehouse_id' => 'nullable|exists:warehouses,id',
         ]);
         try {
             $request->birthday = Carbon::parse($request->birthday)->setTimeZone('Asia/Jakarta')->format('Y-m-d');
@@ -124,6 +127,7 @@ class EmployeeController extends Controller
                 'city' => $request->city,
                 'postal_code' => $request->postal_code,
                 'address' => $request->address,
+                'warehouse_id' => $request->warehouse_id,
                 'created_at' => now('Asia/Jakarta')->format('Y-m-d H:i:s'),
             ]);
 
@@ -153,8 +157,9 @@ class EmployeeController extends Controller
         $countries = $response->json('geonames');
         $employee = Employee::findOrFail($id);
         $profileImage = $employee->getFirstMediaUrl('profile_images') ?: null;
+        $warehouses = Warehouse::all();
 
-        return view('admin.employee.edit-employees', compact('countries', 'employee', 'profileImage'));
+        return view('admin.employee.edit-employees', compact('countries', 'employee', 'profileImage', 'warehouses'));
     }
 
     public function update(Request $request, $id)
@@ -174,6 +179,7 @@ class EmployeeController extends Controller
             'postal_code' => 'required|string',
             'address' => 'required|string',
             'profile_image' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5048',
+            'warehouse_id' => 'nullable|exists:warehouses,id',
         ]);
         try {
             $request->birthday = Carbon::parse($request->birthday)->setTimeZone('Asia/Jakarta')->format('Y-m-d');
@@ -189,6 +195,7 @@ class EmployeeController extends Controller
                 'city' => $request->city,
                 'postal_code' => $request->postal_code,
                 'address' => $request->address,
+                'warehouse_id' => $request->warehouse_id,
             ]);
 
             if ($request->hasFile('profile_image')) {
@@ -200,7 +207,6 @@ class EmployeeController extends Controller
                     )
                     ->toMediaCollection('profile_images');
             }
-
             return redirect()->back()->with('success', 'Data karyawan berhasil disimpan.');
         } catch (\Throwable $th) {
             save_log_error($th);

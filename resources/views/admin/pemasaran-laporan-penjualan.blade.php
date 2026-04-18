@@ -142,9 +142,17 @@
                                             Sunting
                                         </a>
 
-                                        <a href="#" class="text-[#EC0000] hover:underline">
+                                        <a href="#" class="text-[#EC0000] hover:underline"
+                                            onclick="event.preventDefault(); confirmDelete({{ $sale->id }})">
                                             Hapus
                                         </a>
+
+                                        <form id="delete-form-{{ $sale->id }}"
+                                            action="{{ route('admin.pemasaran-laporan-penjualan.destroy', $sale->id) }}"
+                                            method="POST" class="hidden">
+                                            @csrf
+                                            @method('DELETE')
+                                        </form>
                                     </div>
                                 </td>
 
@@ -572,5 +580,11 @@
                 else if (!detailModal.classList.contains('hidden')) window.closeDetailModal();
             }
         });
+
+        function confirmDelete(id) {
+            if (confirm('Yakin ingin menghapus laporan ini?\nStok barang akan dikembalikan.')) {
+                document.getElementById('delete-form-' + id).submit();
+            }
+        }
     </script>
 @endsection

@@ -17,20 +17,13 @@ class Warehouse extends Model
         'name',
         'province',
         'city',
-        'responsible_id',
+        'type',
     ];
 
     protected $dates = [
         'deleted_at',
     ];
 
-    /**
-     * Relasi ke user (penanggung jawab)
-     */
-    public function responsible()
-    {
-        return $this->belongsTo(User::class, 'responsible_id');
-    }
 
     /**
      * Relasi ke stock (contoh kalau ada raw_material_stocks)
@@ -52,5 +45,9 @@ class Warehouse extends Model
     public function sales()
     {
         return $this->hasMany(Sale::class);
+    }
+    public function employees()
+    {
+        return $this->hasMany(Employee::class);
     }
 }

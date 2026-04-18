@@ -226,6 +226,81 @@
             </div>
         </section>
 
+        <section class="{{ $sectionClass }}">
+            <div class="mb-3 text-xs font-bold text-gray-800">
+                Bukti Kerusakan (Opsional)
+            </div>
+
+            <div class="relative w-full overflow-hidden rounded-xl border-2 border-dashed transition-all duration-200 ease-in-out"
+                :class="dragging ? 'border-[#2D2ACD] bg-blue-50' :
+                    'border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400'"
+                @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false"
+                @drop.prevent="handleDrop($event)">
+
+                <input type="file" name="damage_proofs[]" multiple accept="image/png,image/jpeg,application/pdf"
+                    id="file-upload" class="absolute inset-0 z-50 h-full w-full cursor-pointer opacity-0"
+                    @change="handleFileSelect($event)">
+
+                <div class="flex flex-col items-center justify-center p-8 text-center">
+                    <svg class="mb-3 h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                        </path>
+                    </svg>
+                    <p class="mb-1 text-sm text-gray-600">
+                        <span class="font-bold text-[#2D2ACD]">Klik untuk unggah</span> atau seret dan lepas file ke sini
+                    </p>
+                    <p class="text-xs text-gray-500">Mendukung PNG, JPG, JPEG, PDF (Maks. 3MB)</p>
+                </div>
+            </div>
+
+            <template x-if="files.length > 0">
+                <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                    <template x-for="(file, index) in files" :key="index">
+                        <div
+                            class="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md">
+
+                            <div class="relative flex h-24 w-full items-center justify-center bg-gray-100">
+                                <template x-if="file.isImage">
+                                    <img :src="file.preview" alt="preview" class="h-full w-full object-cover">
+                                </template>
+                                <template x-if="!file.isImage">
+                                    <svg class="h-8 w-8 text-red-500" fill="currentColor" viewBox="0 0 20 20"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd"
+                                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
+                                </template>
+                            </div>
+
+                            <div class="p-2">
+                                <p class="truncate text-[10px] font-bold text-gray-700" x-text="file.name"></p>
+                                <p class="text-[9px] text-gray-500" x-text="file.sizeFormatted"></p>
+                            </div>
+
+                            <button type="button" @click.prevent="removeFile(index)"
+                                class="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow transition-opacity duration-200 group-hover:opacity-100 hover:bg-red-600">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            @error('damage_proofs')
+                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+            @enderror
+            @error('damage_proofs.*')
+                <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+            @enderror
+        </section>
+
         <div class="flex items-center justify-end gap-4 pt-2">
             <a href="{{ route('admin.gudang-permintaan-pengiriman') }}"
                 class="{{ $actionBtnClass }} bg-red-600 hover:bg-red-700">
@@ -365,6 +440,73 @@
                 fieldError(index, field) {
                     const key = `items.${index}.${field}`;
                     return this.validationErrors[key]?.[0] || '';
+                },
+
+                // --- STATE UNTUK UPLOAD FILE ---
+                dragging: false,
+                files: [], // Menyimpan data preview
+
+                // --- METHOD UNTUK UPLOAD FILE ---
+                handleFileSelect(event) {
+                    this.processFiles(event.target.files);
+                },
+
+                handleDrop(event) {
+                    this.dragging = false;
+                    this.processFiles(event.dataTransfer.files);
+                },
+
+                processFiles(newFiles) {
+                    if (!newFiles || newFiles.length === 0) return;
+
+                    // Gunakan DataTransfer untuk merekonstruksi isi <input type="file">
+                    const dt = new DataTransfer();
+
+                    // Masukkan file lama yang sudah ada di memori
+                    this.files.forEach(f => dt.items.add(f.rawFile));
+
+                    // Masukkan file baru
+                    Array.from(newFiles).forEach(file => {
+                        // Validasi simpel batas 3MB (Opsional, agar user tidak kaget saat ditolak server)
+                        if (file.size > 3 * 1024 * 1024) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'File Terlalu Besar',
+                                text: `${file.name} melebihi ukuran maksimal 3MB.`,
+                                confirmButtonColor: '#2D2ACD'
+                            });
+                            return;
+                        }
+
+                        dt.items.add(file);
+
+                        const isImage = file.type.startsWith('image/');
+                        this.files.push({
+                            rawFile: file,
+                            name: file.name,
+                            sizeFormatted: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+                            isImage: isImage,
+                            preview: isImage ? URL.createObjectURL(file) : null
+                        });
+                    });
+
+                    // Update value asli dari input DOM agar terkirim ke Laravel Controller
+                    document.getElementById('file-upload').files = dt.files;
+                },
+
+                removeFile(index) {
+                    // Bersihkan memori browser dari URL blob
+                    if (this.files[index].preview) {
+                        URL.revokeObjectURL(this.files[index].preview);
+                    }
+
+                    // Hapus dari state Alpine
+                    this.files.splice(index, 1);
+
+                    // Rekonstruksi ulang isi <input type="file">
+                    const dt = new DataTransfer();
+                    this.files.forEach(f => dt.items.add(f.rawFile));
+                    document.getElementById('file-upload').files = dt.files;
                 },
             }
         }

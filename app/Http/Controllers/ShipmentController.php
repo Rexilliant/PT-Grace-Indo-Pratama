@@ -16,33 +16,33 @@ use Illuminate\Validation\ValidationException;
 
 class ShipmentController extends Controller
 {
-public function index(Request $request)
-{
-    $q = Shipment::query()->with('personResponsible');
+    public function index(Request $request)
+    {
+        $q = Shipment::query()->with('personResponsible');
 
-    if ($request->filled('name')) {
-        $q->whereHas('personResponsible', function ($query) use ($request) {
-            $query->where('name', 'like', '%'.$request->name.'%');
-        });
+        if ($request->filled('name')) {
+            $q->whereHas('personResponsible', function ($query) use ($request) {
+                $query->where('name', 'like', '%' . $request->name . '%');
+            });
+        }
+        if ($request->filled('code')) {
+            $q->where('shipment_code', 'like', '%' . $request->code . '%');
+        }
+        // ROWS PER PAGE (dropdown 10/25/50)
+        $perPage = (int) ($request->get('per_page', 10));
+        $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
+
+        $shipments = $q->latest()->paginate($perPage)->withQueryString();
+        $statuses = Shipment::query()
+            ->select('status')
+            ->whereNotNull('status')
+            ->distinct()
+            ->orderBy('status')
+            ->pluck('status');
+        $warehouses = Warehouse::all();
+
+        return view('admin.shipments.shipments', compact('shipments', 'statuses', 'warehouses'));
     }
-    if ($request->filled('code')) {
-        $q->where('shipment_code', 'like', '%'.$request->code.'%');
-    }
-    // ROWS PER PAGE (dropdown 10/25/50)
-    $perPage = (int) ($request->get('per_page', 10));
-    $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
-
-    $shipments = $q->paginate($perPage)->withQueryString();
-    $statuses = Shipment::query()
-        ->select('status')
-        ->whereNotNull('status')
-        ->distinct()
-        ->orderBy('status')
-        ->pluck('status');
-    $warehouses = Warehouse::all();
-
-    return view('admin.shipments.shipments', compact('shipments', 'statuses', 'warehouses'));
-}
 
     public function create()
     {
@@ -91,24 +91,18 @@ public function index(Request $request)
             $targetWarehouseId = (int) $validated['warehouse_id'];
 
             $groupedItems = collect($validated['items'])
-                ->map(fn ($item) => [
+                ->map(fn($item) => [
                     'product_stock_id' => (int) $item['product_stock_id'],
                     'quantity' => (int) $item['quantity'],
                 ])
                 ->groupBy('product_stock_id')
-                ->map(fn ($rows, $productStockId) => [
+                ->map(fn($rows, $productStockId) => [
                     'product_stock_id' => (int) $productStockId,
                     'quantity' => $rows->sum('quantity'),
                 ])
                 ->values();
 
-            DB::transaction(function () use (
-                $validated,
-                $userId,
-                $sourceWarehouseId,
-                $targetWarehouseId,
-                $groupedItems
-            ) {
+            DB::transaction(function () use ($validated, $userId, $sourceWarehouseId, $targetWarehouseId, $groupedItems) {
                 $stockIds = $groupedItems->pluck('product_stock_id')->all();
 
                 $sourceStocks = ProductStock::with('productVariant')
@@ -120,7 +114,7 @@ public function index(Request $request)
                 foreach ($groupedItems as $item) {
                     $sourceStock = $sourceStocks->get($item['product_stock_id']);
 
-                    if (! $sourceStock) {
+                    if (!$sourceStock) {
                         throw new \Exception('Produk stok tidak ditemukan.');
                     }
 
@@ -136,7 +130,7 @@ public function index(Request $request)
                 }
 
                 $shipment = Shipment::create([
-                    'shipment_code' => 'SHP-'.now()->format('YmdHis'),
+                    'shipment_code' => 'SHP-' . now()->format('YmdHis'),
                     'shipment_type' => $validated['shipment_type'],
                     'person_responsible_id' => $userId,
                     'status' => 'Menunggu',
@@ -173,7 +167,7 @@ public function index(Request $request)
 
             return back()
                 ->withInput()
-                ->with('error', 'Gagal menyimpan pengiriman: '.$th->getMessage());
+                ->with('error', 'Gagal menyimpan pengiriman: ' . $th->getMessage());
         }
     }
 
@@ -225,7 +219,7 @@ public function index(Request $request)
 
             if (
                 $newStatus !== $currentStatus &&
-                ! in_array($newStatus, $allowedTransitions[$currentStatus] ?? [])
+                !in_array($newStatus, $allowedTransitions[$currentStatus] ?? [])
             ) {
                 throw ValidationException::withMessages([
                     'status' => 'Perubahan status tidak valid.',
@@ -270,7 +264,7 @@ public function index(Request $request)
                             ->lockForUpdate()
                             ->find($item->product_stock_id);
 
-                        if (! $sourceStock) {
+                        if (!$sourceStock) {
                             throw ValidationException::withMessages([
                                 'status' => 'Stok produk tidak ditemukan.',
                             ]);
@@ -292,7 +286,7 @@ public function index(Request $request)
                             'quantity' => (int) $item->quantity,
                             'ref_type' => Shipment::class,
                             'ref_id' => $shipment->id,
-                            'note' => 'Pengeluaran stok untuk pengiriman '.$shipment->shipment_code,
+                            'note' => 'Pengeluaran stok untuk pengiriman ' . $shipment->shipment_code,
                         ]);
                     }
 
@@ -311,7 +305,7 @@ public function index(Request $request)
 
                 if ($request->hasFile('invoices')) {
                     foreach ($request->file('invoices') as $file) {
-                        $filename = now()->format('YmdHis').'_'.uniqid().'.'.$file->getClientOriginalExtension();
+                        $filename = now()->format('YmdHis') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
                         $shipment
                             ->addMedia($file)
@@ -339,7 +333,7 @@ public function index(Request $request)
 
             return back()
                 ->withInput()
-                ->with('error', 'Gagal memperbarui status pengiriman: '.$th->getMessage());
+                ->with('error', 'Gagal memperbarui status pengiriman: ' . $th->getMessage());
         }
     }
 
@@ -379,7 +373,7 @@ public function index(Request $request)
 
             return redirect()
                 ->back()
-                ->with('error', 'Gagal menghapus pengiriman: '.$th->getMessage());
+                ->with('error', 'Gagal menghapus pengiriman: ' . $th->getMessage());
         }
     }
 
@@ -388,9 +382,9 @@ public function index(Request $request)
         $shipment = Shipment::with([
             'shipmentItems.productStock.productVariant',
         ])->findOrFail($id);
-        
+
 
         return response()->json($shipment->shipmentItems);
     }
-    
+
 }
