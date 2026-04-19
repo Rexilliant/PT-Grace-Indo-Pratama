@@ -3,6 +3,7 @@
 @section('open-gudang', 'open')
 @section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-gudang-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+
 @section('addCss')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -51,11 +52,12 @@
         </div>
     </section>
 
-    <form action="{{ route('store-warehouse') }}" method="POST" class="space-y-4" x-data="warehouseForm({
-        oldProvince: @js(old('province')),
-        oldProvinceId: @js(old('province_id')),
-        oldCity: @js(old('city'))
-    })"
+    <form action="{{ route('store-warehouse') }}" method="POST" class="space-y-4"
+        x-data="warehouseForm({
+            oldProvince: @js(old('province')),
+            oldProvinceId: @js(old('province_id')),
+            oldCity: @js(old('city'))
+        })"
         x-init="init()">
         @csrf
 
@@ -76,18 +78,15 @@
 
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-2">
-                        Penanggung Jawab
+                        Jenis Gudang <span class="text-red-500">*</span>
                     </label>
-                    <select name="responsible_id" id="responsibleSelect"
+                    <select name="type" id="typeSelect"
                         class="w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900">
-                        <option value="">-- Pilih Penanggung Jawab --</option>
-                        @foreach ($users as $user)
-                            <option value="{{ $user->id }}" {{ old('responsible_id') == $user->id ? 'selected' : '' }}>
-                                {{ $user->name }}
-                            </option>
-                        @endforeach
+                        <option value="">-- Pilih Jenis --</option>
+                        <option value="pemasaran" {{ old('type') == 'pemasaran' ? 'selected' : '' }}>Pemasaran</option>
+                        <option value="produksi" {{ old('type') == 'produksi' ? 'selected' : '' }}>Produksi</option>
                     </select>
-                    @error('responsible_id')
+                    @error('type')
                         <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -163,6 +162,7 @@
 
                 init() {
                     this.$nextTick(() => {
+                        this.initTypeSelect2();
                         this.initResponsibleSelect2();
                         this.initProvinceSelect2();
                         this.initCitySelect2();
@@ -171,6 +171,20 @@
                             this.syncProvinceName();
                             this.fetchCities(true);
                         }
+                    });
+                },
+
+                initTypeSelect2() {
+                    const $type = $('#typeSelect');
+
+                    if ($type.hasClass('select2-hidden-accessible')) {
+                        $type.select2('destroy');
+                    }
+
+                    $type.select2({
+                        placeholder: '-- Pilih Type --',
+                        allowClear: true,
+                        width: '100%'
                     });
                 },
 

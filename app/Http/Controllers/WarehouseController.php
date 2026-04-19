@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
+use App\Models\Employee;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
@@ -11,7 +13,7 @@ class WarehouseController extends Controller
 {
     public function index(Request $request)
     {
-        $q = Warehouse::query()->with('responsible');
+        $q = Warehouse::query();
 
         if ($request->filled('name')) {
             $q->where('name', 'like', '%' . $request->name . '%');
@@ -23,10 +25,6 @@ class WarehouseController extends Controller
 
         if ($request->filled('city')) {
             $q->where('city', 'like', '%' . $request->city . '%');
-        }
-
-        if ($request->filled('responsible_id')) {
-            $q->where('responsible_id', $request->responsible_id);
         }
 
         $perPage = (int) ($request->get('per_page', 10));
@@ -95,11 +93,10 @@ class WarehouseController extends Controller
             'name' => 'required|string|max:255|unique:warehouses,name',
             'province' => 'required|string',
             'city' => 'required|string',
-            'responsible_id' => 'nullable|exists:users,id',
+            'type' => 'required|string',
         ]);
 
         Warehouse::create($validated);
-
         return redirect()
             ->route('warehouses')
             ->with('success', 'Data gudang berhasil ditambahkan');
@@ -129,12 +126,14 @@ class WarehouseController extends Controller
         $selectedProvinceId = $selectedProvince['province_id'] ?? '';
 
         $users = User::all();
+        $employees = Employee::where('warehouse_id', $warehouse->id)->get();
 
         return view('admin.warehouse.edit-warehouse', compact(
             'warehouse',
             'users',
             'provinces',
-            'selectedProvinceId'
+            'selectedProvinceId',
+            'employees'
         ));
     }
 
@@ -145,7 +144,6 @@ class WarehouseController extends Controller
             'province' => 'required|string|max:255',
             'province_id' => 'required|string|max:10',
             'city' => 'required|string|max:255',
-            'responsible_id' => 'nullable|exists:users,id',
         ]);
 
         $warehouse = Warehouse::findOrFail($id);
@@ -154,7 +152,6 @@ class WarehouseController extends Controller
             'name' => $validated['name'],
             'province' => $validated['province'],
             'city' => $validated['city'],
-            'responsible_id' => $validated['responsible_id'] ?? null,
         ]);
 
         return redirect()
