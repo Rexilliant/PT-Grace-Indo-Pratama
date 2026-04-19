@@ -18,6 +18,7 @@ class Warehouse extends Model
         'province',
         'city',
         'responsible_id',
+        'deleted_by',
     ];
 
     protected $dates = [
@@ -33,12 +34,21 @@ class Warehouse extends Model
     }
 
     /**
+     * Relasi ke user yang menghapus data
+     */
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    /**
      * Relasi ke stock (contoh kalau ada raw_material_stocks)
      */
     public function rawMaterialStocks()
     {
         return $this->hasMany(RawMaterialStock::class);
     }
+
     public function procurements()
     {
         return $this->hasMany(Procurement::class);

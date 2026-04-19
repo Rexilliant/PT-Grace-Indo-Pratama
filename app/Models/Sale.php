@@ -28,6 +28,7 @@ class Sale extends Model implements HasMedia
         'debt_amount',
         'notes',
         'status',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -66,5 +67,10 @@ class Sale extends Model implements HasMedia
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }

@@ -410,7 +410,6 @@ class ShipmentReceiptController extends Controller
             'items',
         ])->findOrFail($id);
 
-        // ❌ hanya boleh delete kalau masih received
         if ($shipmentReceipt->status !== 'received') {
             return redirect()
                 ->back()
@@ -420,12 +419,16 @@ class ShipmentReceiptController extends Controller
         DB::beginTransaction();
 
         try {
-            // delete item dulu (optional kalau pakai cascade)
+            // SIMPAN USER YANG MENGHAPUS
+            $shipmentReceipt->deleted_by = Auth::id();
+            $shipmentReceipt->save();
+
+            // hapus item
             foreach ($shipmentReceipt->items as $item) {
                 $item->delete();
             }
 
-            // delete receipt
+            // soft delete receipt
             $shipmentReceipt->delete();
 
             DB::commit();

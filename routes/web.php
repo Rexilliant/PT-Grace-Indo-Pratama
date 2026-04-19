@@ -107,61 +107,43 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::get('/pemasaran/laporan-penjualan', [SaleController::class, 'index'])
             ->name('admin.pemasaran-laporan-penjualan');
-
         Route::get('/pemasaran/laporan-penjualan/create', [SaleController::class, 'create'])
             ->name('admin.pemasaran-laporan-penjualan.create');
-
         Route::post('/pemasaran/laporan-penjualan', [SaleController::class, 'store'])
             ->name('admin.pemasaran-laporan-penjualan.store');
-
         Route::get('/pemasaran/laporan-penjualan/stocks-by-warehouse', [SaleController::class, 'getStocksByWarehouse'])
             ->name('admin.pemasaran-laporan-penjualan.stocks-by-warehouse');
-
         Route::get('/pemasaran/laporan-penjualan/{id}/edit', [SaleController::class, 'edit'])
             ->name('admin.pemasaran-laporan-penjualan.edit');
-
         Route::put('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'update'])
             ->name('admin.pemasaran-laporan-penjualan.update');
-
         Route::delete('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'destroy'])
             ->name('admin.pemasaran-laporan-penjualan.destroy');
-
         Route::get('/pemasaran/laporan-penjualan/{id}/history-pembayaran', [SaleController::class, 'historyPayment'])
             ->name('admin.pemasaran-laporan-penjualan.history-pembayaran');
-
         Route::get('/pemasaran/laporan-penjualan/{id}/invoice', [SaleController::class, 'invoice'])
             ->name('admin.pemasaran-laporan-penjualan.invoice');
     });
 
     // This Point
-    Route::prefix('admin')
-        ->name('admin.')
-        ->group(function () {
-
-            Route::get('/gudang/laporan-produksi', [ProductionController::class, 'index'])
-                ->name('gudang-laporan-produksi');
-
-            Route::get('/gudang/laporan-produksi/pilih-produk', [ProductionController::class, 'pilihProduk'])
-                ->name('add-pilih-produk');
-
-            Route::get('/add-produk/{productVariant}', [ProductionController::class, 'create'])
-                ->name('add-produk');
-
-            Route::get('/production/materials', [ProductionController::class, 'getMaterialsByWarehouse'])
-                ->name('production.materials');
-
-            Route::post('/production/store', [ProductionController::class, 'store'])
-                ->name('production.store');
-
-            Route::get('/edit-produk/{productionBatch}', [ProductionController::class, 'edit'])
-                ->name('edit-produk');
-
-            Route::put('/edit-produk/{productionBatch}', [ProductionController::class, 'update'])
-                ->name('production.update');
-
-            Route::delete('/production/{productionBatch}', [ProductionController::class, 'destroy'])
-                ->name('production.delete');
-        });
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/gudang/laporan-produksi', [ProductionController::class, 'index'])
+            ->name('gudang-laporan-produksi');
+        Route::get('/gudang/laporan-produksi/pilih-produk', [ProductionController::class, 'pilihProduk'])
+            ->name('add-pilih-produk');
+        Route::get('/add-produk/{productVariant}', [ProductionController::class, 'create'])
+            ->name('add-produk');
+        Route::get('/production/materials', [ProductionController::class, 'getMaterialsByWarehouse'])
+            ->name('production.materials');
+        Route::post('/production/store', [ProductionController::class, 'store'])
+            ->name('production.store');
+        Route::get('/edit-produk/{productionBatch}', [ProductionController::class, 'edit'])
+            ->name('edit-produk');
+        Route::put('/edit-produk/{productionBatch}', [ProductionController::class, 'update'])
+            ->name('production.update');
+        Route::delete('/production/{productionBatch}', [ProductionController::class, 'destroy'])
+            ->name('production.delete');
+    });
 
     // Product Variant
     Route::controller(ProductVariantController::class)->group(function () {
@@ -209,8 +191,8 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::put('/edit/{id}', 'update')->name('update.employee');
         Route::delete('/delete/{id}', 'destroy')->name('delete.employee');
         Route::put('/restore/{id}', 'restore')->name('restore.employee');
-
     });
+
     Route::controller(RoleController::class)->prefix('roles')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/', 'index')->name('roles');
         Route::get('/create', 'create')->name('admin.create-role');
@@ -218,6 +200,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/edit/{id}', 'edit')->name('edit.role');
         Route::put('/edit/{id}', 'update')->name('update.role');
     });
+
     Route::controller(PermissionController::class)->prefix('permissions')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/', 'index')->name('permissions');
         Route::get('/create', 'create')->name('create-permission');
@@ -226,6 +209,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::put('/edit/{id}', 'update')->name('update-permission');
         Route::delete('/delete/{id}', 'destroy')->name('delete-permission');
     });
+
     Route::controller(UserController::class)->prefix('users')->middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/', 'index')->name('users');
         Route::get('/create', 'create')->name('create-user');
@@ -235,6 +219,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::delete('/delete/{id}', 'destroy')->name('delete-user');
         Route::put('/restore/{id}', 'restore')->name('restore-user');
     });
+
     Route::controller(ProcurementController::class)->prefix('procurements')->group(function () {
         Route::get('/create', 'create')->middleware(['auth', 'permission:create-procurements'])->name('create-procurement');
         Route::post('/store', 'store')->middleware(['auth', 'permission:create-procurements'])->name('store-procurement');
@@ -244,6 +229,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
         Route::put('/edit/{id}', 'update')->name('update-procurement');
     });
+
     Route::controller(PurchaseReceiptController::class)->prefix('purchase-receipts')->middleware(['auth', 'role:admin|executive|admin_gudang'])->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:read-purchase-receipts'])->name('purchase-receipts');
         Route::get('/create', 'create')->middleware(['auth', 'permission:create-purchase-receipts'])->name('create-purchase-receipt');
@@ -253,14 +239,18 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::post('/add-media/{id}', 'addMedia')->name('purchase-receipts.add-media');
         Route::delete('/delete/{id}', 'destroy')->name('purchase-receipts.destroy');
     });
+
     Route::controller(MediaController::class)->prefix('media')->group(function () {
         Route::delete('/delete/{mediaId}', 'delete')->name('media.delete');
     });
+
     Route::controller(LogErrorController::class)->middleware(['auth', 'role:admin'])->prefix('log-errors')->group(function () {
         Route::get('/', 'index')->name('log-errors');
     });
+
     Route::get('/procurements/export', [ProcurementController::class, 'export'])
         ->name('procurements.export');
+
     Route::controller(ShipmentController::class)->prefix('shipments')->middleware(['auth', 'role:admin|executive|admin_pemasaran'])->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:read-shipments'])->name('shipments');
         Route::get('/create', 'create')->middleware(['auth', 'permission:create-shipments'])->name('create-shipment');
@@ -270,6 +260,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::delete('/delete/{id}', 'destroy')->name('delete-shipment');
         Route::get('/{id}/items', 'getShipmentItems')->name('shipments.items');
     });
+
     Route::controller(WarehouseController::class)->prefix('warehouses')->group(function () {
         Route::get('/', 'index')->name('warehouses');
         Route::get('/create', 'create')->name('create-warehouse');
@@ -279,6 +270,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/cities/{adminCode1}', 'getCities')->name('warehouse-cities');
         Route::delete('/delete/{id}', 'destroy')->name('delete-warehouse');
     });
+
     Route::controller(ShipmentReceiptController::class)->prefix('shipment-receipts')->group(function () {
         Route::get('/', 'index')->name('shipment-receipts');
         Route::get('/create', 'create')->name('create-shipment-receipt');
