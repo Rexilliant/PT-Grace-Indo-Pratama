@@ -10,10 +10,10 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('purchase_receipts', function (Blueprint $table) {
+        Schema::table('procurements', function (Blueprint $table) {
             $table->foreignId('deleted_by')
                 ->nullable()
-                ->after('received_by')
+                ->after('rejected_by')
                 ->constrained('users')
                 ->nullOnDelete();
         });
@@ -24,7 +24,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('purchase_receipts', function (Blueprint $table) {
+        Schema::table('procurements', function (Blueprint $table) {
             $table->dropConstrainedForeignId('deleted_by');
         });
     }
