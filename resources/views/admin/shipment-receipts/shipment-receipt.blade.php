@@ -102,11 +102,13 @@
                 Export .xlsx
             </a>
 
-            <a href="{{ route('create-shipment-receipt') }}"
-                class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                <span class="text-lg leading-none">+</span>
-                Tambah Baru
-            </a>
+            @can('tambah penerimaan pengiriman produk')
+                <a href="{{ route('create-shipment-receipt') }}"
+                    class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    <span class="text-lg leading-none">+</span>
+                    Tambah Baru
+                </a>
+            @endcan
         </div>
 
         <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm">
@@ -145,9 +147,9 @@
                                 <td class="px-6 py-4">
                                     @php
                                         $statusClass = match ($shipmentReceipt->status) {
-                                            'received' => 'bg-blue-100 text-blue-800',
-                                            'approved' => 'bg-green-100 text-green-800',
-                                            'rejected' => 'bg-red-100 text-red-800',
+                                            'diterima' => 'bg-blue-100 text-blue-800',
+                                            'disetujui' => 'bg-green-100 text-green-800',
+                                            'ditolak' => 'bg-red-100 text-red-800',
                                             default => 'bg-gray-100 text-gray-800',
                                         };
                                     @endphp
@@ -157,21 +159,29 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <a href="{{ route('edit-shipment-receipt', $shipmentReceipt->id) }}"
-                                        class="text-blue-600 hover:underline">
-                                        Sunting
-                                    </a>
+                                    @canany([
+                                        'edit penerimaan pengiriman produk',
+                                        'edit status penerimaan pengiriman
+                                        produk',
+                                        'baca penerimaan pengiriman produk',
+                                        ])
+                                        <a href="{{ route('edit-shipment-receipt', $shipmentReceipt->id) }}"
+                                            class="text-blue-600 hover:underline">
+                                            Sunting
+                                        </a>
+                                    @endcanany
 
-                                    @if ($shipmentReceipt->status === 'received')
+                                    @can('hapus penerimaan pengiriman produk')
                                         |
-                                        <form action="{{ route('delete-shipment-receipt', ['id' => $shipmentReceipt->id]) }}" method="POST" class="form-delete inline-block">
+                                        <form action="{{ route('delete-shipment-receipt', ['id' => $shipmentReceipt->id]) }}"
+                                            method="POST" class="form-delete inline-block">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600 hover:underline">
                                                 Hapus
                                             </button>
                                         </form>
-                                    @endif
+                                    @endcan
                                 </td>
                             </tr>
                         @empty

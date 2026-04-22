@@ -99,6 +99,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,'.$user->id,
             'password' => 'nullable|string|min:6|confirmed',
+            'employee_id' => 'nullable|exists:employees,id',
+
 
             'role' => 'nullable|exists:roles,name',
             'permissions' => 'array',
@@ -108,6 +110,7 @@ class UserController extends Controller
         try {
             $user->name = $request->name;
             $user->email = $request->email;
+            $user->employee_id = $request->employee_id;
 
             if ($request->filled('password')) {
                 $user->password = Hash::make($request->password);

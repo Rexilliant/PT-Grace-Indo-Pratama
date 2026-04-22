@@ -47,7 +47,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
                 <div class="text-xs font-bold text-gray-700">Nama Lengkap</div>
-                <div class="text-sm font-semibold text-gray-900">{{ auth()->user()->employee?->name ?? 'No Name' }}</div>
+                <div class="text-sm font-semibold text-gray-900">{{ auth()->user()->employee?->name ?? auth()->user()->name  }}</div>
             </div>
             <div>
                 <div class="text-xs font-bold text-gray-700">Tanggal Lahir</div>

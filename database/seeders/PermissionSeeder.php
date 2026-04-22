@@ -2,79 +2,132 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class PermissionSeeder extends Seeder
 {
     public function run(): void
     {
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        $now = Carbon::now();
+
         $permissions = [
-            ['name' => 'access dashboard', 'guard_name' => 'web'],
-            ['name' => 'create-procurements', 'guard_name' => 'web'],
-            ['name' => 'update-procurements', 'guard_name' => 'web'],
-            ['name' => 'create-purchase-receipts', 'guard_name' => 'web'],
-            ['name' => 'update-purchase-receipts', 'guard_name' => 'web'],
-            ['name' => 'read-purchase-receipts', 'guard_name' => 'web'],
-            ['name' => 'read-procurements', 'guard_name' => 'web'],
-            ['name' => 'show-purchase-receipts', 'guard_name' => 'web'],
-            ['name' => 'show-procurements', 'guard_name' => 'web'],
-            ['name' => 'create-productions', 'guard_name' => 'web'],
-            ['name' => 'read-productions', 'guard_name' => 'web'],
-            ['name' => 'show-productions', 'guard_name' => 'web'],
-            ['name' => 'update-productions', 'guard_name' => 'web'],
-            ['name' => 'delete-productions', 'guard_name' => 'web'],
-            ['name' => 'create-shipments', 'guard_name' => 'web'],
-            ['name' => 'read-shipments', 'guard_name' => 'web'],
-            ['name' => 'update-shipments', 'guard_name' => 'web'],
-            ['name' => 'show-shipments', 'guard_name' => 'web'],
-            ['name' => 'delete-shipments', 'guard_name' => 'web'],
-            ['name' => 'read-products', 'guard_name' => 'web'],
-            ['name' => 'update-products', 'guard_name' => 'web'],
-            ['name' => 'create-products', 'guard_name' => 'web'],
-            ['name' => 'read-product-variants', 'guard_name' => 'web'],
-            ['name' => 'create-product-variants', 'guard_name' => 'web'],
-            ['name' => 'update-product-variants', 'guard_name' => 'web'],
-            ['name' => 'read-permissions', 'guard_name' => 'web'],
-            ['name' => 'create-permissions', 'guard_name' => 'web'],
-            ['name' => 'update-permissions', 'guard_name' => 'web'],
-            ['name' => 'delete-permissions', 'guard_name' => 'web'],
-            ['name' => 'create-roles', 'guard_name' => 'web'],
-            ['name' => 'read-roles', 'guard_name' => 'web'],
-            ['name' => 'show-roles', 'guard_name' => 'web'],
-            ['name' => 'update-roles', 'guard_name' => 'web'],
-            ['name' => 'delete-roles', 'guard_name' => 'web'],
-            ['name' => 'read-logs', 'guard_name' => 'web'],
-            ['name' => 'read-employees', 'guard_name' => 'web'],
-            ['name' => 'show-employees', 'guard_name' => 'web'],
-            ['name' => 'create-employees', 'guard_name' => 'web'],
-            ['name' => 'update-employees', 'guard_name' => 'web'],
-            ['name' => 'delete-employees', 'guard_name' => 'web'],
-            ['name' => 'read-users', 'guard_name' => 'web'],
-            ['name' => 'show-users', 'guard_name' => 'web'],
-            ['name' => 'create-users', 'guard_name' => 'web'],
-            ['name' => 'update-users', 'guard_name' => 'web'],
-            ['name' => 'delete-users', 'guard_name' => 'web'],
-            ['name' => 'read-raw-materials', 'guard_name' => 'web'],
-            ['name' => 'show-raw-materials', 'guard_name' => 'web'],
-            ['name' => 'create-raw-materials', 'guard_name' => 'web'],
-            ['name' => 'update-raw-materials', 'guard_name' => 'web'],
-            ['name' => 'delete-raw-materials', 'guard_name' => 'web'],
-            ['name' => 'show-stock-raw-materials', 'guard_name' => 'web'],
+            // Dashboard
+            'akses dashboard',
+
+            // Gudang
+            'tambah gudang',
+            'edit gudang',
+            'hapus gudang',
+            'baca gudang',
+
+            // Pengadaan Bahan Baku
+            'tambah pengadaan bahan baku',
+            'edit pengadaan bahan baku',
+            'edit status pengadaan bahan baku',
+            'hapus pengadaan bahan baku',
+            'baca pengadaan bahan baku',
+
+            // Bahan Baku
+            'tambah bahan baku',
+            'edit bahan baku',
+            'hapus bahan baku',
+            'baca bahan baku',
+            'baca stok bahan baku',
+
+            // Bahan Baku Masuk
+            'tambah bahan baku masuk',
+            'edit bahan baku masuk',
+            'hapus bahan baku masuk',
+            'baca bahan baku masuk',
+
+            // Produksi
+            'tambah produksi',
+            'edit produksi',
+            'hapus produksi',
+            'baca produksi',
+
+            // Pengiriman Produk
+            'tambah pengiriman produk',
+            'edit pengiriman produk',
+            'edit status pengiriman produk',
+            'edit status dikirim pengiriman produk',
+            'hapus pengiriman produk',
+            'baca pengiriman produk',
+
+            // Penerimaan Pengiriman Produk
+            'tambah penerimaan pengiriman produk',
+            'edit penerimaan pengiriman produk',
+            'edit status penerimaan pengiriman produk',
+            'hapus penerimaan pengiriman produk',
+            'baca penerimaan pengiriman produk',
+
+            // Penjualan
+            'tambah penjualan',
+            'edit penjualan',
+            'hapus penjualan',
+            'baca penjualan',
+
+            // Karyawan
+            'tambah karyawan',
+            'edit karyawan',
+            'hapus karyawan',
+            'baca karyawan',
+
+            // Akun
+            'tambah akun',
+            'edit akun',
+            'hapus akun',
+            'baca akun',
+
+            // Produk
+            'tambah produk',
+            'edit produk',
+            'hapus produk',
+            'baca produk',
+
+            // Produk Varian
+            'tambah produk varian',
+            'edit produk varian',
+            'hapus produk varian',
+            'baca produk varian',
+
+            // Stok Produk
+            'baca produk stok',
+
+            // Role
+            'tambah role',
+            'edit role',
+            'hapus role',
+            'baca role',
+
+            // Izin / Permission
+            'tambah izin',
+            'edit izin',
+            'hapus izin',
+            'baca izin',
+
+            // Lainnya
+            'baca log error',
         ];
 
         foreach ($permissions as $permission) {
-            DB::table('permissions')->updateOrInsert(
+            Permission::updateOrCreate(
                 [
-                    'name' => $permission['name'],
-                    'guard_name' => $permission['guard_name'],
+                    'name' => $permission,
+                    'guard_name' => 'web',
                 ],
                 [
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
+                    'updated_at' => $now,
+                    'created_at' => $now,
                 ]
             );
         }
+
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 }

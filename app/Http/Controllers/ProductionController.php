@@ -64,7 +64,7 @@ class ProductionController extends Controller
         $productVariant->load('product');
 
         $personResponsible = Auth::user();
-        $warehouses = Warehouse::all();
+        $warehouses = Warehouse::where('type', 'produksi')->get();
 
         return view('admin.add-produk', compact(
             'productVariant',

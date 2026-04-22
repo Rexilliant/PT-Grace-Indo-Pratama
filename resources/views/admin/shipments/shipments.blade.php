@@ -107,7 +107,7 @@
                 Export .xlsx
             </a>
 
-            @can('create-shipments')
+            @can('tambah pengiriman produk')
                 <a href="{{ route('create-shipment') }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
                     <span class="text-lg leading-none">+</span>
@@ -148,24 +148,29 @@
                                         class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{{ $shipment->status }}</span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <a href="{{ route('edit-shipment', $shipment->id) }}"
-                                        class="text-blue-600 hover:underline">Sunting</a>
-                                    @if ($shipment->status == 'Menunggu')
-                                        |
-                                        <form action="{{ route('delete-shipment', ['id' => $shipment->id]) }}"
-                                            method="POST" class="inline-block form-delete">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:underline">
-                                                Hapus
-                                            </button>
-                                        </form>
-                                    @endif
+                                    @canany(['edit pengiriman produk', 'edit status pengiriman produk', 'baca pengiriman
+                                        produk'])
+                                        <a href="{{ route('edit-shipment', $shipment->id) }}"
+                                            class="text-blue-600 hover:underline">Sunting</a>
+                                    @endcanany
+                                    @can('hapus pengiriman produk')
+                                        @if ($shipment->status == 'Menunggu')
+                                            |
+                                            <form action="{{ route('delete-shipment', ['id' => $shipment->id]) }}"
+                                                method="POST" class="inline-block form-delete">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:underline">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endcan
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">Data Tidak Ada</td>
+                                <td colspan="7" class="px-6 py-4 text-center text-gray-500">Data Tidak Ada</td>
                             </tr>
                         @endforelse
                     </tbody>

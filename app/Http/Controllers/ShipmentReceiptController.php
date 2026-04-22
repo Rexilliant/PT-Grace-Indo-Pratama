@@ -125,7 +125,7 @@ class ShipmentReceiptController extends Controller
 
             $shipmentReceipt = ShipmentReceipt::create([
                 'shipment_id' => $validated['shipment_id'],
-                'status' => 'received',
+                'status' => 'diterima',
                 'received_by_id' => Auth::id(),
                 'received_at' => $validated['received_at'],
                 'notes' => $validated['notes'] ?? null,
@@ -200,11 +200,11 @@ class ShipmentReceiptController extends Controller
         ])->findOrFail($id);
 
         $oldStatus = $shipmentReceipt->status;
-        $isLocked = $oldStatus !== 'received';
+        $isLocked = $oldStatus !== 'diterima';
 
         $rules = [
-            'status' => 'required|in:received,approved,rejected',
-            'reject_reason' => 'nullable|string|required_if:status,rejected',
+            'status' => 'required|in:diterima,disetujui,ditolak',
+            'reject_reason' => 'nullable|string|required_if:status,ditolak',
         ];
 
         if (!$isLocked) {
@@ -291,7 +291,7 @@ class ShipmentReceiptController extends Controller
             | Saat status berubah menjadi approved, masukkan stok ke gudang tujuan
             | dan catat pergerakan stok sebagai type = in.
             */
-            if ($newStatus === 'approved') {
+            if ($newStatus === 'disetujui') {
                 $shipmentReceipt->approved_by_id = Auth::id();
                 $shipmentReceipt->approved_at = now();
                 $shipmentReceipt->rejected_by_id = null;
@@ -301,7 +301,7 @@ class ShipmentReceiptController extends Controller
                 $shipmentReceipt->shipment->save();
 
                 // Jalankan stock in hanya saat transisi ke approved pertama kali
-                if ($oldStatus !== 'approved') {
+                if ($oldStatus !== 'disetujui') {
                     $destinationWarehouseId = $shipmentReceipt->shipment->warehouse_id;
 
                     foreach ($shipmentReceipt->items as $receiptItem) {
@@ -360,7 +360,7 @@ class ShipmentReceiptController extends Controller
             | REJECTED
             |--------------------------------------------------------------------------
             */
-            if ($newStatus === 'rejected') {
+            if ($newStatus === 'ditolak') {
                 $shipmentReceipt->rejected_by_id = Auth::id();
                 $shipmentReceipt->rejected_at = now();
                 $shipmentReceipt->approved_by_id = null;
@@ -374,7 +374,7 @@ class ShipmentReceiptController extends Controller
             | RECEIVED
             |--------------------------------------------------------------------------
             */
-            if ($newStatus === 'received') {
+            if ($newStatus === 'diterima') {
                 $shipmentReceipt->approved_by_id = null;
                 $shipmentReceipt->approved_at = null;
                 $shipmentReceipt->rejected_by_id = null;

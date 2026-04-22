@@ -4,6 +4,11 @@
 @section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-gudang-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
+@php
+    $canEditWarehouse = auth()->user()->can('edit gudang');
+    $canEditEmployee = auth()->user()->can('edit karyawan');
+@endphp
+
 @section('addCss')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -39,6 +44,11 @@
         .select2-container {
             width: 100% !important;
         }
+
+        .readonly-style {
+            background-color: #F9FAFB !important;
+            cursor: not-allowed !important;
+        }
     </style>
 @endsection
 
@@ -49,6 +59,12 @@
             <span class="mx-1 text-gray-400">›</span>
             <span class="text-blue-600">Edit Gudang</span>
         </div>
+
+        @unless ($canEditWarehouse)
+            <div class="rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm font-medium text-yellow-800">
+                Anda hanya memiliki akses baca. Data gudang tidak dapat diubah.
+            </div>
+        @endunless
     </section>
 
     <form action="{{ route('update-warehouse', $warehouse->id) }}" method="POST" class="space-y-4">
@@ -57,26 +73,28 @@
 
         <input type="hidden" name="province" id="provinceNameInput" value="{{ old('province', $warehouse->province) }}">
 
-        <section class="bg-white p-5 shadow border border-gray-300 rounded-lg">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <section class="rounded-lg border border-gray-300 bg-white p-5 shadow">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-2">
+                    <label class="mb-2 block text-xs font-bold text-gray-700">
                         Nama Gudang <span class="text-red-500">*</span>
                     </label>
                     <input type="text" name="name" value="{{ old('name', $warehouse->name) }}"
                         placeholder="Masukkan nama gudang"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
+                        class="w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-gray-500 focus:ring-0 {{ $canEditWarehouse ? 'bg-white' : 'readonly-style' }}"
+                        {{ $canEditWarehouse ? '' : 'readonly' }} />
                     @error('name')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-2">
+                    <label class="mb-2 block text-xs font-bold text-gray-700">
                         Type Gudang <span class="text-red-500">*</span>
                     </label>
                     <select name="type" id="typeSelect"
-                        class="w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900">
+                        class="w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900 {{ $canEditWarehouse ? '' : 'readonly-style' }}"
+                        {{ $canEditWarehouse ? '' : 'disabled' }}>
                         <option value="">-- Pilih Type --</option>
                         <option value="pemasaran" {{ old('type', $warehouse->type) == 'pemasaran' ? 'selected' : '' }}>
                             Pemasaran
@@ -85,17 +103,23 @@
                             Produksi
                         </option>
                     </select>
+
+                    @unless ($canEditWarehouse)
+                        <input type="hidden" name="type" value="{{ old('type', $warehouse->type) }}">
+                    @endunless
+
                     @error('type')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-2">
+                    <label class="mb-2 block text-xs font-bold text-gray-700">
                         Provinsi <span class="text-red-500">*</span>
                     </label>
                     <select name="province_id" id="provinceSelect"
-                        class="w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900">
+                        class="w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900 {{ $canEditWarehouse ? '' : 'readonly-style' }}"
+                        {{ $canEditWarehouse ? '' : 'disabled' }}>
                         <option value="">-- Pilih Provinsi --</option>
                         @foreach ($provinces as $prov)
                             <option value="{{ $prov['province_id'] }}" data-name="{{ $prov['province_name'] }}"
@@ -104,6 +128,11 @@
                             </option>
                         @endforeach
                     </select>
+
+                    @unless ($canEditWarehouse)
+                        <input type="hidden" name="province_id" value="{{ old('province_id', $selectedProvinceId) }}">
+                    @endunless
+
                     @error('province')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
@@ -113,16 +142,23 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 mb-2">
+                    <label class="mb-2 block text-xs font-bold text-gray-700">
                         Kota / Kabupaten <span class="text-red-500">*</span>
                     </label>
                     <select name="city" id="citySelect"
-                        class="w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900">
+                        class="w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900 {{ $canEditWarehouse ? '' : 'readonly-style' }}"
+                        {{ $canEditWarehouse ? '' : 'disabled' }}>
                         <option value="">-- Pilih Kota / Kabupaten --</option>
                     </select>
+
+                    @unless ($canEditWarehouse)
+                        <input type="hidden" name="city" value="{{ old('city', $warehouse->city) }}">
+                    @endunless
+
                     <p id="cityLoadingText" class="mt-1 hidden text-xs text-gray-500">
                         Memuat kota / kabupaten...
                     </p>
+
                     @error('city')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
@@ -133,13 +169,15 @@
         <div class="flex items-center justify-end gap-4 pt-2">
             <a href="{{ route('warehouses') }}"
                 class="inline-flex items-center justify-center rounded-lg bg-gray-500 px-10 py-3 text-sm font-bold text-white hover:bg-gray-600">
-                Batal
+                Kembali
             </a>
 
-            <button type="submit"
-                class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
-                Update
-            </button>
+            @if ($canEditWarehouse)
+                <button type="submit"
+                    class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
+                    Update
+                </button>
+            @endif
         </div>
     </form>
 
@@ -184,10 +222,17 @@
                                 {{ $employee->position ?? '-' }}
                             </td>
                             <td class="border border-gray-200 px-4 py-3">
-                                <a href="{{ route('edit.employee', $employee->id) }}"
-                                    class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700">
-                                    Edit
-                                </a>
+                                @if ($canEditEmployee)
+                                    <a href="{{ route('edit.employee', $employee->id) }}"
+                                        class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700">
+                                        Edit
+                                    </a>
+                                @else
+                                    <span
+                                        class="inline-flex cursor-not-allowed items-center justify-center rounded-md bg-gray-300 px-3 py-2 text-xs font-bold text-gray-600">
+                                        Lihat Saja
+                                    </span>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -208,6 +253,7 @@
 
     <script>
         $(document).ready(function() {
+            const canEditWarehouse = @json($canEditWarehouse);
             const oldProvinceId = @json(old('province_id', $selectedProvinceId));
             const oldCity = @json(old('city', $warehouse->city));
 
@@ -221,12 +267,14 @@
                 loadCities(oldProvinceId, oldCity);
             }
 
-            $('#provinceSelect').on('change', function() {
-                const provinceId = $(this).val();
+            if (canEditWarehouse) {
+                $('#provinceSelect').on('change', function() {
+                    const provinceId = $(this).val();
 
-                syncProvinceName();
-                loadCities(provinceId, '');
-            });
+                    syncProvinceName();
+                    loadCities(provinceId, '');
+                });
+            }
         });
 
         function initTypeSelect() {

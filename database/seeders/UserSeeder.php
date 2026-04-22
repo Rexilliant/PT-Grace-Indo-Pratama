@@ -2,51 +2,40 @@
 
 namespace Database\Seeders;
 
-use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // ========================
-        // 1. Buat Employee
-        // ========================
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // ========================
-        // 2. Buat User
-        // ========================
-        $user = User::create([
-            'name' => 'Admin',
-            'email' => 'test@example.com',
-            'password' => Hash::make('password'), // <-- password login
-        ]);
-
-        // ========================
-        // 3. Role & Permission
-        // ========================
-        $permission = Permission::firstOrCreate([
-            'name' => 'access dashboard',
-            'guard_name' => 'web',
-        ]);
+        $user = User::updateOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('password'),
+            ]
+        );
 
         $role = Role::firstOrCreate([
-            'name' => 'admin',
+            'name' => 'master',
             'guard_name' => 'web',
         ]);
 
-        $role->givePermissionTo($permission);
+        $allPermissions = Permission::where('guard_name', 'web')->get();
 
-        // ========================
-        // 4. Assign Role ke User
-        // ========================
-        $user->assignRole($role);
+        $role->syncPermissions($allPermissions);
+
+        if (! $user->hasRole($role->name)) {
+            $user->assignRole($role);
+        }
+
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 }

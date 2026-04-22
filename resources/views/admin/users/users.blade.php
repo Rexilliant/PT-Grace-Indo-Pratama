@@ -7,16 +7,16 @@
     {{-- breadcrumb --}}
     <section class="mb-5">
         <div class="text-xl font-semibold text-gray-700">
-            <span class="text-gray-700">User</span>
+            <span class="text-gray-700">Akun</span>
             <span class="mx-1 text-gray-400">/</span>
-            <span class="text-blue-600">Daftar User</span>
+            <span class="text-blue-600">Daftar Akun</span>
         </div>
     </section>
 
     <section class="p-5 rounded-2xl shadow-lg border border-gray-300">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-2xl font-semibold tracking-tight text-gray-900">Users</h1>
+                <h1 class="text-2xl font-semibold tracking-tight text-gray-900">Akun</h1>
                 <p class="mt-1 text-sm text-gray-500">
                     Menampilkan
                     <span class="font-medium text-gray-700">{{ $users->firstItem() ?? 0 }}</span>
@@ -30,10 +30,12 @@
                 </p>
             </div>
 
-            <a href="{{ route('create-user') }}"
-                class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                + Tambah User
-            </a>
+            @can('tambah akun')
+                <a href="{{ route('create-user') }}"
+                    class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    + Tambah User
+                </a>
+            @endcan
         </div>
 
         {{-- Card Table --}}
@@ -108,12 +110,14 @@
                                 <td class="px-6 py-4">
                                     <div class="flex justify-end gap-2">
 
-                                        <a href="{{ route('edit-user', $user->id) }}"
-                                            class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-500">
-                                            Edit
-                                        </a>
+                                        @canany(['edit akun', 'baca akun'])
+                                            <a href="{{ route('edit-user', $user->id) }}"
+                                                class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-500">
+                                                Edit
+                                            </a>
+                                        @endcanany
 
-                                        @if ($user->deleted_at !== null)
+                                        {{-- @if ($user->deleted_at !== null)
                                             <form action="{{ route('restore-user', $user->id) }}" method="POST"
                                                 onsubmit="return confirm('Kembalikan user ini?')">
                                                 @csrf
@@ -123,16 +127,19 @@
                                                     Restore
                                                 </button>
                                             </form>
-                                        @endif
+                                        @endif --}}
 
-                                        <form action="{{ route('delete-user', $user->id) }}" method="POST" onsubmit="return confirm('Hapus user ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="inline-flex items-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-red-500">
-                                                Hapus
-                                            </button>
-                                        </form>
+                                        @can('hapus akun')
+                                            <form action="{{ route('delete-user', $user->id) }}" method="POST"
+                                                onsubmit="return confirm('Hapus user ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="inline-flex items-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-red-500">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        @endcan
 
                                     </div>
                                 </td>

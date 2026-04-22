@@ -14,6 +14,7 @@
             <a href="#" class="text-blue-600 hover:underline">Barang Masuk</a>
         </div>
     </section>
+
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         <form action="" method="get">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 justify-between items-end">
@@ -24,6 +25,7 @@
                     <input type="text" name="name" value="{{ request('name') }}" placeholder="Nama"
                         class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
                 </div>
+
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
                         Warehouse
@@ -38,6 +40,7 @@
                         @endforeach
                     </select>
                 </div>
+
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
                         Tanggal Mulai
@@ -45,6 +48,7 @@
                     <input type="date" name="date_from" value="{{ request('date_from') }}" placeholder="Tanggal Mulai"
                         class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
                 </div>
+
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
                         Tanggal Akhir
@@ -52,7 +56,7 @@
                     <input type="date" name="date_to" value="{{ request('date_to') }}" placeholder="Tanggal Akhir"
                         class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
                 </div>
-                {{-- Per Page --}}
+
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
                         Tampilkan
@@ -67,6 +71,7 @@
                         @endforeach
                     </select>
                 </div>
+
                 <button type="submit"
                     class="rounded-md bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 transition">
                     Filter
@@ -79,6 +84,7 @@
             </div>
         </form>
     </section>
+
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         {{-- top bar --}}
         <div class="mb-5 flex items-center gap-5">
@@ -92,7 +98,7 @@
                 Export .xlsx
             </a>
 
-            @can('create-purchase-receipts')
+            @can('tambah bahan baku masuk')
                 <a href="{{ route('create-purchase-receipt') }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
                     <span class="text-lg leading-none">+</span>
@@ -110,33 +116,66 @@
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Masuk</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama Penerima</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Gudang</th>
-                            {{-- ✅ tambah kolom --}}
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
                         </tr>
                     </thead>
 
                     <tbody class="bg-gray-200 divide-y divide-gray-500">
                         @forelse ($receipts as $receipt)
+                            @php
+                                $canEdit =
+                                    auth()->user()->can('edit bahan baku masuk') &&
+                                    (int) $receipt->received_by === (int) auth()->id();
+
+                                $canRead =
+                                    auth()->user()->can('baca bahan baku masuk') ||
+                                    auth()->user()->can('edit bahan baku masuk');
+
+                                $canDelete = auth()->user()->can('hapus bahan baku masuk');
+                            @endphp
+
                             <tr class="hover:bg-gray-300">
                                 <td class="px-6 py-4 font-semibold">{{ $receipt->received_at->format('d/m/Y') }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $receipt->receivedBy->name }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $receipt->warehouse->name }}</td>
                                 <td class="px-6 py-3">
                                     <div class="flex items-center justify-start gap-6 font-semibold">
-                                        <a href="{{ route('edit-barang-masuk', $receipt->id) }}"
-                                            class="text-[#2E7E3F] hover:underline">Sunting</a>
-                                        <form action="{{ route('purchase-receipts.destroy', ['id' => $receipt->id]) }}"
-                                            method="POST" class="inline-block form-delete">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:underline">
+                                        {{-- SUNGTING --}}
+                                        @if ($canEdit)
+                                            <a href="{{ route('edit-purchase-receipt', $receipt->id) }}"
+                                                class="text-[#2E7E3F] hover:underline">
+                                                Sunting
+                                            </a>
+                                        @elseif ($canRead)
+                                            <span class="text-gray-400 cursor-not-allowed">
+                                                Sunting
+                                            </span>
+                                        @endif
+
+                                        {{-- HAPUS --}}
+                                        @if ($canDelete)
+                                            <form action="{{ route('purchase-receipts.destroy', ['id' => $receipt->id]) }}"
+                                                method="POST" class="inline-block form-delete">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:underline">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="text-gray-400 cursor-not-allowed">
                                                 Hapus
-                                            </button>
-                                        </form>
+                                            </span>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
                         @empty
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-center text-gray-500 font-semibold">
+                                    Data barang masuk tidak ditemukan.
+                                </td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -159,8 +198,8 @@
             </div>
         </div>
     </section>
-
 @endsection
+
 @section('addJs')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -172,6 +211,7 @@
                 text: '{{ session('success') }}',
             });
         @endif
+
         @if (session('error'))
             Swal.fire({
                 icon: 'error',
@@ -179,6 +219,7 @@
                 text: '{{ session('error') }}',
             });
         @endif
+
         document.querySelectorAll('.form-delete').forEach(form => {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();

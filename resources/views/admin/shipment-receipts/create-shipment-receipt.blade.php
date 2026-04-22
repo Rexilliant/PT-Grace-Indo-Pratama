@@ -84,7 +84,7 @@
                     <label class="{{ $labelClass }}">Status</label>
                     <select name="status" x-model="status"
                         class="@error('status') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
-                        <option value="received" @selected(old('status') == 'received')>Received</option>
+                        <option value="diterima" @selected(old('status') == 'diterima')>Diterima</option>
                     </select>
                     @error('status')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>

@@ -532,7 +532,7 @@
             <div class="card">
                 <div class="card-header">
                     <div>
-                        <div class="card-title">Tren penjualan 6 bulan terakhir</div>
+                    <div class="card-title">Tren penjualan</div>
                         <div class="card-subtitle">Berdasarkan total_amount per bulan</div>
                     </div>
                 </div>
@@ -545,7 +545,7 @@
                 <div class="card-header">
                     <div>
                         <div class="card-title">Komposisi status pembayaran</div>
-                        <div class="card-subtitle">Lunas, sebagian, belum bayar</div>
+                        <div class="card-subtitle">Lunas, terhutang</div>
                     </div>
                 </div>
                 <div class="chart-wrap" style="height: 260px;">
@@ -580,14 +580,14 @@
                             @php
                                 $paymentBadge = match ($sale->payment_status) {
                                     'lunas' => 'badge-success',
-                                    'sebagian' => 'badge-warning',
+                                    'terhutang' => 'badge-warning',
                                     default => 'badge-danger',
                                 };
 
                                 $paymentLabel = match ($sale->payment_status) {
                                     'lunas' => 'Lunas',
-                                    'sebagian' => 'Sebagian',
-                                    default => 'Belum Bayar',
+                                    'terhutang' => 'Terhutang',
+                                    default => 'Terhutang',
                                 };
                             @endphp
                             <tr>
@@ -799,14 +799,13 @@
                 new Chart(paymentCtx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Lunas', 'Sebagian', 'Belum Bayar'],
+                        labels: ['Lunas', 'Terhutang'],
                         datasets: [{
                             data: [
                                 {{ $paymentComposition['lunas'] }},
-                                {{ $paymentComposition['sebagian'] }},
-                                {{ $paymentComposition['belum_bayar'] }}
+                                {{ $paymentComposition['terhutang'] }},
                             ],
-                            backgroundColor: ['#275931', '#f59e0b', '#ef4444'],
+                            backgroundColor: ['#275931', '#f59e0b'],
                             borderWidth: 0,
                             hoverOffset: 6
                         }]

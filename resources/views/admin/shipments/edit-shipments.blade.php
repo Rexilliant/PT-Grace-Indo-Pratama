@@ -27,7 +27,7 @@
         $inputErrorClass = $inputBaseClass . ' border border-red-500 bg-red-50';
         $actionBtnClass = 'inline-flex items-center justify-center rounded-lg px-10 py-3 text-sm font-bold text-white';
 
-        $status = $shipment->status ?? 'Menunggu';
+        $status = old('status', $shipment->status ?? 'Menunggu');
         $statusLower = strtolower($status);
 
         $statusDate = null;
@@ -41,16 +41,78 @@
             $statusUser = optional($shipment->approvedBy)->name ?? '-';
         }
 
-        $statusOptions = match ($status) {
-            'Menunggu' => ['Menunggu', 'Disetujui', 'Ditolak'],
-            'Disetujui' => ['Disetujui', 'Dikirim'],
-            'Dikirim' => ['Dikirim', 'Selesai'],
-            'Ditolak' => ['Ditolak'],
-            'Selesai' => ['Selesai'],
-            default => [$status],
-        };
+        $canEditShipment = auth()->user()->can('edit pengiriman produk');
+        $canEditShipmentStatus = auth()->user()->can('edit status pengiriman produk');
+        $canSendShipmentOnly = auth()->user()->can('kirim pengiriman produk');
 
-        $isStatusLocked = in_array($status, ['Ditolak', 'Selesai']) || !auth()->user()->can('update-shipments');
+        /**
+         * RULE:
+         * - Detail hanya boleh diedit saat status Menunggu + punya permission edit pengiriman produk
+         * - Status Menunggu:
+         *      - yg punya edit status => bisa ke Disetujui / Ditolak
+         * - Status Disetujui:
+         *      - yg punya edit status ATAU kirim pengiriman produk => bisa ke Dikirim
+         * - Status Ditolak:
+         *      - lock total, tidak bisa balik ke Menunggu
+         * - Status Dikirim:
+         *      - lock total, tidak bisa diubah apa pun lagi
+         * - Status Selesai:
+         *      - lock total
+         */
+        $isDetailEditable = $status === 'Menunggu' && $canEditShipment;
+
+        $statusOptions = [$status];
+        $canChangeStatus = false;
+
+        if ($status === 'Menunggu' && $canEditShipmentStatus) {
+            $statusOptions = ['Menunggu', 'Disetujui', 'Ditolak'];
+            $canChangeStatus = true;
+        } elseif ($status === 'Disetujui' && ($canEditShipmentStatus || $canSendShipmentOnly)) {
+            $statusOptions = ['Disetujui', 'Dikirim'];
+            $canChangeStatus = true;
+        } else {
+            $statusOptions = [$status];
+            $canChangeStatus = false;
+        }
+
+        $isStatusLocked = !$canChangeStatus;
+
+        $initialItems = old(
+            'items',
+            $shipment->shipmentItems
+                ->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'product_stock_id' => $item->product_stock_id,
+                        'quantity' => $item->quantity,
+                        'sku' => $item->productStock->productVariant->sku ?? '-',
+                        'product_name' => $item->productStock->productVariant->name ?? '-',
+                        'warehouse_name' =>
+                            $item->productStock->warehouse->name ?? ($item->productStock->province ?? '-'),
+                        'stock' => $item->productStock->stock ?? 0,
+                    ];
+                })
+                ->values()
+                ->toArray(),
+        );
+
+        $productStocks = $productStocks ?? collect();
+        $productStockOptions = $productStocks
+            ->map(function ($stock) {
+                return [
+                    'id' => $stock->id,
+                    'sku' => $stock->productVariant->sku ?? '-',
+                    'product_name' => $stock->productVariant->name ?? '-',
+                    'warehouse_name' => $stock->warehouse->name ?? ($stock->province ?? '-'),
+                    'stock' => $stock->stock ?? 0,
+                    'label' => ($stock->productVariant->sku ?? '-') . ' - ' . ($stock->productVariant->name ?? '-'),
+                ];
+            })
+            ->values();
+
+        $canUploadInvoice = $status === 'Disetujui' && ($canEditShipmentStatus || $canSendShipmentOnly);
+        $canEditShipmentDate = $status === 'Disetujui' && ($canEditShipmentStatus || $canSendShipmentOnly);
+        $showSubmitButton = $isDetailEditable || $canChangeStatus;
     @endphp
 
     <section class="mb-5">
@@ -64,12 +126,16 @@
     </section>
 
     <div x-data="shipmentEditForm({
-        status: @js($status),
+        status: @js(old('status', $status)),
         successMessage: @js(session('success')),
         errorMessage: @js(session('error')),
+        canEditDetail: @js($isDetailEditable),
+        items: @js($initialItems),
+        productStocks: @js($productStockOptions),
+        validationErrors: @js($errors->toArray()),
     })" x-init="init()">
-        <form action="{{ route('update-shipment', ['id' => $shipment->id]) }}" method="POST"
-            enctype="multipart/form-data" class="space-y-5">
+        <form action="{{ route('update-shipment', ['id' => $shipment->id]) }}" method="POST" enctype="multipart/form-data"
+            class="space-y-5">
             @csrf
             @method('PUT')
 
@@ -88,8 +154,19 @@
 
                     <div>
                         <label class="{{ $labelClass }}">Tanggal Permintaan Pengiriman</label>
-                        <input type="text" value="{{ $shipment->shipment_request_at?->format('Y-m-d') }}" readonly
-                            class="{{ $readonlyClass }}">
+                        <input type="date" name="shipment_request_at"
+                            value="{{ old('shipment_request_at', $shipment->shipment_request_at?->format('Y-m-d')) }}"
+                            @if (!$isDetailEditable) readonly disabled @endif
+                            class="@error('shipment_request_at') {{ $inputErrorClass }} @else {{ $isDetailEditable ? $inputNormalClass : $readonlyClass }} @enderror">
+
+                        @if (!$isDetailEditable)
+                            <input type="hidden" name="shipment_request_at"
+                                value="{{ old('shipment_request_at', $shipment->shipment_request_at?->format('Y-m-d')) }}">
+                        @endif
+
+                        @error('shipment_request_at')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
@@ -100,8 +177,13 @@
 
                     <div>
                         <label class="{{ $labelClass }}">Jenis Pengiriman</label>
-                        <input type="text" value="{{ $shipment->shipment_type }}" readonly
-                            class="{{ $readonlyClass }}">
+                        <input type="text" name="shipment_type"
+                            value="{{ old('shipment_type', $shipment->shipment_type) }}"
+                            @if (!$isDetailEditable) readonly @endif
+                            class="@error('shipment_type') {{ $inputErrorClass }} @else {{ $isDetailEditable ? $inputNormalClass : $readonlyClass }} @enderror">
+                        @error('shipment_type')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
@@ -112,8 +194,13 @@
 
                     <div>
                         <label class="{{ $labelClass }}">Armada Pengiriman</label>
-                        <input type="text" value="{{ $shipment->shipping_fleet }}" readonly
-                            class="{{ $readonlyClass }}">
+                        <input type="text" name="shipping_fleet"
+                            value="{{ old('shipping_fleet', $shipment->shipping_fleet) }}"
+                            @if (!$isDetailEditable) readonly @endif
+                            class="@error('shipping_fleet') {{ $inputErrorClass }} @else {{ $isDetailEditable ? $inputNormalClass : $readonlyClass }} @enderror">
+                        @error('shipping_fleet')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
@@ -124,57 +211,121 @@
 
                     <div>
                         <label class="{{ $labelClass }}">Kontak Penerima</label>
-                        <input type="text" value="{{ $shipment->contact }}" readonly class="{{ $readonlyClass }}">
+                        <input type="text" name="contact" value="{{ old('contact', $shipment->contact) }}"
+                            @if (!$isDetailEditable) readonly @endif
+                            class="@error('contact') {{ $inputErrorClass }} @else {{ $isDetailEditable ? $inputNormalClass : $readonlyClass }} @enderror">
+                        @error('contact')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="md:col-span-2">
                         <label class="{{ $labelClass }}">Alamat Lengkap</label>
-                        <textarea rows="3" readonly class="{{ $readonlyClass }}">{{ $shipment->address }}</textarea>
+                        <textarea name="address" rows="3" @if (!$isDetailEditable) readonly @endif
+                            class="@error('address') {{ $inputErrorClass }} @else {{ $isDetailEditable ? $inputNormalClass : $readonlyClass }} @enderror">{{ old('address', $shipment->address) }}</textarea>
+                        @error('address')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div class="md:col-span-2">
                         <label class="{{ $labelClass }}">Catatan</label>
-                        <textarea rows="3" readonly class="{{ $readonlyClass }}">{{ $shipment->notes }}</textarea>
+                        <textarea name="notes" rows="3" @if (!$isDetailEditable) readonly @endif
+                            class="@error('notes') {{ $inputErrorClass }} @else {{ $isDetailEditable ? $inputNormalClass : $readonlyClass }} @enderror">{{ old('notes', $shipment->notes) }}</textarea>
+                        @error('notes')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
             </section>
 
             {{-- ITEM PENGIRIMAN --}}
             <section class="{{ $sectionClass }}">
-                <div class="mb-4 text-xs font-bold text-gray-800">Daftar Item Pengiriman</div>
+                <div class="mb-4 flex items-center justify-between">
+                    <div class="text-xs font-bold text-gray-800">Daftar Item Pengiriman</div>
+
+                    @if ($isDetailEditable)
+                        <button type="button" @click="addItem()"
+                            class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-4 py-2 text-xs font-bold text-white hover:bg-blue-800">
+                            + Tambah Item
+                        </button>
+                    @endif
+                </div>
+
+                @error('items')
+                    <p class="mb-3 text-xs text-red-600">{{ $message }}</p>
+                @enderror
 
                 <div class="space-y-4">
-                    @foreach ($shipment->shipmentItems as $item)
+                    <template x-for="(item, index) in items" :key="item.key">
                         <div class="rounded-lg border border-gray-300 p-4">
+                            <input type="hidden" :name="`items[${index}][id]`" :value="item.id || ''">
+
+                            <div class="mb-4 flex items-center justify-between">
+                                <div class="text-sm font-bold text-gray-800">
+                                    Item <span x-text="index + 1"></span>
+                                </div>
+
+                                <template x-if="canEditDetail">
+                                    <button type="button" @click="removeItem(index)" x-show="items.length > 1"
+                                        class="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-xs font-bold text-white hover:bg-red-700">
+                                        Hapus
+                                    </button>
+                                </template>
+                            </div>
+
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
                                 <div>
-                                    <label class="{{ $labelClass }}">Produk</label>
-                                    <input type="text"
-                                        value="{{ ($item->productStock->productVariant->sku ?? '-') . ' - ' . ($item->productStock->productVariant->name ?? '-') }}"
-                                        readonly class="{{ $readonlyClass }}">
+                                    <label class="mb-2 block text-xs font-bold text-gray-800">Produk</label>
+
+                                    <template x-if="canEditDetail">
+                                        <select :name="`items[${index}][product_stock_id]`" x-model="item.product_stock_id"
+                                            @change="syncProductMeta(index)"
+                                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0">
+                                            <option value="">-- Pilih Produk --</option>
+                                            <template x-for="stock in productStocks" :key="stock.id">
+                                                <option :value="String(stock.id)" x-text="stock.label"></option>
+                                            </template>
+                                        </select>
+                                    </template>
+
+                                    <template x-if="!canEditDetail">
+                                        <input type="text" :value="`${item.sku ?? '-'} - ${item.product_name ?? '-'}`"
+                                            readonly class="{{ $readonlyClass }}">
+                                    </template>
+
+                                    <template x-if="fieldError(index, 'product_stock_id')">
+                                        <p class="mt-1 text-xs text-red-600"
+                                            x-text="fieldError(index, 'product_stock_id')"></p>
+                                    </template>
                                 </div>
 
                                 <div>
-                                    <label class="{{ $labelClass }}">Gudang Stok</label>
-                                    <input type="text"
-                                        value="{{ $item->productStock->warehouse->name ?? ($item->productStock->province ?? '-') }}"
-                                        readonly class="{{ $readonlyClass }}">
-                                </div>
-
-                                <div>
-                                    <label class="{{ $labelClass }}">Stok Saat Ini</label>
-                                    <input type="text" value="{{ $item->productStock->stock }}" readonly
+                                    <label class="mb-2 block text-xs font-bold text-gray-800">Gudang Stok</label>
+                                    <input type="text" :value="item.warehouse_name ?? '-'" readonly
                                         class="{{ $readonlyClass }}">
                                 </div>
 
                                 <div>
-                                    <label class="{{ $labelClass }}">Jumlah</label>
-                                    <input type="text" value="{{ $item->quantity }}" readonly
-                                        class="{{ $readonlyClass }}">
+                                    <label class="mb-2 block text-xs font-bold text-gray-800">Stok Saat Ini</label>
+                                    <input type="text" :value="item.stock ?? 0" readonly class="{{ $readonlyClass }}">
+                                </div>
+
+                                <div>
+                                    <label class="mb-2 block text-xs font-bold text-gray-800">Jumlah</label>
+                                    <input type="number" min="1" :name="`items[${index}][quantity]`"
+                                        x-model="item.quantity" @if (!$isDetailEditable) readonly @endif
+                                        :class="fieldError(index, 'quantity') ? 'border-red-500 bg-red-50' :
+                                            'border-gray-400 bg-white'"
+                                        class="w-full rounded-md px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0">
+
+                                    <template x-if="fieldError(index, 'quantity')">
+                                        <p class="mt-1 text-xs text-red-600" x-text="fieldError(index, 'quantity')"></p>
+                                    </template>
                                 </div>
                             </div>
                         </div>
-                    @endforeach
+                    </template>
                 </div>
             </section>
 
@@ -194,16 +345,24 @@
 
                     <div>
                         <label class="{{ $labelClass }}">Status Permintaan</label>
-                        <select name="status" x-model="statusPermintaan" class="{{ $inputNormalClass }}"
+                        <select name="status" x-model="statusPermintaan"
+                            class="@error('status') {{ $inputErrorClass }} @else {{ $isStatusLocked ? $readonlyClass : $inputNormalClass }} @enderror"
                             @if ($isStatusLocked) disabled @endif>
                             @foreach ($statusOptions as $statusOption)
-                                <option value="{{ $statusOption }}">{{ $statusOption }}</option>
+                                <option value="{{ $statusOption }}"
+                                    {{ old('status', $status) == $statusOption ? 'selected' : '' }}>
+                                    {{ $statusOption }}
+                                </option>
                             @endforeach
                         </select>
 
                         @if ($isStatusLocked)
-                            <input type="hidden" name="status" value="{{ $status }}">
+                            <input type="hidden" name="status" value="{{ old('status', $status) }}">
                         @endif
+
+                        @error('status')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
             </section>
@@ -211,8 +370,12 @@
             {{-- ALASAN --}}
             <section class="{{ $sectionClass }}" x-show="showReason" x-cloak>
                 <label class="{{ $labelClass }}">Alasan</label>
-                <textarea name="reason" rows="3" class="{{ $shipment->reason ? $readonlyClass : $inputNormalClass }}"
-                    @if ($shipment->reason) readonly @endif>{{ $shipment->reason }}</textarea>
+                <textarea name="reason" rows="3"
+                    @if (!($status === 'Menunggu' && $canEditShipmentStatus) || $shipment->reason) readonly @endif
+                    class="@error('reason') {{ $inputErrorClass }} @else {{ ($status === 'Menunggu' && $canEditShipmentStatus && !$shipment->reason) ? $inputNormalClass : $readonlyClass }} @enderror">{{ old('reason', $shipment->reason) }}</textarea>
+                @error('reason')
+                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                @enderror
             </section>
 
             {{-- INVOICE + TANGGAL PENGIRIMAN --}}
@@ -237,7 +400,7 @@
                                         </td>
                                         <td class="px-6 py-3">
                                             <div class="flex items-center justify-start gap-6 font-semibold">
-                                                @if ($status !== 'Selesai')
+                                                @if ($canUploadInvoice)
                                                     <button type="button" class="text-[#EC0000] hover:underline"
                                                         @click="confirmDelete('{{ route('media.delete', ['mediaId' => $invoice->id]) }}')">
                                                         Hapus
@@ -262,13 +425,14 @@
 
                 <div>
                     <label class="{{ $labelClass }}">Tanggal Pengiriman</label>
-                    <input type="date" name="shipment_at" value="{{ $shipment->shipment_at?->format('Y-m-d') }}"
-                        @if ($shipment->shipment_at) readonly disabled @endif
-                        class="@error('shipment_at') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
+                    <input type="date" name="shipment_at"
+                        value="{{ old('shipment_at', $shipment->shipment_at?->format('Y-m-d')) }}"
+                        @if (!$canEditShipmentDate || $shipment->shipment_at) readonly disabled @endif
+                        class="@error('shipment_at') {{ $inputErrorClass }} @else {{ $canEditShipmentDate && !$shipment->shipment_at ? $inputNormalClass : $readonlyClass }} @enderror">
 
-                    @if ($shipment->shipment_at)
+                    @if (!$canEditShipmentDate || $shipment->shipment_at)
                         <input type="hidden" name="shipment_at"
-                            value="{{ $shipment->shipment_at?->format('Y-m-d') }}">
+                            value="{{ old('shipment_at', $shipment->shipment_at?->format('Y-m-d')) }}">
                     @endif
 
                     @error('shipment_at')
@@ -276,7 +440,7 @@
                     @enderror
                 </div>
 
-                @if ($status !== 'Selesai')
+                @if ($canUploadInvoice)
                     <div class="mt-5">
                         <label class="mb-3 block text-sm font-bold text-gray-800">Invoice Pembelian Barang</label>
 
@@ -298,15 +462,13 @@
                 @endif
             </section>
 
-            @can('update-shipments')
-                @if ($status !== 'Selesai')
-                    <div class="flex justify-end pt-2">
-                        <button type="submit" class="{{ $actionBtnClass }} bg-[#2D2ACD] hover:bg-blue-800">
-                            Simpan
-                        </button>
-                    </div>
-                @endif
-            @endcan
+            @if ($showSubmitButton && $status !== 'Dikirim' && $status !== 'Ditolak' && $status !== 'Selesai')
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="{{ $actionBtnClass }} bg-[#2D2ACD] hover:bg-blue-800">
+                        Simpan
+                    </button>
+                </div>
+            @endif
         </form>
 
         <form x-ref="deleteMediaForm" method="POST" class="hidden">
@@ -331,6 +493,19 @@
                 successMessage: config.successMessage || '',
                 errorMessage: config.errorMessage || '',
                 pond: null,
+                canEditDetail: !!config.canEditDetail,
+                items: Array.isArray(config.items) ? config.items.map(item => ({
+                    key: crypto.randomUUID(),
+                    id: item.id ?? '',
+                    product_stock_id: item.product_stock_id ? String(item.product_stock_id) : '',
+                    quantity: item.quantity ?? '',
+                    sku: item.sku ?? '-',
+                    product_name: item.product_name ?? '-',
+                    warehouse_name: item.warehouse_name ?? '-',
+                    stock: item.stock ?? 0,
+                })) : [],
+                productStocks: Array.isArray(config.productStocks) ? config.productStocks : [],
+                validationErrors: config.validationErrors || {},
 
                 get showInvoiceSection() {
                     const status = (this.statusPermintaan || '').toLowerCase();
@@ -342,6 +517,14 @@
                 },
 
                 init() {
+                    if (!this.items.length) {
+                        this.items.push(this.emptyItem());
+                    }
+
+                    this.items.forEach((item, index) => {
+                        this.syncProductMeta(index);
+                    });
+
                     this.$nextTick(() => this.initFilePond());
 
                     if (this.successMessage) {
@@ -361,6 +544,56 @@
                             confirmButtonColor: '#dc2626'
                         });
                     }
+                },
+
+                emptyItem() {
+                    return {
+                        key: crypto.randomUUID(),
+                        id: '',
+                        product_stock_id: '',
+                        quantity: '',
+                        sku: '-',
+                        product_name: '-',
+                        warehouse_name: '-',
+                        stock: 0,
+                    };
+                },
+
+                addItem() {
+                    if (!this.canEditDetail) return;
+                    this.items.push(this.emptyItem());
+                },
+
+                removeItem(index) {
+                    if (!this.canEditDetail) return;
+                    this.items.splice(index, 1);
+
+                    if (this.items.length === 0) {
+                        this.items.push(this.emptyItem());
+                    }
+                },
+
+                syncProductMeta(index) {
+                    const item = this.items[index];
+                    const selected = this.productStocks.find(stock => String(stock.id) === String(item.product_stock_id));
+
+                    if (!selected) {
+                        this.items[index].sku = item.sku ?? '-';
+                        this.items[index].product_name = item.product_name ?? '-';
+                        this.items[index].warehouse_name = item.warehouse_name ?? '-';
+                        this.items[index].stock = item.stock ?? 0;
+                        return;
+                    }
+
+                    this.items[index].sku = selected.sku ?? '-';
+                    this.items[index].product_name = selected.product_name ?? '-';
+                    this.items[index].warehouse_name = selected.warehouse_name ?? '-';
+                    this.items[index].stock = selected.stock ?? 0;
+                },
+
+                fieldError(index, field) {
+                    const key = `items.${index}.${field}`;
+                    return this.validationErrors[key]?.[0] || '';
                 },
 
                 confirmDelete(url) {

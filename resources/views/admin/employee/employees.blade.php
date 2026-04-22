@@ -99,10 +99,12 @@
                 </p>
             </div>
 
-            <a href="{{ route('admin.create-employee') }}"
+            @can('tambah karyawan')
+                <a href="{{ route('admin.create-employee') }}"
                 class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                 + Tambah Karyawan
             </a>
+            @endcan
         </div>
 
         {{-- Card Table --}}
@@ -172,12 +174,14 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex justify-end gap-2 bg-transparent">
-                                        <a href="{{ route('edit.employee', $employee->id) }}"
-                                            class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-500">
-                                            Edit
-                                        </a>
+                                        @canany(['edit karyawan', 'baca karyawan'])
+                                            <a href="{{ route('edit.employee', $employee->id) }}"
+                                                class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-500">
+                                                Edit
+                                            </a>
+                                        @endcanany
 
-                                        @if ($employee->deleted_at !== null)
+                                        {{-- @if ($employee->deleted_at !== null)
                                             <form action="{{ route('restore.employee', $employee->id) }}" method="POST"
                                                 onsubmit="return confirm('Kembalikan employee ini?')">
                                                 @csrf
@@ -187,8 +191,9 @@
                                                     Kembalikan
                                                 </button>
                                             </form>
-                                        @endif
-                                        <form action="{{ route('delete.employee', $employee->id) }}" method="POST"
+                                        @endif --}}
+                                        @can('hapus karyawan')
+                                            <form action="{{ route('delete.employee', $employee->id) }}" method="POST"
                                             onsubmit="return confirm('Hapus employee ini?')">
                                             @csrf
                                             @method('DELETE')
@@ -197,6 +202,7 @@
                                                 Hapus
                                             </button>
                                         </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

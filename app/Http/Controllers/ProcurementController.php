@@ -111,7 +111,7 @@ class ProcurementController extends Controller
     public function create()
     {
 
-        $warehouses = Warehouse::all();
+        $warehouses = Warehouse::where('type', 'produksi')->get();
         $rawMaterials = RawMaterial::select('id', 'code', 'name', 'unit')
             ->orderBy('name')
             ->get();
@@ -158,7 +158,7 @@ class ProcurementController extends Controller
     public function edit(Request $request, $id)
     {
 
-        $warehouses = Warehouse::all();
+        $warehouses = Warehouse::where('type', 'produksi')->get();
         $procurement = Procurement::with('procurement_items.raw_material')
             ->findOrFail($id);
 
