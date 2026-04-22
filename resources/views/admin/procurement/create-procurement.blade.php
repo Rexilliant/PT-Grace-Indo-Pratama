@@ -120,7 +120,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-2">Raw Material</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-2">Bahan Baku</label>
 
                             <select name="items[0][raw_material_id]"
                                 class="rawMaterialSelect w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900">
@@ -160,7 +160,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-2">Raw Material</label>
+                            <label class="block text-xs font-bold text-gray-700 mb-2">Bahan Baku</label>
 
                             <select name="items[__INDEX__][raw_material_id]"
                                 class="rawMaterialSelect w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900">

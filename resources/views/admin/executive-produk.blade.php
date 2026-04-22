@@ -67,11 +67,13 @@
                     Export .xlsx
                 </a>
 
-                <a href="{{ route('admin.add-executive-produk-baru') }}"
-                    class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                    <span class="text-lg leading-none">+</span>
-                    Tambah Produk
-                </a>
+                @can('tambah produk')
+                    <a href="{{ route('admin.add-executive-produk-baru') }}"
+                        class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        <span class="text-lg leading-none">+</span>
+                        Tambah Produk
+                    </a>
+                @endcan
             </div>
         </div>
 
@@ -115,8 +117,10 @@
 
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center justify-start gap-6 font-semibold">
-                                        <a href="{{ route('admin.edit-executive-produk', $p->id) }}"
-                                            class="text-[#2D2ACD] hover:underline">Sunting</a>
+                                        @canany(['baca produk', 'edit produk'])
+                                            <a href="{{ route('admin.edit-executive-produk', $p->id) }}"
+                                                class="text-[#2D2ACD] hover:underline">Sunting</a>
+                                        @endcanany
 
                                         {{-- Hapus (placeholder kalau belum ada fitur delete) --}}
                                         {{-- <button type="button"

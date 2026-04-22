@@ -113,11 +113,13 @@
                     Export .xlsx
                 </a>
 
-                <a href="{{ route('admin.add-bahan-baku') }}"
-                    class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                    <span class="text-lg leading-none">+</span>
-                    Tambah Baru
-                </a>
+                @can('tambah bahan baku')
+                    <a href="{{ route('admin.add-bahan-baku') }}"
+                        class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        <span class="text-lg leading-none">+</span>
+                        Tambah Baru
+                    </a>
+                @endcan
             </div>
         </div>
 
@@ -141,10 +143,12 @@
                                 <td class="px-6 py-4 font-semibold">{{ $m->name }}</td>
 
                                 <td class="px-6 py-4 font-semibold">
-                                    <a href="{{ route('admin.gudang-bahan-baku.edit', $m->id) }}"
-                                        class="text-[#2E7E3F] hover:underline">
-                                        Sunting
-                                    </a>
+                                    @canany(['edit bahan baku', 'baca bahan baku'])
+                                        <a href="{{ route('admin.gudang-bahan-baku.edit', $m->id) }}"
+                                            class="text-[#2E7E3F] hover:underline">
+                                            Sunting
+                                        </a>
+                                    @endcanany
                                 </td>
 
                                 <td class="px-6 py-4 font-semibold">

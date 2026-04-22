@@ -77,7 +77,7 @@
                     <select name="warehouse_id"
                         class="@error('warehouse_id') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
                         <option value="">-- Pilih Gudang Tujuan --</option>
-                        @foreach ($warehouses as $warehouse)
+                        @foreach ($warehousesTujuan as $warehouse)
                             <option value="{{ $warehouse->id }}" @selected(old('warehouse_id') == $warehouse->id)>
                                 {{ $warehouse->name }}
                             </option>
@@ -156,7 +156,7 @@
                 <select x-model="stockWarehouse" @change="resetItems"
                     class="@error('stock_warehouse') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
                     <option value="">-- Pilih Gudang Stok --</option>
-                    @foreach ($warehouses as $warehouse)
+                    @foreach ($warehousesDari as $warehouse)
                         <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
                     @endforeach
                 </select>
@@ -240,7 +240,7 @@
         </section>
 
         <div class="flex items-center justify-end gap-4 pt-2">
-            <a href="{{ route('admin.gudang-permintaan-pengiriman') }}"
+            <a href="{{ route('shipments') }}"
                 class="{{ $actionBtnClass }} bg-red-600 hover:bg-red-700">
                 Batal
             </a>

@@ -16,15 +16,15 @@ class WarehouseController extends Controller
         $q = Warehouse::query();
 
         if ($request->filled('name')) {
-            $q->where('name', 'like', '%'.$request->name.'%');
+            $q->where('name', 'like', '%' . $request->name . '%');
         }
 
         if ($request->filled('province')) {
-            $q->where('province', 'like', '%'.$request->province.'%');
+            $q->where('province', 'like', '%' . $request->province . '%');
         }
 
         if ($request->filled('city')) {
-            $q->where('city', 'like', '%'.$request->city.'%');
+            $q->where('city', 'like', '%' . $request->city . '%');
         }
 
         $perPage = (int) ($request->get('per_page', 10));
@@ -39,7 +39,7 @@ class WarehouseController extends Controller
     {
         $path = public_path('assets/data/provinceAndCity.json');
 
-        if (! File::exists($path)) {
+        if (!File::exists($path)) {
             abort(404, 'File provinceAndCity.json tidak ditemukan');
         }
 
@@ -62,7 +62,7 @@ class WarehouseController extends Controller
     {
         $path = public_path('assets/data/provinceAndCity.json');
 
-        if (! File::exists($path)) {
+        if (!File::exists($path)) {
             return response()->json([]);
         }
 
@@ -71,7 +71,7 @@ class WarehouseController extends Controller
 
         $province = collect($data)->firstWhere('province_id', $provinceId);
 
-        if (! $province) {
+        if (!$province) {
             return response()->json([]);
         }
 
@@ -95,6 +95,7 @@ class WarehouseController extends Controller
             'city' => 'required|string',
             'type' => 'required|string',
         ]);
+
         Warehouse::create($validated);
         return redirect()
             ->route('warehouses')
@@ -107,7 +108,7 @@ class WarehouseController extends Controller
 
         $path = public_path('assets/data/provinceAndCity.json');
 
-        if (! File::exists($path)) {
+        if (!File::exists($path)) {
             abort(404, 'File provinceAndCity.json tidak ditemukan');
         }
 
@@ -160,7 +161,16 @@ class WarehouseController extends Controller
 
     public function destroy($id)
     {
+        if (!auth()->check()) {
+            abort(403, 'User belum login');
+        }
+
         $warehouse = Warehouse::findOrFail($id);
+
+        $warehouse->update([
+            'deleted_by' => auth()->id(),
+        ]);
+
         $warehouse->delete();
 
         return redirect()

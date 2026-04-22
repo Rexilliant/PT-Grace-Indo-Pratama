@@ -385,6 +385,12 @@ class SaleController extends Controller
                 ]);
             }
 
+            // simpan siapa yang menghapus
+            $sale->update([
+                'deleted_by' => Auth::id(),
+                'updated_by' => Auth::id(),
+            ]);
+
             // soft delete history pembayaran dulu
             $sale->paymentHistories()->delete();
 

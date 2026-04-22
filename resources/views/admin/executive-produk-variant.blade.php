@@ -65,11 +65,13 @@
                     Export .xlsx
                 </a>
 
-                <a href="{{ route('admin.add-executive-produk-variant') }}"
+               @can('tambah produk varian')
+                    <a href="{{ route('admin.add-executive-produk-variant') }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
                     <span class="text-lg leading-none">+</span>
                     Tambah Produk
                 </a>
+               @endcan
             </div>
         </div>
 
@@ -127,10 +129,12 @@
                                 {{-- AKSI --}}
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center gap-4 font-semibold">
-                                        <a href="{{ route('admin.executive-produk-variant.edit', $v->id) }}"
+                                        @canany(['edit produk varian', 'baca produk varian'])
+                                            <a href="{{ route('admin.executive-produk-variant.edit', $v->id) }}"
                                             class="text-[#2D2ACD] hover:underline">
                                             Sunting
                                         </a>
+                                        @endcanany
                                     </div>
                                 </td>
                             </tr>

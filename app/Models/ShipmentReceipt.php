@@ -26,6 +26,7 @@ class ShipmentReceipt extends Model implements HasMedia
         'rejected_at',
         'reject_reason',
         'notes',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -74,5 +75,10 @@ class ShipmentReceipt extends Model implements HasMedia
     public function items()
     {
         return $this->hasMany(ShipmentReceiptItem::class);
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }

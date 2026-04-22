@@ -96,7 +96,6 @@
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Provinsi</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Kota</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Jenis</th>
-                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Penanggung Jawab</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
                         </tr>
                     </thead>

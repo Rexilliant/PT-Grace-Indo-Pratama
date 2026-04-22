@@ -119,7 +119,7 @@
                 Export .xlsx
             </a>
 
-            @can('create-procurements')
+            @can('tambah pengadaan bahan baku')
                 <a href="{{ route('create-procurement') }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
                     <span class="text-lg leading-none">+</span>
@@ -153,12 +153,14 @@
                                 <td class="px-6 py-4">{{ $procurement->warehouse->name }}</td>
                                 <td class="px-6 py-4">{{ $procurement->status }}</td>
                                 <td class="px-6 py-4">
-                                    <a href="{{ route('edit-procurement', ['id' => $procurement->id]) }}"
-                                        class="text-blue-600 hover:underline">
-                                        Sunting
-                                    </a>
+                                    @canany(['edit pengadaan bahan baku', 'baca pengadaan bahan baku'])
+                                        <a href="{{ route('edit-procurement', ['id' => $procurement->id]) }}"
+                                            class="text-blue-600 hover:underline">
+                                            Sunting
+                                        </a>
+                                    @endcanany
 
-                                    @if ($procurement->status == 'Menunggu')
+                                    @can('hapus pengadaan bahan baku')
                                         |
                                         <form action="{{ route('delete-procurement', ['id' => $procurement->id]) }}"
                                             method="POST" class="inline-block form-delete">
@@ -168,12 +170,12 @@
                                                 Hapus
                                             </button>
                                         </form>
-                                    @endif
+                                    @endcan
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">Data Tidak Ada</td>
+                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">Data Tidak Ada</td>
                             </tr>
                         @endforelse
                     </tbody>

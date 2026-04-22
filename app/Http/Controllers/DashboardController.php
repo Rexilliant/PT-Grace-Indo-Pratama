@@ -22,26 +22,61 @@ class DashboardController extends Controller
             ? Carbon::parse($request->date_to)->endOfDay()
             : now()->endOfDay();
 
-        $warehouseId = $request->warehouse_id;
+        if ($dateFrom->gt($dateTo)) {
+            [$dateFrom, $dateTo] = [$dateTo->copy()->startOfDay(), $dateFrom->copy()->endOfDay()];
+        }
 
-        $warehouses = Warehouse::orderBy('name')->get();
+        $warehouseId = $request->filled('warehouse_id') ? (int) $request->warehouse_id : null;
 
-        $salesBaseQuery = Sale::query()
+        $warehouses = Warehouse::query()
+            ->select('id', 'name', 'type', 'city')
+            ->orderBy('name')
+            ->get();
+
+        $salesFilter = Sale::query()
             ->when($warehouseId, function ($query) use ($warehouseId) {
                 $query->where('warehouse_id', $warehouseId);
             })
+            ->whereNull('deleted_at')
             ->whereBetween('sale_date', [$dateFrom, $dateTo]);
 
-        $totalSales = (clone $salesBaseQuery)->sum('total_amount');
-        $totalPaid = (clone $salesBaseQuery)->sum('paid_amount');
-        $totalDebt = (clone $salesBaseQuery)->sum('debt_amount');
-        $totalTransactions = (clone $salesBaseQuery)->count();
+        /*
+        |--------------------------------------------------------------------------
+        | Summary Penjualan
+        |--------------------------------------------------------------------------
+        | Status pembayaran ditentukan dari kolom status:
+        | - lunas
+        | - terhutang
+        |--------------------------------------------------------------------------
+        */
+        $salesSummary = (clone $salesFilter)
+            ->selectRaw("
+                COALESCE(SUM(total_amount), 0) as total_sales,
+                COALESCE(SUM(paid_amount), 0) as total_paid,
+                COALESCE(SUM(debt_amount), 0) as total_debt,
+                COUNT(*) as total_transactions,
+                SUM(CASE WHEN status = 'lunas' THEN 1 ELSE 0 END) as payment_lunas,
+                SUM(CASE WHEN status = 'terhutang' THEN 1 ELSE 0 END) as payment_terhutang
+            ")
+            ->first();
 
-        $totalProdukAktif = ProductVariant::count();
+        $totalSales = (int) ($salesSummary->total_sales ?? 0);
+        $totalPaid = (int) ($salesSummary->total_paid ?? 0);
+        $totalDebt = (int) ($salesSummary->total_debt ?? 0);
+        $totalTransactions = (int) ($salesSummary->total_transactions ?? 0);
+
+        $paymentComposition = [
+            'lunas' => (int) ($salesSummary->payment_lunas ?? 0),
+            'terhutang' => (int) ($salesSummary->payment_terhutang ?? 0),
+        ];
+
+        $totalProdukAktif = ProductVariant::query()
+            ->whereNull('deleted_at')
+            ->count();
 
         $rawMaterialLowStockThreshold = 300;
 
-        $lowRawMaterialsQuery = RawMaterialStock::query()
+        $lowRawMaterialsBase = RawMaterialStock::query()
             ->join('raw_materials', 'raw_material_stocks.raw_material_id', '=', 'raw_materials.id')
             ->when($warehouseId, function ($query) use ($warehouseId) {
                 $query->where('raw_material_stocks.warehouse_id', $warehouseId);
@@ -50,63 +85,104 @@ class DashboardController extends Controller
             ->whereNull('raw_materials.deleted_at')
             ->where('raw_material_stocks.stock', '<=', $rawMaterialLowStockThreshold);
 
-        $lowRawMaterialsCount = (clone $lowRawMaterialsQuery)->count();
+        $lowRawMaterialsCount = (clone $lowRawMaterialsBase)->count();
 
-        $lowRawMaterials = (clone $lowRawMaterialsQuery)
-            ->select(
+        $lowRawMaterials = (clone $lowRawMaterialsBase)
+            ->select([
                 'raw_material_stocks.stock',
+                'raw_material_stocks.warehouse_id',
                 'raw_materials.name',
                 'raw_materials.unit',
-                'raw_material_stocks.warehouse_id'
-            )
+            ])
             ->orderBy('raw_material_stocks.stock')
             ->limit(7)
             ->get();
 
-        $latestSales = Sale::query()
-            ->with([
-                'items.productStock.productVariant.product',
-                'warehouse',
-            ])
-            ->when($warehouseId, function ($query) use ($warehouseId) {
-                $query->where('warehouse_id', $warehouseId);
+        /*
+        |--------------------------------------------------------------------------
+        | Latest Sales
+        |--------------------------------------------------------------------------
+        | payment_status diambil langsung dari sales.status
+        |--------------------------------------------------------------------------
+        */
+        $latestSalesBase = Sale::query()
+            ->leftJoin('warehouses', 'sales.warehouse_id', '=', 'warehouses.id')
+            ->leftJoin('sale_items', function ($join) {
+                $join->on('sale_items.sale_id', '=', 'sales.id')
+                    ->whereNull('sale_items.deleted_at');
             })
-            ->whereBetween('sale_date', [$dateFrom, $dateTo])
-            ->latest('sale_date')
+            ->when($warehouseId, function ($query) use ($warehouseId) {
+                $query->where('sales.warehouse_id', $warehouseId);
+            })
+            ->whereNull('sales.deleted_at')
+            ->whereBetween('sales.sale_date', [$dateFrom, $dateTo])
+            ->groupBy(
+                'sales.id',
+                'sales.sale_date',
+                'sales.customer_name',
+                'sales.total_amount',
+                'sales.paid_amount',
+                'sales.debt_amount',
+                'sales.status',
+                'warehouses.name'
+            )
+            ->orderByDesc('sales.sale_date')
+            ->orderByDesc('sales.id')
             ->limit(5)
-            ->get()
-            ->map(function ($sale) {
-                $firstItem = $sale->items->first();
+            ->selectRaw('
+                sales.id,
+                sales.sale_date,
+                sales.customer_name,
+                sales.total_amount,
+                sales.paid_amount,
+                sales.debt_amount,
+                sales.status,
+                warehouses.name as warehouse_name,
+                COALESCE(SUM(sale_items.quantity), 0) as qty
+            ')
+            ->get();
 
-                $productName = '-';
-                $qty = $sale->items->sum('quantity');
+        $latestSaleIds = $latestSalesBase->pluck('id')->all();
 
-                if ($firstItem && $firstItem->productStock && $firstItem->productStock->productVariant) {
-                    $variant = $firstItem->productStock->productVariant;
-                    $product = $variant->product;
+        $firstItemNames = [];
+        if (! empty($latestSaleIds)) {
+            $firstItemNames = DB::table('sale_items')
+                ->join('product_stocks', 'sale_items.product_stock_id', '=', 'product_stocks.id')
+                ->join('product_variants', 'product_stocks.product_variant_id', '=', 'product_variants.id')
+                ->whereIn('sale_items.sale_id', $latestSaleIds)
+                ->whereNull('sale_items.deleted_at')
+                ->whereNull('product_stocks.deleted_at')
+                ->whereNull('product_variants.deleted_at')
+                ->select(
+                    'sale_items.sale_id',
+                    'sale_items.id as sale_item_id',
+                    'product_variants.name as variant_name'
+                )
+                ->orderBy('sale_items.sale_id')
+                ->orderBy('sale_items.id')
+                ->get()
+                ->groupBy('sale_id')
+                ->map(function ($items) {
+                    return optional($items->first())->variant_name ?? '-';
+                })
+                ->toArray();
+        }
 
-                    $productName = $variant->name;
-                }
-
-                $paymentStatus = 'belum_bayar';
-                if ((int) $sale->paid_amount >= (int) $sale->total_amount && (int) $sale->total_amount > 0) {
-                    $paymentStatus = 'lunas';
-                } elseif ((int) $sale->paid_amount > 0) {
-                    $paymentStatus = 'sebagian';
-                }
-
-                return (object) [
-                    'id' => $sale->id,
-                    'sale_date' => $sale->sale_date,
-                    'customer_name' => $sale->customer_name,
-                    'warehouse_name' => optional($sale->warehouse)->name,
-                    'product' => $productName,
-                    'qty' => $qty,
-                    'total_amount' => $sale->total_amount,
-                    'status' => $sale->status,
-                    'payment_status' => $paymentStatus,
-                ];
-            });
+        $latestSales = $latestSalesBase->map(function ($sale) use ($firstItemNames) {
+            return (object) [
+                'id' => $sale->id,
+                'sale_date' => $sale->sale_date,
+                'customer_name' => $sale->customer_name,
+                'warehouse_name' => $sale->warehouse_name,
+                'product' => $firstItemNames[$sale->id] ?? '-',
+                'qty' => (int) $sale->qty,
+                'total_amount' => (int) $sale->total_amount,
+                'paid_amount' => (int) $sale->paid_amount,
+                'debt_amount' => (int) $sale->debt_amount,
+                'status' => $sale->status,
+                'payment_status' => $sale->status,
+            ];
+        });
 
         $topProducts = DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
@@ -122,12 +198,12 @@ class DashboardController extends Controller
             ->whereNull('product_variants.deleted_at')
             ->whereNull('products.deleted_at')
             ->whereBetween('sales.sale_date', [$dateFrom, $dateTo])
-            ->select(
-                'products.name as product_name',
-                'product_variants.name as variant_name',
-                DB::raw('SUM(sale_items.quantity) as total_qty'),
-                DB::raw('SUM(sale_items.subtotal) as total_revenue')
-            )
+            ->selectRaw('
+                products.name as product_name,
+                product_variants.name as variant_name,
+                COALESCE(SUM(sale_items.quantity), 0) as total_qty,
+                COALESCE(SUM(sale_items.subtotal), 0) as total_revenue
+            ')
             ->groupBy('products.name', 'product_variants.name')
             ->orderByDesc('total_qty')
             ->limit(5)
@@ -137,49 +213,50 @@ class DashboardController extends Controller
             ->join('warehouses', 'product_stocks.warehouse_id', '=', 'warehouses.id')
             ->whereNull('product_stocks.deleted_at')
             ->whereNull('warehouses.deleted_at')
-            ->select(
-                'warehouses.id',
-                'warehouses.name',
-                DB::raw('SUM(product_stocks.stock) as total_stock')
-            )
+            ->selectRaw('
+                warehouses.id,
+                warehouses.name,
+                COALESCE(SUM(product_stocks.stock), 0) as total_stock
+            ')
             ->groupBy('warehouses.id', 'warehouses.name')
             ->orderByDesc('total_stock')
             ->get();
 
-        $chartMonths = collect(range(5, 0))->map(function ($minus) {
-            return now()->startOfMonth()->subMonths($minus);
-        })->push(now()->startOfMonth());
+        /*
+        |--------------------------------------------------------------------------
+        | Sales Trend
+        |--------------------------------------------------------------------------
+        | Tetap tampil per bulan-tahun.
+        | Total hanya dihitung sesuai date_from dan date_to.
+        |--------------------------------------------------------------------------
+        */
+        $trendRows = Sale::query()
+            ->when($warehouseId, function ($query) use ($warehouseId) {
+                $query->where('warehouse_id', $warehouseId);
+            })
+            ->whereNull('deleted_at')
+            ->whereBetween('sale_date', [$dateFrom, $dateTo])
+            ->selectRaw("DATE_FORMAT(sale_date, '%Y-%m') as period, COALESCE(SUM(total_amount), 0) as total")
+            ->groupBy('period')
+            ->orderBy('period')
+            ->pluck('total', 'period');
 
-        $salesTrend = $chartMonths->map(function ($month) use ($warehouseId) {
-            $start = $month->copy()->startOfMonth();
-            $end = $month->copy()->endOfMonth();
+        $salesTrend = collect();
 
-            $total = Sale::query()
-                ->when($warehouseId, function ($query) use ($warehouseId) {
-                    $query->where('warehouse_id', $warehouseId);
-                })
-                ->whereBetween('sale_date', [$start, $end])
-                ->sum('total_amount');
+        $cursor = $dateFrom->copy()->startOfMonth();
+        $endCursor = $dateTo->copy()->startOfMonth();
 
-            return [
-                'label' => $month->translatedFormat('M Y'),
-                'total' => (int) $total,
-            ];
-        });
+        while ($cursor->lte($endCursor)) {
+            $key = $cursor->format('Y-m');
 
-        $paymentComposition = [
-            'lunas' => (clone $salesBaseQuery)
-                ->whereColumn('paid_amount', '>=', 'total_amount')
-                ->where('total_amount', '>', 0)
-                ->count(),
-            'sebagian' => (clone $salesBaseQuery)
-                ->where('paid_amount', '>', 0)
-                ->whereColumn('paid_amount', '<', 'total_amount')
-                ->count(),
-            'belum_bayar' => (clone $salesBaseQuery)
-                ->where('paid_amount', '<=', 0)
-                ->count(),
-        ];
+            $salesTrend->push([
+                'label' => $cursor->translatedFormat('M Y'),
+                'total' => (int) ($trendRows[$key] ?? 0),
+            ]);
+
+            $cursor->addMonth();
+        }
+
         $topWarehouses = DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('warehouses', 'sales.warehouse_id', '=', 'warehouses.id')
@@ -190,15 +267,15 @@ class DashboardController extends Controller
             ->whereNull('sales.deleted_at')
             ->whereNull('warehouses.deleted_at')
             ->whereBetween('sales.sale_date', [$dateFrom, $dateTo])
-            ->select(
-                'warehouses.id',
-                'warehouses.name',
-                'warehouses.type',
-                'warehouses.city',
-                DB::raw('SUM(sale_items.quantity) as total_qty_terjual'),
-                DB::raw('SUM(sale_items.subtotal) as total_revenue'),
-                DB::raw('COUNT(DISTINCT sales.id) as total_transaksi')
-            )
+            ->selectRaw('
+                warehouses.id,
+                warehouses.name,
+                warehouses.type,
+                warehouses.city,
+                COALESCE(SUM(sale_items.quantity), 0) as total_qty_terjual,
+                COALESCE(SUM(sale_items.subtotal), 0) as total_revenue,
+                COUNT(DISTINCT sales.id) as total_transaksi
+            ')
             ->groupBy('warehouses.id', 'warehouses.name', 'warehouses.type', 'warehouses.city')
             ->orderByDesc('total_qty_terjual')
             ->limit(5)

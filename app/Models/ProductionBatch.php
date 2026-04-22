@@ -21,6 +21,7 @@ class ProductionBatch extends Model
         'quantity',
         'note',
         'status',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -36,6 +37,7 @@ class ProductionBatch extends Model
     {
         return $this->belongsTo(ProductStock::class);
     }
+
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class);
@@ -44,5 +46,10 @@ class ProductionBatch extends Model
     public function materials()
     {
         return $this->hasMany(ProductionHasMaterial::class);
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }

@@ -3,7 +3,6 @@
 @section('addCss')
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
 
-    {{-- FilePond --}}
     <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
     <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
 
@@ -50,11 +49,28 @@
             border: 1px solid rgb(226 232 240);
             overflow: hidden;
         }
+
+        .readonly-style {
+            background-color: rgb(241 245 249) !important;
+            cursor: not-allowed !important;
+        }
     </style>
 @endsection
 
 @section('content')
-    {{-- Breadcrumb --}}
+    @php
+        $canEditEmployee = auth()->user()->can('edit karyawan');
+        $canReadEmployee = auth()->user()->can('baca karyawan');
+
+        // jika hanya punya baca karyawan atau tidak punya edit, maka lock form
+        $isReadOnly = !$canEditEmployee;
+
+        $inputClass = $isReadOnly
+            ? 'w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-900 readonly-style'
+            : 'w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
+                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300';
+    @endphp
+
     <section class="mb-6">
         <div class="text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Karyawan</span>
@@ -63,7 +79,8 @@
         </div>
     </section>
 
-    <section x-data="employeeForm()" x-init="init()" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section x-data="employeeForm({ isReadOnly: @js($isReadOnly) })" x-init="init()"
+        class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div class="mb-6">
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Edit Karyawan</h1>
             <p class="mt-1 text-sm text-slate-500">Perbarui data karyawan di bawah ini.</p>
@@ -74,80 +91,81 @@
             @method('PUT')
 
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                {{-- Foto Profil --}}
                 <div class="lg:col-span-1">
                     <label class="mb-2 block text-sm font-semibold text-slate-800">Foto Profil</label>
-                    <input type="file" name="profile_image" id="profile_image" accept="image/*" />
+
+                    @if ($isReadOnly)
+                        @if ($profileImage)
+                            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                                <img src="{{ $profileImage }}" alt="Foto Profil" class="h-[320px] w-full object-cover">
+                            </div>
+                        @else
+                            <div
+                                class="flex h-[320px] items-center justify-center rounded-2xl border border-slate-200 bg-slate-100 text-sm text-slate-500">
+                                Tidak ada foto profil
+                            </div>
+                        @endif
+                    @else
+                        <input type="file" name="profile_image" id="profile_image" accept="image/*" />
+                    @endif
 
                     @error('profile_image')
                         <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                     @enderror
                 </div>
 
-                {{-- Form --}}
                 <div class="lg:col-span-2">
                     <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-                        {{-- Nama --}}
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-slate-800">Nama</label>
                             <input type="text" name="name" value="{{ old('name', $employee->name) }}"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
-                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300" />
+                                @if ($isReadOnly) readonly @endif class="{{ $inputClass }}" />
                             @error('name')
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- Tanggal Lahir --}}
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-slate-800">Tanggal Lahir</label>
                             <input type="date" name="birthday"
                                 value="{{ old('birthday', optional($employee->birthday)->format('Y-m-d') ?? $employee->birthday) }}"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
-                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300" />
+                                @if ($isReadOnly) readonly @endif class="{{ $inputClass }}" />
                             @error('birthday')
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- Email --}}
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-slate-800">Email</label>
                             <input type="email" name="email" value="{{ old('email', $employee->email) }}"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
-                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300" />
+                                @if ($isReadOnly) readonly @endif class="{{ $inputClass }}" />
                             @error('email')
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- No HP --}}
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-slate-800">No. Hp</label>
                             <input type="text" name="phone" value="{{ old('phone', $employee->phone) }}"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
-                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300" />
+                                @if ($isReadOnly) readonly @endif class="{{ $inputClass }}" />
                             @error('phone')
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- Jabatan --}}
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-slate-800">Jabatan</label>
                             <input type="text" name="position" value="{{ old('position', $employee->position) }}"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
-                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300" />
+                                @if ($isReadOnly) readonly @endif class="{{ $inputClass }}" />
                             @error('position')
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- Gudang --}}
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-slate-800">Gudang</label>
-                            <select name="warehouse_id"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900">
+                            <select name="warehouse_id" @if ($isReadOnly) disabled @endif
+                                class="{{ $inputClass }}">
                                 <option value="">-- Pilih Gudang --</option>
                                 @foreach ($warehouses as $warehouse)
                                     <option value="{{ $warehouse->id }}"
@@ -156,16 +174,19 @@
                                     </option>
                                 @endforeach
                             </select>
+                            @if ($isReadOnly)
+                                <input type="hidden" name="warehouse_id"
+                                    value="{{ old('warehouse_id', $employee->warehouse_id) }}">
+                            @endif
                             @error('warehouse_id')
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- Negara --}}
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-slate-800">Negara</label>
-                            <select x-ref="country" name="country"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900">
+                            <select x-ref="country" name="country" @if ($isReadOnly) disabled @endif
+                                class="{{ $inputClass }}">
                                 <option value="">-- Select Country --</option>
                                 @foreach ($countries as $country)
                                     <option value="{{ $country['countryName'] }}"
@@ -175,52 +196,57 @@
                                     </option>
                                 @endforeach
                             </select>
+                            @if ($isReadOnly)
+                                <input type="hidden" name="country"
+                                    value="{{ old('country', $employee->country ?? 'Indonesia') }}">
+                            @endif
                             @error('country')
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- Provinsi --}}
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-slate-800">Provinsi</label>
-                            <select x-ref="province" name="province"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900">
+                            <select x-ref="province" name="province" @if ($isReadOnly) disabled @endif
+                                class="{{ $inputClass }}">
                                 <option value="">-- Pilih Provinsi --</option>
                             </select>
+                            @if ($isReadOnly)
+                                <input type="hidden" name="province" value="{{ old('province', $employee->province) }}">
+                            @endif
                             @error('province')
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- Kota --}}
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-slate-800">Kota</label>
-                            <select x-ref="city" name="city"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900">
+                            <select x-ref="city" name="city" @if ($isReadOnly) disabled @endif
+                                class="{{ $inputClass }}">
                                 <option value="">-- Pilih Kota --</option>
                             </select>
+                            @if ($isReadOnly)
+                                <input type="hidden" name="city" value="{{ old('city', $employee->city) }}">
+                            @endif
                             @error('city')
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- Kode Pos --}}
                         <div>
                             <label class="mb-2 block text-sm font-semibold text-slate-800">Kode Pos</label>
-                            <input type="text" name="postal_code" value="{{ old('postal_code', $employee->postal_code) }}"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
-                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300" />
+                            <input type="text" name="postal_code"
+                                value="{{ old('postal_code', $employee->postal_code) }}"
+                                @if ($isReadOnly) readonly @endif class="{{ $inputClass }}" />
                             @error('postal_code')
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        {{-- Alamat --}}
                         <div class="md:col-span-2">
                             <label class="mb-2 block text-sm font-semibold text-slate-800">Alamat Lengkap</label>
-                            <textarea name="address" rows="4"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
-                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300">{{ old('address', $employee->address) }}</textarea>
+                            <textarea name="address" rows="4" @if ($isReadOnly) readonly @endif
+                                class="{{ $inputClass }}">{{ old('address', $employee->address) }}</textarea>
                             @error('address')
                                 <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                             @enderror
@@ -229,12 +255,14 @@
                 </div>
             </div>
 
-            <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-                <button type="submit"
-                    class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-600/30">
-                    Update
-                </button>
-            </div>
+            @if (!$isReadOnly)
+                <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+                    <button type="submit"
+                        class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-600/30">
+                        Update
+                    </button>
+                </div>
+            @endif
         </form>
     </section>
 @endsection
@@ -242,59 +270,61 @@
 @section('addJs')
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
-    {{-- FilePond --}}
-    <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+    @if (!$isReadOnly)
+        <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
+        <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+
+        <script>
+            FilePond.registerPlugin(FilePondPluginImagePreview);
+
+            const existingImage = @json($profileImage ?? null);
+
+            FilePond.create(document.querySelector('#profile_image'), {
+                storeAsFile: true,
+                instantUpload: false,
+                allowMultiple: false,
+                credits: false,
+                stylePanelLayout: 'compact',
+                imagePreviewHeight: 220,
+                styleButtonRemoveItemPosition: 'right',
+                labelIdle: 'Drag & Drop foto di sini atau <span class="filepond--label-action">Browse</span>',
+
+                server: {
+                    load: (source, load, error, progress, abort) => {
+                        fetch(source, {
+                                credentials: 'same-origin'
+                            })
+                            .then(res => {
+                                if (!res.ok) throw new Error('HTTP ' + res.status);
+                                return res.blob();
+                            })
+                            .then(blob => load(blob))
+                            .catch(err => error(err.message));
+
+                        return {
+                            abort
+                        };
+                    }
+                },
+
+                files: existingImage ? [{
+                    source: existingImage,
+                    options: {
+                        type: 'local'
+                    }
+                }] : []
+            });
+        </script>
+    @endif
 
     <script>
-        FilePond.registerPlugin(FilePondPluginImagePreview);
-
-        const existingImage = @json($profileImage ?? null);
-
-        FilePond.create(document.querySelector('#profile_image'), {
-            storeAsFile: true,
-            instantUpload: false,
-            allowMultiple: false,
-            credits: false,
-            stylePanelLayout: 'compact',
-            imagePreviewHeight: 220,
-            styleButtonRemoveItemPosition: 'right',
-            labelIdle: 'Drag & Drop foto di sini atau <span class="filepond--label-action">Browse</span>',
-
-            server: {
-                load: (source, load, error, progress, abort) => {
-                    fetch(source, {
-                            credentials: 'same-origin'
-                        })
-                        .then(res => {
-                            if (!res.ok) throw new Error('HTTP ' + res.status);
-                            return res.blob();
-                        })
-                        .then(blob => load(blob))
-                        .catch(err => error(err.message));
-
-                    return {
-                        abort
-                    };
-                }
-            },
-
-            files: existingImage ? [{
-                source: existingImage,
-                options: {
-                    type: 'local'
-                }
-            }] : []
-        });
-    </script>
-
-    <script>
-        function employeeForm() {
+        function employeeForm(config = {}) {
             return {
                 tsCountry: null,
                 tsProvince: null,
                 tsCity: null,
                 countryCode: null,
+                isReadOnly: !!config.isReadOnly,
 
                 initialProvince: @json(old('province', $employee->province)),
                 initialCity: @json(old('city', $employee->city)),
@@ -320,9 +350,16 @@
                         placeholder: 'Select City',
                     });
 
+                    if (this.isReadOnly) {
+                        this.tsCountry.disable();
+                        this.tsProvince.disable();
+                        this.tsCity.disable();
+                    }
+
                     this.countryCode = this.getSelectedCountryCode();
 
                     this.tsCountry.on('change', async () => {
+                        if (this.isReadOnly) return;
                         this.countryCode = this.getSelectedCountryCode();
                         this.initialProvince = null;
                         this.initialCity = null;
@@ -331,6 +368,7 @@
                     });
 
                     this.tsProvince.on('change', async () => {
+                        if (this.isReadOnly) return;
                         await this.loadCities(false);
                     });
 
@@ -407,6 +445,10 @@
                     } else {
                         this.tsProvince.setValue('', true);
                     }
+
+                    if (this.isReadOnly) {
+                        this.tsProvince.disable();
+                    }
                 },
 
                 async loadCities(trySelectInitial = false) {
@@ -453,6 +495,10 @@
                         this.tsCity.setValue(this.initialCity, true);
                     } else {
                         this.tsCity.setValue('', true);
+                    }
+
+                    if (this.isReadOnly) {
+                        this.tsCity.disable();
                     }
                 }
             }

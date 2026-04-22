@@ -80,7 +80,7 @@ class PurchaseReceiptController extends Controller
                 $userId = auth()->id();
 
                 // Receipt number (silakan sesuaikan format)
-                $receiptNumber = 'RCPT-'.now()->format('Ymd').'-'.strtoupper(Str::random(6));
+                $receiptNumber = 'RCPT-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
                 $procurement = Procurement::findOrFail($validated['procurement_id']);
                 $warehouse_id = $procurement->warehouse_id;
                 $receipt = PurchaseReceipt::create([
@@ -127,7 +127,7 @@ class PurchaseReceiptController extends Controller
                 }
                 if ($request->hasFile('invoices')) {
                     foreach ($request->file('invoices') as $file) {
-                        if (! $file->isValid()) {
+                        if (!$file->isValid()) {
                             continue;
                         }
                         // file name rapi
@@ -135,8 +135,8 @@ class PurchaseReceiptController extends Controller
                         $ext = $file->getClientOriginalExtension();
 
                         $safeFileName = now()->format('YmdHis')
-                            .'-'.Str::slug($baseName)
-                            .'.'.$ext;
+                            . '-' . Str::slug($baseName)
+                            . '.' . $ext;
 
                         $receipt->addMedia($file)
                             ->usingFileName($safeFileName)
@@ -171,7 +171,7 @@ class PurchaseReceiptController extends Controller
         try {
             $receipt = PurchaseReceipt::findOrFail($id);
 
-            if (! $request->hasFile('invoices')) {
+            if (!$request->hasFile('invoices')) {
                 return back()->withErrors(['invoices' => 'File invoice tidak ditemukan.']);
             }
 
@@ -180,7 +180,7 @@ class PurchaseReceiptController extends Controller
             $files = is_array($files) ? $files : [$files];
 
             foreach ($files as $file) {
-                if (! $file || ! $file->isValid()) {
+                if (!$file || !$file->isValid()) {
                     continue;
                 }
 
@@ -188,8 +188,8 @@ class PurchaseReceiptController extends Controller
                 $ext = strtolower($file->getClientOriginalExtension());
 
                 $safeFileName = now()->format('YmdHis')
-                    .'-'.Str::slug($baseName)
-                    .'.'.$ext;
+                    . '-' . Str::slug($baseName)
+                    . '.' . $ext;
 
                 $receipt->addMedia($file)
                     ->usingFileName($safeFileName)
@@ -324,9 +324,7 @@ class PurchaseReceiptController extends Controller
     {
         try {
             DB::transaction(function () use ($id) {
-
-                $receipt = PurchaseReceipt::with(['items'])
-                    ->findOrFail($id);
+                $receipt = PurchaseReceipt::with(['items'])->findOrFail($id);
 
                 // CEK: jangan sampai stok jadi minus setelah reverse
                 foreach ($receipt->items as $item) {
@@ -354,10 +352,8 @@ class PurchaseReceiptController extends Controller
                     'ref_id' => $receipt->id,
                 ])->delete();
 
-                // OPTIONAL: kalau mau bikin jejak bahwa ini di-cancel, bikin movement 'out' juga
-                // (kalau kamu mau audit trail lengkap, bilang nanti aku bikinin)
-
-                // SOFT DELETE RECEIPT (record tetap ada)
+                // SOFT DELETE RECEIPT
+                // deleted_by akan otomatis terisi dari event model
                 $receipt->delete();
             });
 

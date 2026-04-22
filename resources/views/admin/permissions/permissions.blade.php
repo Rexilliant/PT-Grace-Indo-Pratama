@@ -30,10 +30,12 @@
                     / {{ $permissions->lastPage() }}
                 </p>
             </div>
-            <a href="{{ route('create-permission') }}"
+            @can('tambah izin')
+                <a href="{{ route('create-permission') }}"
                 class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                Permission
+                Tambah Permission
             </a>
+            @endcan
 
         </div>
 
@@ -80,17 +82,21 @@
 
                                 <td class="px-6 py-4">
                                     <div class="flex justify-end gap-2">
-                                        <a href="{{ route('edit-permission', ['id' => $permission->id]) }}"
-                                            class="tems-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-500">Edit</a>
-                                        <form action="{{ route('delete-permission', ['id' => $permission->id]) }}" method="POST"
-                                            onsubmit="return confirm('Hapus permission ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="inline-flex items-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-red-500">
-                                                Hapus
-                                            </button>
-                                        </form>
+                                        @can('edit izin')
+                                            <a href="{{ route('edit-permission', ['id' => $permission->id]) }}"
+                                                class="tems-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-500">Edit</a>
+                                        @endcan
+                                        @can('hapus izin')
+                                            <form action="{{ route('delete-permission', ['id' => $permission->id]) }}" method="POST"
+                                                onsubmit="return confirm('Hapus permission ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="inline-flex items-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-red-500">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

@@ -32,10 +32,12 @@
                 </p>
             </div>
 
-            <a href="{{ route('admin.create-role') }}"
-                class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                + Tambah Role
-            </a>
+            @can('tambah role')
+                <a href="{{ route('admin.create-role') }}"
+                    class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    + Tambah Role
+                </a>
+            @endcan
         </div>
 
         {{-- Card Table --}}
@@ -82,19 +84,23 @@
 
                                 <td class="px-6 py-4">
                                     <div class="flex justify-end gap-2">
-                                        <a href="{{ route('edit.role', ['id' => $role->id]) }}"
-                                            class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-500">
-                                            Edit
-                                        </a>
+                                        @can('edit role')
+                                            <a href="{{ route('edit.role', ['id' => $role->id]) }}"
+                                                class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-500">
+                                                Edit
+                                            </a>
+                                        @endcan
 
-                                        <form action="#" method="POST" onsubmit="return confirm('Hapus role ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="inline-flex items-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-red-500">
-                                                Hapus
-                                            </button>
-                                        </form>
+                                        @can('hapus role')
+                                            <form action="#" method="POST" onsubmit="return confirm('Hapus role ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="inline-flex items-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-red-500">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

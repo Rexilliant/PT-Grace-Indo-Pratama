@@ -38,17 +38,16 @@
 @endsection
 
 @section('content')
-    <section class="mb-5">
-        <div class="text-xl font-semibold text-gray-800">
-            <span class="text-gray-800">Gudang</span>
-            <span class="mx-1 text-gray-400">›</span>
-            <a href="#" class="text-gray-800 hover:underline">Barang Masuk</a>
-            <span class="mx-1 text-gray-400">›</span>
-            <span class="text-blue-600 font-bold">Edit Barang Masuk</span>
-        </div>
-    </section>
-
     @php
+        $user = auth()->user();
+
+        $canEditReceipt =
+            $user && $user->can('edit bahan baku masuk') && (int) $receipt->received_by === (int) $user->id;
+
+        $canReadOnly = $user && $user->can('baca bahan baku masuk');
+
+        $isDisabled = !$canEditReceipt;
+
         $dbItems = $receipt
             ->items()
             ->orderBy('id')
@@ -72,12 +71,33 @@
         $selectedWarehouseId = $receipt->warehouse_id;
     @endphp
 
+    <section class="mb-5">
+        <div class="text-xl font-semibold text-gray-800">
+            <span class="text-gray-800">Gudang</span>
+            <span class="mx-1 text-gray-400">›</span>
+            <a href="#" class="text-gray-800 hover:underline">Barang Masuk</a>
+            <span class="mx-1 text-gray-400">›</span>
+            <span class="text-blue-600 font-bold">Edit Barang Masuk</span>
+        </div>
+    </section>
+
+    @if (!$canEditReceipt && $canReadOnly)
+        <div class="mb-5 rounded-lg border border-yellow-400 bg-yellow-100 px-4 py-3 text-sm text-yellow-800">
+            Anda hanya memiliki akses baca. Semua form dalam keadaan disabled.
+        </div>
+    @elseif (!$canEditReceipt)
+        <div class="mb-5 rounded-lg border border-red-400 bg-red-100 px-4 py-3 text-sm text-red-800">
+            Anda tidak memiliki izin untuk mengedit data ini.
+        </div>
+    @endif
+
     <form x-data="purchaseReceiptEdit({
         initItems: @js($initItems),
         oldProcurementId: @js($selectedProcurementId),
         oldWarehouseId: @js($selectedWarehouseId),
+        canEdit: @js($canEditReceipt),
     })" x-init="init()" class="space-y-5 mb-5"
-        action="{{ route('update-barang-masuk', $receipt->id) }}" method="POST" enctype="multipart/form-data">
+        action="{{ route('update-purchase-receipt', $receipt->id) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -129,7 +149,8 @@
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Total Pesanan</label>
                     <input type="number" name="total_price" value="{{ (int) $receipt->total_price }}"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 @error('total_price') border-red-500 @enderror" />
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 @error('total_price') border-red-500 @enderror"
+                        {{ $isDisabled ? 'disabled' : '' }} />
                     @error('total_price')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
@@ -139,7 +160,8 @@
                 <div>
                     <label class="block text-sm font-bold text-gray-800 mb-2">Tanggal Barang Masuk</label>
                     <input type="date" name="received_at" value="{{ optional($receipt->received_at)->format('Y-m-d') }}"
-                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 @error('received_at') border-red-500 @enderror">
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 @error('received_at') border-red-500 @enderror"
+                        {{ $isDisabled ? 'disabled' : '' }}>
                     @error('received_at')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
@@ -155,12 +177,12 @@
                     <div class="text-xs text-gray-600">Tambah / hapus item barang masuk</div>
                 </div>
 
-                @can('update-purchase-receipts')
+                @if ($canEditReceipt)
                     <button type="button" @click="addItem()"
                         class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-4 py-2 text-xs font-bold text-white hover:bg-blue-800">
                         + Tambah Item
                     </button>
-                @endcan
+                @endif
             </div>
 
             @error('items')
@@ -176,11 +198,13 @@
                         Item <span x-text="index + 1"></span>
                     </div>
 
-                    <button type="button" @click="removeItem(index)"
-                        class="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-xs font-bold text-white hover:bg-red-700"
-                        x-show="items.length > 1">
-                        Hapus
-                    </button>
+                    <template x-if="canEdit">
+                        <button type="button" @click="removeItem(index)"
+                            class="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-xs font-bold text-white hover:bg-red-700"
+                            x-show="items.length > 1">
+                            Hapus
+                        </button>
+                    </template>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -189,7 +213,7 @@
                         <label class="block text-sm font-bold mb-2">Nama Barang</label>
 
                         <select :id="`material_${item.key}`" :name="`items[${index}][raw_material_id]`"
-                            x-ref="materialSelects" x-bind:data-key="item.key"
+                            x-ref="materialSelects" x-bind:data-key="item.key" :disabled="!canEdit"
                             class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
                             <option value="">-- Pilih Barang --</option>
                             @foreach ($rawMaterials as $rm)
@@ -206,7 +230,7 @@
                         <label class="block text-sm font-bold mb-2">Jumlah Barang Masuk</label>
 
                         <input :name="`items[${index}][quantity_received]`" x-model.number="item.quantity_received"
-                            type="number" min="1" placeholder="Contoh: 150"
+                            type="number" min="1" placeholder="Contoh: 150" :disabled="!canEdit"
                             class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
 
                         <p class="mt-1 text-xs text-red-600" x-show="err(`items.${index}.quantity_received`)"
@@ -217,14 +241,14 @@
         </template>
 
         {{-- ACTIONS --}}
-        @can('update-purchase-receipts')
+        @if ($canEditReceipt)
             <div class="flex items-center justify-end gap-4 pt-2">
                 <button type="submit"
                     class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
                     Update
                 </button>
             </div>
-        @endcan
+        @endif
     </form>
 
     <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm mb-5">
@@ -244,18 +268,21 @@
                                 <a target="_blank" href="{{ $invoice->getUrl() }}">{{ $invoice->file_name }}</a>
                             </td>
                             <td class="px-6 py-3">
-                                @can('update-purchase-receipts')
+                                @if ($canEditReceipt)
                                     <div class="flex items-center justify-start gap-6 font-semibold">
                                         <form action="{{ route('media.delete', $invoice->id) }}" method="post"
                                             class="delete-invoice-form">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="button" class="text-[#EC0000] hover:underline btn-delete-invoice">
+                                            <button type="button"
+                                                class="text-[#EC0000] hover:underline btn-delete-invoice">
                                                 Hapus
                                             </button>
                                         </form>
                                     </div>
-                                @endcan
+                                @else
+                                    <span class="text-gray-400">Disabled</span>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -265,7 +292,7 @@
         </div>
     </div>
 
-    @can('update-purchase-receipts')
+    @if ($canEditReceipt)
         <form action="{{ route('purchase-receipts.add-media', $receipt->id) }}" method="post"
             enctype="multipart/form-data">
             @csrf
@@ -295,7 +322,7 @@
                 </button>
             </div>
         </form>
-    @endcan
+    @endif
 @endsection
 
 @section('addJs')
@@ -331,13 +358,15 @@
         function purchaseReceiptEdit({
             initItems,
             oldProcurementId,
-            oldWarehouseId
+            oldWarehouseId,
+            canEdit
         }) {
             return {
                 items: [],
                 errors: @js($errors->toArray()),
                 procurement_id: oldProcurementId || '',
                 warehouse_id: oldWarehouseId || '',
+                canEdit: !!canEdit,
                 _settingSelect2: false,
 
                 init() {
@@ -373,6 +402,8 @@
                 },
 
                 addItem() {
+                    if (!this.canEdit) return;
+
                     this.items.push({
                         key: crypto.randomUUID(),
                         raw_material_id: '',
@@ -383,6 +414,8 @@
                 },
 
                 removeItem(index) {
+                    if (!this.canEdit) return;
+
                     const key = this.items[index]?.key;
                     if (key) this.destroyMaterialSelect2(key);
 
@@ -411,7 +444,8 @@
                     $(el).select2({
                         width: '100%',
                         placeholder: '-- Pilih Id Pengadaan --',
-                        allowClear: true
+                        allowClear: true,
+                        disabled: true
                     });
 
                     $(el).on('change.receiptProc', () => {
@@ -482,7 +516,8 @@
                         $(el).select2({
                             width: '100%',
                             placeholder: '-- Pilih Barang --',
-                            allowClear: true
+                            allowClear: true,
+                            disabled: !this.canEdit
                         });
 
                         el.dataset.inited = '1';
@@ -490,7 +525,7 @@
                         this.setSelect2ValueByKey(el, key);
 
                         $(el).on('change.receiptItem', () => {
-                            if (this._settingSelect2) return;
+                            if (this._settingSelect2 || !this.canEdit) return;
 
                             const val = $(el).val() || '';
                             const idx = this.items.findIndex(x => x.key === key);
