@@ -93,4 +93,9 @@ class Shipment extends Model implements HasMedia
     {
         return $this->belongsTo(Warehouse::class);
     }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
+    }
 }

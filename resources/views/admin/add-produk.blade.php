@@ -123,155 +123,61 @@
             </div>
         </section>
 
-        {{-- ITEMS --}}
-        <section class="bg-gray-200/80 {{ $sectionClass }}">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h3 class="text-sm font-bold text-gray-700">Daftar Bahan Baku</h3>
-                    <p class="text-xs text-gray-500 mt-1">
-                        Pilih gudang terlebih dahulu, lalu tambahkan bahan baku yang ingin digunakan.
-                    </p>
-                </div>
+            {{-- MATERIALS --}}
+            <div class="space-y-4">
+                <template x-if="!selectedWarehouse">
+                    <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-xl p-4 text-sm">
+                        Pilih gudang dulu, baru bahan baku akan dimuat.
+                    </div>
+                </template>
 
-                <button type="button" id="btnAddItem"
-                    class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">
-                    + Add Item
-                </button>
-            </div>
+                <template x-if="selectedWarehouse && loading">
+                    <div class="bg-gray-100 border border-gray-200 text-gray-700 rounded-xl p-4 text-sm">
+                        Memuat bahan baku...
+                    </div>
+                </template>
 
-            <div id="warehouseWarning"
-                class="hidden mb-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-xl p-4 text-sm">
-                Pilih gudang dulu, baru bahan baku bisa ditambahkan.
-            </div>
+                <template x-if="selectedWarehouse && !loading && errorMessage">
+                    <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm" x-text="errorMessage">
+                    </div>
+                </template>
 
-            <div id="loadingMaterials"
-                class="hidden mb-4 bg-gray-100 border border-gray-200 text-gray-700 rounded-xl p-4 text-sm">
-                Memuat bahan baku...
-            </div>
+                <template x-if="selectedWarehouse && !loading && !errorMessage && materials.length === 0">
+                    <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">
+                        Tidak ada stok bahan baku untuk gudang ini.
+                    </div>
+                </template>
 
-            <div id="materialsError"
-                class="hidden mb-4 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm">
-            </div>
+                <template x-for="(item, index) in materials" :key="item.raw_material_id">
+                    <section class="bg-gray-200/80 {{ $sectionClass }}">
+                        <input type="hidden" :name="`items[${index}][raw_material_id]`" :value="item.raw_material_id">
 
-            <div id="materialsInfo"
-                class="hidden mb-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl p-4 text-sm">
-            </div>
-
-            <div id="itemsContainer" class="space-y-4">
-                @if (old('items'))
-                    @foreach (old('items') as $i => $item)
-                        <section class="item-row border border-gray-300 rounded-xl p-4 bg-white">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-800 mb-2">Bahan Baku</label>
-                                    <select name="items[{{ $i }}][raw_material_id]"
-                                        class="rawMaterialSelect {{ $inputClass }}">
-                                        <option value="">-- Pilih Bahan Baku --</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-800 mb-2">ID Barang</label>
-                                    <input type="text" class="materialCodeDisplay {{ $readonlyClass }}" readonly
-                                        value="">
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-800 mb-2">Stok Tersedia</label>
-                                    <input type="text" class="materialStockDisplay {{ $readonlyClass }}" readonly
-                                        value="">
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-800 mb-2">Stok Digunakan</label>
-                                    <div class="flex gap-2">
-                                        <input type="number" min="0" name="items[{{ $i }}][quantity_use]"
-                                            value="{{ $item['quantity_use'] ?? '' }}" class="{{ $inputClass }}"
-                                            placeholder="Masukkan jumlah">
-                                        <button type="button"
-                                            class="btnRemoveItem inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 whitespace-nowrap">
-                                            Hapus
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                    @endforeach
-                @else
-                    <section class="item-row border border-gray-300 rounded-xl p-4 bg-white">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
-                                <label class="block text-sm font-bold text-gray-800 mb-2">Bahan Baku</label>
-                                <select name="items[0][raw_material_id]" class="rawMaterialSelect {{ $inputClass }}">
-                                    <option value="">-- Pilih Bahan Baku --</option>
-                                </select>
+                                <label class="block text-sm font-bold mb-2">ID Barang</label>
+                                <input type="text" :value="item.id_barang" readonly class="{{ $readonlyClass }}">
                             </div>
 
                             <div>
-                                <label class="block text-sm font-bold text-gray-800 mb-2">ID Barang</label>
-                                <input type="text" class="materialCodeDisplay {{ $readonlyClass }}" readonly
-                                    value="">
+                                <label class="block text-sm font-bold mb-2">Nama Barang</label>
+                                <input type="text" :value="item.nama_barang" readonly class="{{ $readonlyClass }}">
                             </div>
 
                             <div>
-                                <label class="block text-sm font-bold text-gray-800 mb-2">Stok Tersedia</label>
-                                <input type="text" class="materialStockDisplay {{ $readonlyClass }}" readonly
-                                    value="">
+                                <label class="block text-sm font-bold mb-2">Stok Tersedia</label>
+                                <input type="text" :value="`${item.stok_tersedia} ${item.unit}`" readonly
+                                    class="{{ $readonlyClass }}">
                             </div>
 
                             <div>
-                                <label class="block text-sm font-bold text-gray-800 mb-2">Stok Digunakan</label>
-                                <div class="flex gap-2">
-                                    <input type="number" min="0" name="items[0][quantity_use]"
-                                        class="{{ $inputClass }}" placeholder="Masukkan jumlah">
-                                    <button type="button"
-                                        class="btnRemoveItem inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 whitespace-nowrap">
-                                        Hapus
-                                    </button>
-                                </div>
+                                <label class="block text-sm font-bold mb-2">Stok Digunakan</label>
+                                <input type="number" min="0" :name="`items[${index}][quantity_use]`"
+                                    class="{{ $inputClass }}" placeholder="Masukkan jumlah">
                             </div>
                         </div>
                     </section>
-                @endif
+                </template>
             </div>
-
-            <template id="itemTemplate">
-                <section class="item-row border border-gray-300 rounded-xl p-4 bg-white">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div>
-                            <label class="block text-sm font-bold text-gray-800 mb-2">Bahan Baku</label>
-                            <select name="items[__INDEX__][raw_material_id]" class="rawMaterialSelect {{ $inputClass }}">
-                                <option value="">-- Pilih Bahan Baku --</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold text-gray-800 mb-2">ID Barang</label>
-                            <input type="text" class="materialCodeDisplay {{ $readonlyClass }}" readonly
-                                value="">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold text-gray-800 mb-2">Stok Tersedia</label>
-                            <input type="text" class="materialStockDisplay {{ $readonlyClass }}" readonly
-                                value="">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold text-gray-800 mb-2">Stok Digunakan</label>
-                            <div class="flex gap-2">
-                                <input type="number" min="0" name="items[__INDEX__][quantity_use]"
-                                    class="{{ $inputClass }}" placeholder="Masukkan jumlah">
-                                <button type="button"
-                                    class="btnRemoveItem inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 whitespace-nowrap">
-                                    Hapus
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </template>
-        </section>
 
         {{-- NOTE --}}
         <div>
@@ -300,107 +206,30 @@
 
 @section('addJs')
     <script>
-        let warehouseMaterials = [];
+        function productionForm() {
+            return {
+                selectedWarehouse: @json(old('warehouse_id') ?? ''),
+                materials: [],
+                loading: false,
+                errorMessage: '',
+                cancelModal: false,
 
-        function initSelect2For($el) {
-            $el.select2({
-                placeholder: "Cari bahan baku...",
-                allowClear: true,
-                width: '100%'
-            });
-        }
+                init() {
+                    if (this.selectedWarehouse) {
+                        this.fetchMaterials();
+                    }
+                },
 
-        function buildMaterialOptions(selectedId = '') {
-            let html = `<option value="">-- Pilih Bahan Baku --</option>`;
+                async fetchMaterials() {
+                    if (!this.selectedWarehouse) {
+                        this.materials = [];
+                        this.errorMessage = '';
+                        return;
+                    }
 
-            warehouseMaterials.forEach(item => {
-                const selected = String(selectedId) === String(item.raw_material_id) ? 'selected' : '';
-                html += `
-                    <option value="${item.raw_material_id}" 
-                        data-code="${item.id_barang ?? ''}"
-                        data-name="${item.nama_barang ?? ''}"
-                        data-stock="${item.stok_tersedia ?? 0}"
-                        data-unit="${item.unit ?? ''}"
-                        ${selected}>
-                        ${(item.id_barang ?? '-') + ' - ' + (item.nama_barang ?? '-') + ' / ' + (item.unit ?? '')}
-                    </option>
-                `;
-            });
-
-            return html;
-        }
-
-        function updateMaterialInfo($row) {
-            const $selected = $row.find('.rawMaterialSelect option:selected');
-            const code = $selected.data('code') ?? '';
-            const stock = $selected.data('stock') ?? '';
-            const unit = $selected.data('unit') ?? '';
-
-            $row.find('.materialCodeDisplay').val(code);
-            $row.find('.materialStockDisplay').val(code ? `${stock} ${unit}` : '');
-        }
-
-        function reindexItems() {
-            $('#itemsContainer .item-row').each(function(index) {
-                $(this).find('.rawMaterialSelect')
-                    .attr('name', `items[${index}][raw_material_id]`);
-
-                $(this).find('input[type="number"]')
-                    .attr('name', `items[${index}][quantity_use]`);
-            });
-        }
-
-        function refillAllSelectOptions() {
-            $('#itemsContainer .item-row').each(function() {
-                const $row = $(this);
-                const $select = $row.find('.rawMaterialSelect');
-                const currentValue = $select.val();
-
-                if ($select.data('select2')) {
-                    $select.select2('destroy');
-                }
-
-                $select.html(buildMaterialOptions(currentValue));
-                initSelect2For($select);
-                updateMaterialInfo($row);
-            });
-        }
-
-        function addItem(selectedMaterialId = '', quantityUse = '') {
-            const container = $('#itemsContainer');
-            const templateHtml = $('#itemTemplate').html();
-            const nextIndex = container.find('.item-row').length;
-            const newHtml = templateHtml.replaceAll('__INDEX__', nextIndex);
-            const $newItem = $(newHtml);
-
-            container.append($newItem);
-
-            const $select = $newItem.find('.rawMaterialSelect');
-            $select.html(buildMaterialOptions(selectedMaterialId));
-            initSelect2For($select);
-
-            if (quantityUse !== '') {
-                $newItem.find('input[type="number"]').val(quantityUse);
-            }
-
-            updateMaterialInfo($newItem);
-        }
-
-        async function fetchMaterialsByWarehouse(warehouseId) {
-            if (!warehouseId) {
-                warehouseMaterials = [];
-                refillAllSelectOptions();
-                $('#warehouseWarning').removeClass('hidden');
-                $('#loadingMaterials').addClass('hidden');
-                $('#materialsError').addClass('hidden').text('');
-                $('#materialsInfo').addClass('hidden').text('');
-                return;
-            }
-
-            $('#warehouseWarning').addClass('hidden');
-            $('#loadingMaterials').removeClass('hidden');
-            $('#materialsError').addClass('hidden').text('');
-            $('#materialsInfo').addClass('hidden').text('');
+                    this.loading = true;
+                    this.errorMessage = '';
+                    this.materials = [];
 
             try {
                 const url =
@@ -424,100 +253,15 @@
                     throw new Error(result.message || 'Gagal mengambil data bahan baku.');
                 }
 
-                warehouseMaterials = Array.isArray(result.materials) ? result.materials : [];
-                refillAllSelectOptions();
-
-                if (warehouseMaterials.length === 0) {
-                    $('#materialsInfo')
-                        .removeClass('hidden')
-                        .text('Tidak ada stok bahan baku untuk gudang ini.');
-                } else {
-                    $('#materialsInfo')
-                        .removeClass('hidden')
-                        .text(`Bahan baku tersedia: ${warehouseMaterials.length} item.`);
+                        this.materials = Array.isArray(result.materials) ? result.materials : [];
+                    } catch (error) {
+                        console.error('Fetch materials error:', error);
+                        this.errorMessage = 'Gagal mengambil data bahan baku.';
+                    } finally {
+                        this.loading = false;
+                    }
                 }
-            } catch (error) {
-                console.error('Fetch materials error:', error);
-                warehouseMaterials = [];
-                refillAllSelectOptions();
-                $('#materialsError')
-                    .removeClass('hidden')
-                    .text('Gagal mengambil data bahan baku.');
-            } finally {
-                $('#loadingMaterials').addClass('hidden');
             }
         }
-
-        $(document).ready(function() {
-            $('#warehouse_id').select2({
-                placeholder: "Cari Gudang",
-                allowClear: true,
-                width: '100%'
-            });
-
-            initSelect2For($('.rawMaterialSelect'));
-
-            const currentWarehouse = $('#warehouse_id').val();
-            if (currentWarehouse) {
-                fetchMaterialsByWarehouse(currentWarehouse).then(() => {
-                    @if (old('items'))
-                        const oldItems = @json(old('items'));
-                        $('#itemsContainer').empty();
-
-                        oldItems.forEach((item, index) => {
-                            addItem(item.raw_material_id ?? '', item.quantity_use ?? '');
-                        });
-                    @else
-                        refillAllSelectOptions();
-                    @endif
-                });
-            } else {
-                $('#warehouseWarning').removeClass('hidden');
-            }
-
-            $('#warehouse_id').on('change', async function() {
-                const warehouseId = $(this).val();
-
-                await fetchMaterialsByWarehouse(warehouseId);
-
-                $('#itemsContainer').empty();
-                addItem();
-                reindexItems();
-            });
-
-            $('#btnAddItem').on('click', function() {
-                const warehouseId = $('#warehouse_id').val();
-
-                if (!warehouseId) {
-                    $('#warehouseWarning').removeClass('hidden');
-                    return;
-                }
-
-                addItem();
-                reindexItems();
-            });
-
-            $(document).on('change', '.rawMaterialSelect', function() {
-                const $row = $(this).closest('.item-row');
-                updateMaterialInfo($row);
-            });
-
-            $(document).on('click', '.btnRemoveItem', function() {
-                const $row = $(this).closest('.item-row');
-                const $select = $row.find('.rawMaterialSelect');
-
-                if ($select.data('select2')) {
-                    $select.select2('destroy');
-                }
-
-                $row.remove();
-
-                if ($('#itemsContainer .item-row').length === 0) {
-                    addItem();
-                }
-
-                reindexItems();
-            });
-        });
     </script>
 @endsection

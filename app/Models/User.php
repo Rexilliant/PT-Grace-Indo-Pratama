@@ -16,7 +16,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, HasRoles,Notifiable, SoftDeletes;
+    use HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -81,5 +81,10 @@ class User extends Authenticatable
     public function warehouses()
     {
         return $this->hasMany(Warehouse::class, 'responsible_id');
+    }
+
+    public function deletedWarehouses()
+    {
+        return $this->hasMany(Warehouse::class, 'deleted_by');
     }
 }

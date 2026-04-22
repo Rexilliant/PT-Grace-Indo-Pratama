@@ -19,6 +19,7 @@ class Procurement extends Model
         'approved_at',
         'rejected_by',
         'rejected_at',
+        'deleted_by',
         'reason',
         'note',
     ];
@@ -48,6 +49,11 @@ class Procurement extends Model
     public function userRejected()
     {
         return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    public function userDeleted()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     public function warehouse()

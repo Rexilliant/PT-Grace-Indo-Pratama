@@ -555,7 +555,11 @@ class ShipmentController extends Controller
 
             DB::transaction(function () use ($shipment) {
 
-                // hapus media (jika pakai spatie media)
+                // ✅ simpan siapa yang delete (TAMBAHAN INTI)
+                $shipment->deleted_by = auth()->id();
+                $shipment->save();
+
+                // hapus media
                 if (method_exists($shipment, 'clearMediaCollection')) {
                     $shipment->clearMediaCollection('invoices_shipment');
                 }
@@ -563,7 +567,7 @@ class ShipmentController extends Controller
                 // hapus item
                 $shipment->shipmentItems()->delete();
 
-                // hapus data utama
+                // soft delete
                 $shipment->delete();
             });
 
