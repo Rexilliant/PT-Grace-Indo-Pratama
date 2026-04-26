@@ -95,7 +95,7 @@
     </section>
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         <div class="mb-5 flex items-center gap-5">
-            <a href="{{ route('procurements.export', request()->query()) }}"
+            <a href="{{ route('shipments.export', request()->query()) }}"
                 class="inline-flex items-center
                 gap-2 rounded-lg bg-[#2E7E3F] px-5 py-2 text-sm font-semibold text-white hover:bg-green-800
                 focus:outline-none focus:ring-2 focus:ring-green-300">

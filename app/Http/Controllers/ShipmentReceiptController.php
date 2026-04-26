@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\ProductStock;
 use App\Models\ProductStockMovement;
 use App\Models\Shipment;
@@ -13,10 +12,82 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use PHPUnit\Event\Code\Throwable;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ShipmentReceiptController extends Controller
 {
+    public function export(Request $request)
+    {
+        $q = ShipmentReceipt::query()
+            ->with([
+                'shipment.warehouse',
+                'receivedBy',
+            ])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('name')) {
+            $q->whereHas('receivedBy', function ($query) use ($request) {
+                $query->where('name', 'like', '%'.$request->name.'%');
+            });
+        }
+
+        if ($request->filled('code')) {
+            $q->whereHas('shipment', function ($query) use ($request) {
+                $query->where('shipment_code', 'like', '%'.$request->code.'%');
+            });
+        }
+
+        if ($request->filled('status')) {
+            $q->where('status', $request->status);
+        }
+
+        if ($request->filled('warehouse_id')) {
+            $q->whereHas('shipment', function ($query) use ($request) {
+                $query->where('warehouse_id', $request->warehouse_id);
+            });
+        }
+
+        $rows = $q->get()->map(function ($sr) {
+            return [
+                'Kode Shipment' => $sr->shipment->shipment_code ?? '-',
+                'Gudang' => $sr->shipment->warehouse->name ?? '-',
+                'Status' => $sr->status ?? '-',
+                'Diterima Oleh' => $sr->receivedBy->name ?? '-',
+                'Tanggal Diterima' => $sr->received_at
+                    ? $sr->received_at->format('Y-m-d H:i:s')
+                    : '-',
+            ];
+        });
+
+        $export = new class($rows) implements FromCollection, WithHeadings
+        {
+            public function __construct(private $rows) {}
+
+            public function collection()
+            {
+                return $this->rows;
+            }
+
+            public function headings(): array
+            {
+                return [
+                    'Kode Shipment',
+                    'Gudang',
+                    'Status',
+                    'Diterima Oleh',
+                    'Tanggal Diterima',
+                ];
+            }
+        };
+
+        return Excel::download(
+            $export,
+            'shipment_receipts_'.now()->format('Ymd_His').'.xlsx'
+        );
+    }
+
     public function index(Request $request)
     {
         $q = ShipmentReceipt::query()->with([
@@ -26,13 +97,13 @@ class ShipmentReceiptController extends Controller
 
         if ($request->filled('name')) {
             $q->whereHas('receivedBy', function ($query) use ($request) {
-                $query->where('name', 'like', '%' . $request->name . '%');
+                $query->where('name', 'like', '%'.$request->name.'%');
             });
         }
 
         if ($request->filled('code')) {
             $q->whereHas('shipment', function ($query) use ($request) {
-                $query->where('shipment_code', 'like', '%' . $request->code . '%');
+                $query->where('shipment_code', 'like', '%'.$request->code.'%');
             });
         }
 
@@ -110,7 +181,7 @@ class ShipmentReceiptController extends Controller
             foreach ($validated['items'] as $index => $item) {
                 $shipmentItem = $shipmentItems->get((int) $item['shipment_item_id']);
 
-                if (!$shipmentItem) {
+                if (! $shipmentItem) {
                     throw ValidationException::withMessages([
                         "items.$index.shipment_item_id" => 'Item shipment tidak sesuai dengan shipment yang dipilih.',
                     ]);
@@ -143,15 +214,16 @@ class ShipmentReceiptController extends Controller
             // ✅ TAMBAHAN (UPLOAD FILE)
             if ($request->hasFile('damage_proofs')) {
                 foreach ($request->file('damage_proofs') as $file) {
-                    if (!$file->isValid())
+                    if (! $file->isValid()) {
                         continue;
+                    }
 
                     $baseName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                     $ext = $file->getClientOriginalExtension();
 
                     $safeFileName = now()->format('YmdHis')
-                        . '-' . \Illuminate\Support\Str::slug($baseName)
-                        . '.' . $ext;
+                        .'-'.\Illuminate\Support\Str::slug($baseName)
+                        .'.'.$ext;
 
                     $shipmentReceipt->addMedia($file)
                         ->usingFileName($safeFileName)
@@ -207,7 +279,7 @@ class ShipmentReceiptController extends Controller
             'reject_reason' => 'nullable|string|required_if:status,ditolak',
         ];
 
-        if (!$isLocked) {
+        if (! $isLocked) {
             $rules = array_merge($rules, [
                 'received_at' => 'required|date',
                 'notes' => 'nullable|string',
@@ -233,14 +305,14 @@ class ShipmentReceiptController extends Controller
         try {
             $newStatus = $validated['status'];
 
-            if (!$isLocked) {
+            if (! $isLocked) {
                 $shipmentItems = $shipmentReceipt->shipment->shipmentItems->keyBy('id');
                 $receiptItems = $shipmentReceipt->items->keyBy('id');
 
                 foreach ($validated['items'] as $index => $item) {
                     $receiptItem = $receiptItems->get((int) $item['shipment_receipt_item_id']);
 
-                    if (!$receiptItem) {
+                    if (! $receiptItem) {
                         throw ValidationException::withMessages([
                             "items.$index.shipment_receipt_item_id" => 'Item receipt tidak valid.',
                         ]);
@@ -254,7 +326,7 @@ class ShipmentReceiptController extends Controller
 
                     $shipmentItem = $shipmentItems->get((int) $item['shipment_item_id']);
 
-                    if (!$shipmentItem) {
+                    if (! $shipmentItem) {
                         throw ValidationException::withMessages([
                             "items.$index.shipment_item_id" => 'Item shipment tidak ditemukan pada shipment ini.',
                         ]);
@@ -307,13 +379,13 @@ class ShipmentReceiptController extends Controller
                     foreach ($shipmentReceipt->items as $receiptItem) {
                         $shipmentItem = $receiptItem->shipmentItem;
 
-                        if (!$shipmentItem) {
+                        if (! $shipmentItem) {
                             continue;
                         }
 
                         $sourceProductStock = $shipmentItem->productStock;
 
-                        if (!$sourceProductStock) {
+                        if (! $sourceProductStock) {
                             throw ValidationException::withMessages([
                                 'items' => 'Product stock asal tidak ditemukan pada shipment item.',
                             ]);
@@ -335,7 +407,7 @@ class ShipmentReceiptController extends Controller
                             $destinationProductStock->restore();
                         }
 
-                        if (!$destinationProductStock->exists) {
+                        if (! $destinationProductStock->exists) {
                             $destinationProductStock->stock = 0;
                         }
 
@@ -349,7 +421,7 @@ class ShipmentReceiptController extends Controller
                             'quantity' => $qtyIn,
                             'ref_type' => 'shipment_receipt',
                             'ref_id' => $shipmentReceipt->id,
-                            'note' => 'Stock masuk dari approval shipment receipt #' . $shipmentReceipt->id,
+                            'note' => 'Stock masuk dari approval shipment receipt #'.$shipmentReceipt->id,
                         ]);
                     }
                 }

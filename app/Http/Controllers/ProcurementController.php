@@ -7,7 +7,6 @@ use App\Models\ProcurementItem;
 use App\Models\RawMaterial;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Facades\Excel;
@@ -16,38 +15,45 @@ class ProcurementController extends Controller
 {
     public function export(Request $request)
     {
-        $query = Procurement::query()
+        $q = Procurement::query()
             ->with('userRequest')
             ->orderBy('created_at', 'desc');
 
+        if ($request->filled('name')) {
+            $q->whereHas('userRequest', function ($query) use ($request) {
+                $query->where('name', 'like', '%'.$request->name.'%');
+            });
+        }
+
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $q->where('status', $request->status);
         }
 
         if ($request->filled('warehouse_id')) {
-            $query->where('warehouse_id', $request->warehouse_id);
+            $q->where('warehouse_id', $request->warehouse_id);
         }
 
         if ($request->filled('date_from')) {
-            $query->whereDate('purchase_at', '>=', $request->date_from);
+            $q->whereDate('purchase_at', '>=', $request->date_from);
         }
 
         if ($request->filled('date_to')) {
-            $query->whereDate('purchase_at', '<=', $request->date_to);
+            $q->whereDate('purchase_at', '<=', $request->date_to);
         }
 
-        $rows = $query->get()->map(function ($p) {
+        $rows = $q->get()->map(function ($p) {
             return [
                 'id Pengadaan' => $p->id,
                 'Tanggal Pemesanan' => $p->purchase_at,
                 'Nama Pemesan' => $p->userRequest->name ?? '-',
+                'Gudang' => $p->warehouse->name ?? '-',
                 'Status' => $p->status ?? '-',
             ];
         });
 
-        $export = new class ($rows) implements FromCollection, WithHeadings {
-            public function __construct(private $rows)
-            {}
+        $export = new class($rows) implements FromCollection, WithHeadings
+        {
+            public function __construct(private $rows) {}
 
             public function collection()
             {
@@ -56,11 +62,11 @@ class ProcurementController extends Controller
 
             public function headings(): array
             {
-                return ['id Pengadaan', 'Tanggal Pemesanan', 'Nama Pemesan', 'Provinsi', 'Status'];
+                return ['id Pengadaan', 'Tanggal Pemesanan', 'Nama Pemesan', 'Gudang', 'Status'];
             }
         };
 
-        return Excel::download($export, 'procurements_' . now()->format('Ymd_His') . '.xlsx');
+        return Excel::download($export, 'procurements_'.now()->format('Ymd_His').'.xlsx');
     }
 
     public function index(Request $request)
@@ -71,7 +77,7 @@ class ProcurementController extends Controller
 
         if ($request->filled('name')) {
             $q->whereHas('userRequest', function ($query) use ($request) {
-                $query->where('name', 'like', '%' . $request->name . '%');
+                $query->where('name', 'like', '%'.$request->name.'%');
             });
         }
 

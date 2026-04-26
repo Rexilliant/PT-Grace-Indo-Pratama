@@ -1,29 +1,151 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\ProductStockMovement;
+
+use App\Http\Controllers\Controller;
 use App\Models\HistorySalePayment;
 use App\Models\ProductStock;
+use App\Models\ProductStockMovement;
 use App\Models\Sale;
-use Illuminate\Http\Request;
-use Carbon\Carbon;
 use App\Models\Warehouse;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SaleController extends Controller
 {
-    public function index()
+    public function export(Request $request)
     {
-        $sales = Sale::with([
-            'personResponsible',
-            'items.productStock.productVariant.product',
-        ])
-            ->latest()
-            ->paginate(10);
+        $q = Sale::query()
+            ->with([
+                'personResponsible',
+                'items.productStock.productVariant.product',
+            ])
+            ->latest();
 
-        return view('admin.pemasaran-laporan-penjualan', compact('sales'));
+        if ($request->filled('name')) {
+            $q->whereHas('personResponsible', function ($query) use ($request) {
+                $query->where('name', 'like', '%'.$request->name.'%');
+            });
+        }
+
+        if ($request->filled('status')) {
+            $q->where('status', $request->status);
+        }
+
+        if ($request->filled('province')) {
+            $q->where('customer_province', 'like', '%'.$request->province.'%');
+        }
+
+        if ($request->filled('date_from')) {
+            $q->whereDate('sale_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $q->whereDate('sale_date', '<=', $request->date_to);
+        }
+
+        $rows = $q->get()->map(function ($s) {
+            return [
+                'id Penjualan' => $s->id,
+                'Tanggal Penjualan' => $s->sale_date
+                    ? \Carbon\Carbon::parse($s->sale_date)->format('d-m-Y')
+                    : '-',
+                'Nama Pembeli' => $s->customer_name ?? '-',
+                'Kontak Pembeli' => $s->customer_contact ?? '-',
+                'Provinsi Pembeli' => $s->customer_province ?? '-',
+                'Kota Pembeli' => $s->customer_city ?? '-',
+                'Total Amount' => $s->total_amount ?? 0,
+                'Paid Amount' => $s->paid_amount ?? 0,
+                'Debt Amount' => $s->debt_amount ?? 0,
+                'Status' => $s->status ?? '-',
+            ];
+        });
+
+        $export = new class($rows) implements FromCollection, WithHeadings
+        {
+            public function __construct(private $rows) {}
+
+            public function collection()
+            {
+                return $this->rows;
+            }
+
+            public function headings(): array
+            {
+                return [
+                    'id Penjualan',
+                    'Tanggal Penjualan',
+                    'Nama Pembeli',
+                    'Kontak Pembeli',
+                    'Provinsi Pembeli',
+                    'Kota Pembeli',
+                    'Total Amount',
+                    'Paid Amount',
+                    'Debt Amount',
+                    'Status',
+                ];
+            }
+        };
+
+        return Excel::download(
+            $export,
+            'sales_'.now()->format('Ymd_His').'.xlsx'
+        );
+    }
+
+    public function index(Request $request)
+    {
+        $q = Sale::query()
+            ->with([
+                'personResponsible',
+                'items.productStock.productVariant.product',
+            ])
+            ->latest();
+
+        if ($request->filled('name')) {
+            $q->whereHas('personResponsible', function ($query) use ($request) {
+                $query->where('name', 'like', '%'.$request->name.'%');
+            });
+        }
+
+        if ($request->filled('status')) {
+            $q->where('status', $request->status);
+        }
+
+        if ($request->filled('province')) {
+            $q->where('customer_province', 'like', '%'.$request->province.'%');
+        }
+
+        if ($request->filled('date_from')) {
+            $q->whereDate('sale_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $q->whereDate('sale_date', '<=', $request->date_to);
+        }
+
+        $perPage = (int) ($request->get('per_page', 10));
+        $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
+
+        $sales = $q->orderBy('sale_date', 'asc')->paginate($perPage)->withQueryString();
+
+        $statuses = Sale::query()
+            ->select('status')
+            ->whereNotNull('status')
+            ->distinct()
+            ->orderBy('status')
+            ->pluck('status');
+
+        return view('admin.pemasaran-laporan-penjualan', compact(
+            'sales',
+            'statuses'
+        ));
     }
 
     public function create()
@@ -128,7 +250,7 @@ class SaleController extends Controller
         // 3. Eksekusi Database Transaction
         return DB::transaction(function () use ($request, $itemsInput, $dpValue) {
 
-            $stockIds = $itemsInput->pluck('product_stock_id')->map(fn($id) => (int) $id)->unique()->values();
+            $stockIds = $itemsInput->pluck('product_stock_id')->map(fn ($id) => (int) $id)->unique()->values();
             $warehouseId = (int) $request->warehouse_id;
 
             // Ambil data stok dan kunci untuk update (Pencegahan Race Condition)
@@ -150,7 +272,7 @@ class SaleController extends Controller
 
                 $stock = $stocks->get($productStockId);
 
-                if (!$stock || (int) $stock->warehouse_id !== $warehouseId) {
+                if (! $stock || (int) $stock->warehouse_id !== $warehouseId) {
                     throw ValidationException::withMessages(["items.$index.product_stock_id" => 'Barang tidak valid atau tidak ada di gudang ini.']);
                 }
 
@@ -220,7 +342,7 @@ class SaleController extends Controller
                     'quantity' => $item['quantity'],
                     'ref_type' => Sale::class,
                     'ref_id' => $sale->id,
-                    'note' => 'Penjualan #' . $sale->id,
+                    'note' => 'Penjualan #'.$sale->id,
                 ]);
             }
 
@@ -296,7 +418,7 @@ class SaleController extends Controller
                 ]);
             }
 
-            if (!$request->hasFile('invoice')) {
+            if (! $request->hasFile('invoice')) {
                 throw ValidationException::withMessages([
                     'invoice' => 'Bukti pembayaran wajib diupload.',
                 ]);
@@ -309,7 +431,7 @@ class SaleController extends Controller
                 $remainingDebt = max(0, (int) $sale->total_amount - $existingPaid);
 
                 throw ValidationException::withMessages([
-                    'payment_amount' => 'Nominal cicilan melebihi sisa tagihan. Maksimal pembayaran yang bisa ditambahkan adalah Rp ' . number_format($remainingDebt, 0, ',', '.') . '.',
+                    'payment_amount' => 'Nominal cicilan melebihi sisa tagihan. Maksimal pembayaran yang bisa ditambahkan adalah Rp '.number_format($remainingDebt, 0, ',', '.').'.',
                 ]);
             }
 
@@ -354,7 +476,7 @@ class SaleController extends Controller
             $stockIds = $sale->items
                 ->pluck('product_stock_id')
                 ->filter()
-                ->map(fn($id) => (int) $id)
+                ->map(fn ($id) => (int) $id)
                 ->unique()
                 ->values();
 
@@ -367,7 +489,7 @@ class SaleController extends Controller
             foreach ($sale->items as $item) {
                 $stock = $stocks->get((int) $item->product_stock_id);
 
-                if (!$stock) {
+                if (! $stock) {
                     continue;
                 }
 
@@ -381,7 +503,7 @@ class SaleController extends Controller
                     'quantity' => (int) $item->quantity,
                     'ref_type' => Sale::class,
                     'ref_id' => $sale->id,
-                    'note' => 'Pengembalian stok karena hapus sale #' . $sale->id,
+                    'note' => 'Pengembalian stok karena hapus sale #'.$sale->id,
                 ]);
             }
 

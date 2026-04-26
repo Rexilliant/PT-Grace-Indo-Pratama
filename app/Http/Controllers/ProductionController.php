@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\ProductionBatch;
 use App\Models\ProductionHasMaterial;
 use App\Models\ProductStock;
@@ -15,9 +16,72 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductionController extends Controller
 {
+    public function export(Request $request)
+    {
+        $q = ProductionBatch::query()
+            ->with('personResponsible')
+            ->orderBy('entry_date', 'desc');
+
+        if ($request->filled('id')) {
+            $q->where('id', 'like', '%'.$request->id.'%');
+        }
+
+        if ($request->filled('warehouse_id')) {
+            $q->where('warehouse_id', $request->warehouse_id);
+        }
+
+        if ($request->filled('date_from')) {
+            $q->whereDate('entry_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $q->whereDate('entry_date', '<=', $request->date_to);
+        }
+
+        $rows = $q->get()->map(function ($p) {
+            return [
+                'Id Produksi' => $p->id,
+                'Tanggal Produksi' => $p->entry_date,
+                'Nama Penanggung Jawab' => $p->personResponsible->name ?? '-',
+                'Gudang' => $p->warehouse->name ?? '-',
+                'SKU' => $p->productStock->productVariant->sku ?? '-',
+                'Produk' => $p->productStock->productVariant->product->name ?? '-',
+                'Variant' => $p->productStock->productVariant->name ?? '-',
+            ];
+        });
+
+        $export = new class($rows) implements FromCollection, WithHeadings
+        {
+            public function __construct(private $rows) {}
+
+            public function collection()
+            {
+                return $this->rows;
+            }
+
+            public function headings(): array
+            {
+                return [
+                    'Id Produksi',
+                    'Tanggal Produksi',
+                    'Nama Penanggung Jawab',
+                    'Gudang',
+                    'SKU',
+                    'Produk',
+                    'Variant',
+                ];
+            }
+        };
+
+        return Excel::download($export, 'produksi-'.now()->format('YmdHis').'.xlsx');
+    }
+
     public function index(Request $request)
     {
         $q = ProductionBatch::query()->with([
@@ -29,7 +93,7 @@ class ProductionController extends Controller
         ])->latest();
 
         if ($request->filled('id')) {
-            $q->where('id', 'like', '%' . $request->id . '%');
+            $q->where('id', 'like', '%'.$request->id.'%');
         }
 
         if ($request->filled('warehouse_id')) {
@@ -89,7 +153,7 @@ class ProductionController extends Controller
 
             $productVariant = $productionBatch->productStock?->productVariant;
 
-            if (!$productVariant) {
+            if (! $productVariant) {
                 throw new \Exception('Variant produk tidak ditemukan.');
             }
 
@@ -236,7 +300,7 @@ class ProductionController extends Controller
                         'quantity_use' => (int) $item['quantity_use'],
                     ];
                 })
-                ->filter(fn($item) => $item['quantity_use'] > 0)
+                ->filter(fn ($item) => $item['quantity_use'] > 0)
                 ->values();
 
             if ($items->isEmpty()) {
@@ -274,7 +338,7 @@ class ProductionController extends Controller
                         ->lockForUpdate()
                         ->first();
 
-                    if (!$rawStock) {
+                    if (! $rawStock) {
                         throw new \Exception("Stok bahan baku tidak ditemukan untuk gudang ID {$warehouseId}.");
                     }
 
@@ -354,11 +418,11 @@ class ProductionController extends Controller
             $note = $validated['note'] ?? null;
 
             $items = collect($validated['items'])
-                ->map(fn($item) => [
+                ->map(fn ($item) => [
                     'raw_material_id' => (int) $item['raw_material_id'],
                     'quantity_use' => (int) $item['quantity_use'],
                 ])
-                ->filter(fn($item) => $item['quantity_use'] > 0)
+                ->filter(fn ($item) => $item['quantity_use'] > 0)
                 ->values();
 
             if ($items->isEmpty()) {
@@ -422,7 +486,7 @@ class ProductionController extends Controller
                         ->lockForUpdate()
                         ->first();
 
-                    if (!$rawStock) {
+                    if (! $rawStock) {
                         throw new \Exception("Stok bahan baku tidak ditemukan untuk gudang ID {$warehouseId}.");
                     }
 
@@ -510,7 +574,7 @@ class ProductionController extends Controller
                     ];
                 })
                 ->filter(function ($province) {
-                    return !empty($province['name']);
+                    return ! empty($province['name']);
                 })
                 ->values();
         } catch (\Throwable $th) {
