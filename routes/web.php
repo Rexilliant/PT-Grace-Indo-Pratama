@@ -82,6 +82,8 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::prefix('admin')->middleware(['auth'])->group(function () {
         Route::get('/pemasaran/laporan-penjualan', [SaleController::class, 'index'])
             ->name('admin.pemasaran-laporan-penjualan');
+        Route::get('/pemasaran/laporan-penjualan/export', [SaleController::class, 'export'])
+            ->name('admin.pemasaran-laporan-penjualan.export');
         Route::get('/pemasaran/laporan-penjualan/create', [SaleController::class, 'create'])
             ->name('admin.pemasaran-laporan-penjualan.create');
         Route::post('/pemasaran/laporan-penjualan', [SaleController::class, 'store'])
@@ -106,6 +108,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
             Route::get('/gudang/laporan-produksi', [ProductionController::class, 'index'])->middleware(['auth', 'permission:baca produksi'])
                 ->name('gudang-laporan-produksi');
+            Route::get('/gudang/laporan-produksi/export', [ProductionController::class, 'export'])->name('gudang-laporan-produksi.export');
             Route::get('/gudang/laporan-produksi/tambah/{productVariant}', [ProductionController::class, 'create'])->middleware(['auth', 'permission:tambah produksi'])->name('add-produk');
             Route::get('/gudang/laporan-produksi/pilih-produk', [ProductionController::class, 'pilihProduk'])
                 ->name('add-pilih-produk');
@@ -132,6 +135,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     // Product Variant
     Route::controller(ProductVariantController::class)->group(function () {
         Route::get('/executive-produk-variant', 'index')->middleware(['auth', 'permission:baca produk'])->name('admin.executive-produk-variant');
+        Route::get('/executive-produk-variant/export', 'export')->name('admin.executive-produk-variant.export');
         Route::get('/add-executive-produk-variant', 'create')->middleware(['auth', 'permission:tambah produk'])
             ->name('admin.add-executive-produk-variant');
         Route::post('/add-executive-produk-variant/store', 'store')->middleware(['auth', 'permission:tambah produk'])
@@ -155,6 +159,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     // Executive Produk
     Route::controller(ProductController::class)->prefix('executive-produk')->group(function () {
         Route::get('/', 'indexExecutive')->middleware(['auth', 'permission:baca produk'])->name('admin.executive-produk');
+        Route::get('/export', 'export')->name('admin.executive-produk.export');
         Route::get('/create', 'createExecutive')->middleware(['auth', 'permission:tambah produk'])->name('admin.add-executive-produk-baru');
         Route::post('/store', 'storeExecutive')->middleware(['auth', 'permission:tambah produk'])->name('admin.add-executive-produk-baru.store');
         Route::get('/edit/{id}', 'editExecutive')->middleware(['auth', 'permission:edit produk|baca produk'])->name('admin.edit-executive-produk');
@@ -211,6 +216,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     });
     Route::controller(PurchaseReceiptController::class)->prefix('purchase-receipts')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca bahan baku masuk'])->name('purchase-receipts');
+        Route::get('/export', 'export')->name('purchase-receipts.export');
         Route::get('/create', 'create')->middleware(['auth', 'permission:tambah bahan baku masuk'])->name('create-purchase-receipt');
         Route::post('/store', 'store')->middleware(['auth', 'permission:tambah bahan baku masuk'])->name('store-purchase-receipt');
         Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit bahan baku masuk|baca bahan baku masuk'])->name('edit-purchase-receipt');
@@ -230,6 +236,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         ->name('procurements.export');
     Route::controller(ShipmentController::class)->prefix('shipments')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca pengiriman produk'])->name('shipments');
+        Route::get('/export', 'export')->name('shipments.export');
         Route::get('/create', 'create')->middleware(['auth', 'permission:tambah pengiriman produk'])->name('create-shipment');
         Route::post('/store', 'store')->middleware(['auth', 'permission:tambah pengiriman produk'])->name('store-shipment');
         Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit pengiriman produk|baca pengiriman produk'])->name('edit-shipment');
@@ -246,10 +253,12 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::put('/update/{id}', 'update')->middleware(['auth', 'permission:edit gudang'])->name('update-warehouse');
         Route::get('/cities/{adminCode1}', 'getCities')->name('warehouse-cities');
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus gudang'])->name('delete-warehouse');
+        Route::get('/export', 'export')->name('warehouses.export');
     });
 
     Route::controller(ShipmentReceiptController::class)->prefix('shipment-receipts')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca penerimaan pengiriman produk'])->name('shipment-receipts');
+        Route::get('/export', 'export')->name('shipment-receipts.export');
         Route::get('/create', 'create')->middleware(['auth', 'permission:tambah penerimaan pengiriman produk'])->name('create-shipment-receipt');
         Route::post('/store', 'store')->middleware(['auth', 'permission:tambah penerimaan pengiriman produk'])->name('store-shipment-receipt');
         Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit penerimaan pengiriman produk|baca penerimaan pengiriman produk|edit status penerimaan pengiriman produk'])->name('edit-shipment-receipt');

@@ -138,7 +138,7 @@
         <section class="mb-5 rounded-lg border border-gray-300 bg-white p-5 shadow">
             <div class="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div class="flex items-center justify-end gap-2">
-                    <a href="#"
+                    <a href="{{ route('admin.gudang-laporan-produksi.export') }}"
                         class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">

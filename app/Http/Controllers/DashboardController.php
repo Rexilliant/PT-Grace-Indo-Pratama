@@ -74,7 +74,7 @@ class DashboardController extends Controller
             ->whereNull('deleted_at')
             ->count();
 
-        $rawMaterialLowStockThreshold = 300;
+        $rawMaterialLowStockThreshold = 100;
 
         $lowRawMaterialsBase = RawMaterialStock::query()
             ->join('raw_materials', 'raw_material_stocks.raw_material_id', '=', 'raw_materials.id')

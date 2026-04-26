@@ -7,9 +7,22 @@ use Spatie\Permission\Models\Permission;
 
 class PermissionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $permissions = Permission::latest()->paginate(5);
+        $q = Permission::query()->latest();
+
+        if ($request->filled('name')) {
+            $q->where('name', 'like', '%'.$request->name.'%');
+        }
+
+        if ($request->filled('guard_name')) {
+            $q->where('guard_name', 'like', '%'.$request->guard_name.'%');
+        }
+
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
+
+        $permissions = $q->paginate($perPage)->withQueryString();
 
         return view('admin.permissions.permissions', compact('permissions'));
     }

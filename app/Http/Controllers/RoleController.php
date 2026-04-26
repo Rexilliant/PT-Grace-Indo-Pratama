@@ -9,9 +9,22 @@ use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $roles = Role::with('permissions')->paginate(10);
+        $q = Role::query()->latest();
+
+        if ($request->filled('name')) {
+            $q->where('name', 'like', '%'.$request->name.'%');
+        }
+
+        if ($request->filled('guard_name')) {
+            $q->where('guard_name', 'like', '%'.$request->guard_name.'%');
+        }
+
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
+
+        $roles = $q->paginate($perPage)->withQueryString();
 
         return view('admin.roles.roles', compact('roles'));
     }

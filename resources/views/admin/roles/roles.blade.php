@@ -1,113 +1,141 @@
 @extends('admin.layout.master')
 
-{{-- sidebar active (sesuaikan menu role kamu) --}}
 @section('open-executive', 'open')
 @section('menu-executive', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-executive-role', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
-    {{-- breadcrumb --}}
     <section class="mb-5">
-        <div class="text-xl font-semibold text-gray-700">
-            <span class="text-gray-700">Role</span>
-            <span class="mx-1 text-gray-400">/</span>
-            <span class="text-blue-600">Daftar Role</span>
+        <div class="mb-4 text-xl font-semibold text-gray-700">
+            <span class="text-gray-700">Executive</span>
+            <span class="mx-1 text-gray-400">›</span>
+            <a href="#" class="text-blue-600 hover:underline">Roles</a>
         </div>
+
+        @if (session('success'))
+            <div class="mb-3 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="mb-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">
+                {{ session('error') }}
+            </div>
+        @endif
     </section>
 
-    <section class="p-5 rounded-2xl shadow-lg border border-gray-300">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <h1 class="text-2xl font-semibold tracking-tight text-gray-900">Roles</h1>
-                <p class="mt-1 text-sm text-gray-500">
-                    Menampilkan
-                    <span class="font-medium text-gray-700">{{ $roles->firstItem() ?? 0 }}</span>
-                    –
-                    <span class="font-medium text-gray-700">{{ $roles->lastItem() ?? 0 }}</span>
-                    dari
-                    <span class="font-medium text-gray-700">{{ $roles->total() }}</span>
-                    data • Halaman
-                    <span class="font-medium text-gray-700">{{ $roles->currentPage() }}</span>
-                    / {{ $roles->lastPage() }}
-                </p>
-            </div>
+    {{-- filter --}}
+    <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
+        <form method="GET" action="{{ route('roles') }}">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end">
 
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">Nama Role</label>
+                    <input type="text" name="name" value="{{ request('name') }}" placeholder="Nama Role"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">Guard</label>
+                    <input type="text" name="guard_name" value="{{ request('guard_name') }}" placeholder="Guard"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">Tampilkan</label>
+                    <select name="per_page"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none"
+                        onchange="this.form.submit()">
+                        @foreach ([10, 25, 50, 100, 500] as $n)
+                            <option value="{{ $n }}" @selected((int) request('per_page', 10) === $n)>
+                                {{ $n }} / halaman
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <button type="submit"
+                    class="rounded-md bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 transition">
+                    Filter
+                </button>
+
+                <a href="{{ route('roles') }}"
+                    class="rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-800 transition text-center">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </section>
+
+    <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
+        <div class="mb-5 flex items-center gap-5">
             @can('tambah role')
                 <a href="{{ route('admin.create-role') }}"
-                    class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                    + Tambah Role
+                    class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    <span class="text-lg leading-none">+</span>
+                    Tambah Role
                 </a>
             @endcan
         </div>
 
-        {{-- Card Table --}}
-        <div class="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm">
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                                Nama Role
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                                Guard
-                            </th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                                Dibuat
-                            </th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-600">
-                                Aksi
-                            </th>
+                <table class="w-full text-sm text-left text-gray-900">
+                    <thead class="bg-[#5aba6f]/70 text-gray-900">
+                        <tr class="[&>th]:border-b [&>th]:border-gray-500">
+                            <th class="px-6 py-4 font-extrabold text-left">Nama Role</th>
+                            <th class="px-6 py-4 font-extrabold text-left">Guard</th>
+                            <th class="px-6 py-4 font-extrabold text-left">Dibuat</th>
+                            <th class="px-6 py-4 font-extrabold text-left">Aksi</th>
                         </tr>
                     </thead>
 
-                    <tbody class="divide-y divide-gray-100 bg-white">
+                    <tbody class="bg-gray-200 divide-y divide-gray-500">
                         @forelse ($roles as $role)
-                            <tr class="hover:bg-gray-50/70">
-                                <td class="px-6 py-4">
-                                    <div class="text-sm font-semibold text-gray-900">
-                                        {{ $role->name }}
-                                    </div>
+                            <tr class="[&>td]:border-b [&>td]:border-gray-400 hover:bg-gray-100">
+                                <td class="px-6 py-4 font-semibold">
+                                    {{ $role->name }}
                                 </td>
 
                                 <td class="px-6 py-4">
                                     <span
-                                        class="inline-flex items-center rounded-full bg-indigo-50 px-4 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-100">
+                                        class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800 border border-blue-300">
                                         {{ $role->guard_name ?? '-' }}
                                     </span>
                                 </td>
 
-                                <td class="px-6 py-4 text-sm text-gray-600">
-                                    {{ optional($role->created_at)->timezone(config('app.timezone'))->format('d F Y, H:i') }}
-                                    WIB
+                                <td class="px-6 py-4 font-semibold">
+                                    {{ optional($role->created_at)->timezone(config('app.timezone'))->format('d/m/Y H:i') }}
                                 </td>
 
                                 <td class="px-6 py-4">
-                                    <div class="flex justify-end gap-2">
+                                    @can('edit role')
+                                        <a href="{{ route('edit.role', ['id' => $role->id]) }}"
+                                            class="text-blue-600 hover:underline">
+                                            Sunting
+                                        </a>
+                                    @endcan
+
+                                    @can('hapus role')
                                         @can('edit role')
-                                            <a href="{{ route('edit.role', ['id' => $role->id]) }}"
-                                                class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-500">
-                                                Edit
-                                            </a>
+                                            |
                                         @endcan
 
-                                        @can('hapus role')
-                                            <form action="#" method="POST" onsubmit="return confirm('Hapus role ini?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="inline-flex items-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-red-500">
-                                                    Hapus
-                                                </button>
-                                            </form>
-                                        @endcan
-                                    </div>
+                                        <form action="#" method="POST" class="inline-block form-delete">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:underline">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-10 text-center text-sm text-gray-500">
-                                    Belum ada data role.
+                                <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                                    Data Tidak Ada
                                 </td>
                             </tr>
                         @endforelse
@@ -115,15 +143,17 @@
                 </table>
             </div>
 
-            {{-- Footer Pagination --}}
             <div
-                class="flex flex-col gap-3 border-t border-gray-200 bg-white px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-                <div class="text-sm text-gray-600">
-                    Total: <span class="font-medium text-gray-900">{{ $roles->total() }}</span> data
+                class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between bg-gray-200 px-3 sm:px-4 md:px-5 py-3 sm:py-4 border-t border-gray-400">
+
+                <div class="text-xs sm:text-sm font-semibold text-gray-800">
+                    Showing {{ $roles->firstItem() ?? 0 }}–{{ $roles->lastItem() ?? 0 }} of {{ $roles->total() }}
                 </div>
 
-                <div class="pagination">
-                    {{ $roles->links() }}
+                <div class="w-full sm:w-auto overflow-x-auto">
+                    <div class="pagination">
+                        {{ $roles->links() }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -131,4 +161,44 @@
 @endsection
 
 @section('addJs')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session('success') }}',
+            });
+        @endif
+
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
+            });
+        @endif
+
+        document.querySelectorAll('.form-delete').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Anda yakin?',
+                    text: 'Data role yang dihapus tidak bisa dikembalikan.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 @endsection

@@ -30,12 +30,36 @@
                 </div>
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
-                        Province
+                        Provinsi
                     </label>
-                    <input type="text" name="province" value="{{ request('search') }}" placeholder="Provinsi"
+                    <input type="text" name="province" value="{{ request('province') }}" placeholder="Provinsi"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Kota
+                    </label>
+                    <input type="text" name="city" value="{{ request('city') }}" placeholder="Kota"
                         class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
                 </div>
                 {{-- Per Page --}}
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Jenis
+                    </label>
+                    <select name="type"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none">
+                        <option value="" @selected(!request('type'))>
+                            Semua
+                        </option>
+                        <option value="pemasaran" @selected(request('type') === 'pemasaran')>
+                            Pemasaran
+                        </option>
+                        <option value="produksi" @selected(request('type') === 'produksi')>
+                            Produksi
+                        </option>
+                    </select>
+                </div>
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
                         Tampilkan
@@ -65,7 +89,7 @@
     </section>
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         <div class="mb-5 flex items-center gap-5">
-            <a href="{{ route('procurements.export', request()->query()) }}"
+            <a href="{{ route('warehouses.export', request()->query()) }}"
                 class="inline-flex items-center
                 gap-2 rounded-lg bg-[#2E7E3F] px-5 py-2 text-sm font-semibold text-white hover:bg-green-800
                 focus:outline-none focus:ring-2 focus:ring-green-300">

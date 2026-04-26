@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -14,26 +13,37 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $q = User::query()->with('employee', 'roles');
-        if (request()->filled('name')) {
+        $q = User::with(['roles', 'employee']);
+
+        if ($request->filled('name')) {
             $q->where('name', 'like', '%'.$request->name.'%');
         }
-        if (request()->filled('email')) {
+
+        if ($request->filled('email')) {
             $q->where('email', 'like', '%'.$request->email.'%');
         }
-        if (request()->filled('role_id')) {
+
+        if ($request->filled('role')) {
             $q->whereHas('roles', function ($query) use ($request) {
-                $query->where('id', $request->role_id);
+                $query->where('name', $request->role);
             });
         }
-        if (request()->filled('status')) {
-            $q->where('status', $request->status);
+
+        if ($request->filled('status')) {
+            if ($request->status == 'aktif') {
+                $q->whereNull('deleted_at');
+            } else {
+                $q->whereNotNull('deleted_at');
+            }
         }
-        $perPage = (int) ($request->get('per_page', 10));
-        $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
+
+        $perPage = $request->get('per_page', 10);
+
         $users = $q->paginate($perPage)->withQueryString();
 
-        return view('admin.users.users', compact('users'));
+        $roles = \Spatie\Permission\Models\Role::all();
+
+        return view('admin.users.users', compact('users', 'roles'));
     }
 
     public function create()
@@ -100,7 +110,6 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,'.$user->id,
             'password' => 'nullable|string|min:6|confirmed',
             'employee_id' => 'nullable|exists:employees,id',
-
 
             'role' => 'nullable|exists:roles,name',
             'permissions' => 'array',

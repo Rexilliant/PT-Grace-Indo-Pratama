@@ -2,29 +2,93 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
 
 class WarehouseController extends Controller
 {
+    public function export(Request $request)
+    {
+        $query = Warehouse::query()->orderBy('created_at', 'desc');
+
+        // Filter sama seperti index
+        if ($request->filled('name')) {
+            $query->where('name', 'like', '%'.$request->name.'%');
+        }
+
+        if ($request->filled('province')) {
+            $query->where('province', 'like', '%'.$request->province.'%');
+        }
+
+        if ($request->filled('city')) {
+            $query->where('city', 'like', '%'.$request->city.'%');
+        }
+        if ($request->filled('type')) {
+            $uery->where('type', 'like', '%'.$request->type.'%');
+        }
+
+        $rows = $query->get()->map(function ($w, $index) {
+            return [
+                'No' => $index + 1,
+                'Nama Gudang' => $w->name,
+                'Provinsi' => $w->province ?? '-',
+                'Kota' => $w->city ?? '-',
+                'Jenis' => $w->type ?? '-',
+                'Dibuat Pada' => optional($w->created_at)->format('d-m-Y H:i'),
+            ];
+        });
+
+        $export = new class($rows) implements FromCollection, WithHeadings
+        {
+            public function __construct(private $rows) {}
+
+            public function collection()
+            {
+                return $this->rows;
+            }
+
+            public function headings(): array
+            {
+                return [
+                    'No',
+                    'Nama Gudang',
+                    'Provinsi',
+                    'Kota',
+                    'Jenis',
+                    'Dibuat Pada',
+                ];
+            }
+        };
+
+        return Excel::download(
+            $export,
+            'warehouses_'.now()->format('Ymd_His').'.xlsx'
+        );
+    }
+
     public function index(Request $request)
     {
         $q = Warehouse::query();
 
         if ($request->filled('name')) {
-            $q->where('name', 'like', '%' . $request->name . '%');
+            $q->where('name', 'like', '%'.$request->name.'%');
         }
 
         if ($request->filled('province')) {
-            $q->where('province', 'like', '%' . $request->province . '%');
+            $q->where('province', 'like', '%'.$request->province.'%');
         }
 
         if ($request->filled('city')) {
-            $q->where('city', 'like', '%' . $request->city . '%');
+            $q->where('city', 'like', '%'.$request->city.'%');
+        }
+        if ($request->filled('type')) {
+            $q->where('type', 'like', '%'.$request->type.'%');
         }
 
         $perPage = (int) ($request->get('per_page', 10));
@@ -39,7 +103,7 @@ class WarehouseController extends Controller
     {
         $path = public_path('assets/data/provinceAndCity.json');
 
-        if (!File::exists($path)) {
+        if (! File::exists($path)) {
             abort(404, 'File provinceAndCity.json tidak ditemukan');
         }
 
@@ -62,7 +126,7 @@ class WarehouseController extends Controller
     {
         $path = public_path('assets/data/provinceAndCity.json');
 
-        if (!File::exists($path)) {
+        if (! File::exists($path)) {
             return response()->json([]);
         }
 
@@ -71,7 +135,7 @@ class WarehouseController extends Controller
 
         $province = collect($data)->firstWhere('province_id', $provinceId);
 
-        if (!$province) {
+        if (! $province) {
             return response()->json([]);
         }
 
@@ -97,6 +161,7 @@ class WarehouseController extends Controller
         ]);
 
         Warehouse::create($validated);
+
         return redirect()
             ->route('warehouses')
             ->with('success', 'Data gudang berhasil ditambahkan');
@@ -108,7 +173,7 @@ class WarehouseController extends Controller
 
         $path = public_path('assets/data/provinceAndCity.json');
 
-        if (!File::exists($path)) {
+        if (! File::exists($path)) {
             abort(404, 'File provinceAndCity.json tidak ditemukan');
         }
 
@@ -161,7 +226,7 @@ class WarehouseController extends Controller
 
     public function destroy($id)
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             abort(403, 'User belum login');
         }
 

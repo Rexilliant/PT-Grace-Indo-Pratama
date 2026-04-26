@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\ProductStock;
 use App\Models\ProductStockMovement;
 use App\Models\Shipment;
@@ -13,9 +14,55 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ShipmentController extends Controller
 {
+    public function export(Request $request){
+        $q = Shipment::query()
+            ->with('personResponsible')
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('name')) {
+            $q->whereHas('personResponsible', function ($query) use ($request) {
+                $query->where('name', 'like', '%'.$request->name.'%');
+            });
+        }
+        if ($request->filled('code')) {
+            $q->where('shipment_code', 'like', '%'.$request->code.'%');
+        }
+
+        $rows = $q->get()->map(function ($s) {
+            return [
+                'Kode Pengiriman' => $s->shipment_code,
+                'Jenis Pengiriman' => $s->shipment_type,
+                'Nama Penanggung Jawab' => $s->personResponsible->name ?? '-',
+                'Gudang' => $s->warehouse->name ?? '-',
+                'Status' => $s->status ?? '-',
+                'Tanggal Pengiriman' => $s->shipment_at,
+
+            ];
+        });
+
+        $export = new class($rows) implements FromCollection, WithHeadings
+        {
+            public function __construct(private $rows) {}
+
+            public function collection()
+            {
+                return $this->rows;
+            }
+
+            public function headings(): array
+            {
+                return ['Kode Pengiriman', 'Jenis Pengiriman', 'Nama Penanggung Jawab', 'Gudang', 'Status', 'Tanggal Pengiriman'];
+            }
+        };
+
+        return Excel::download($export, 'shipments_'.now()->format('YmdHis').'.xlsx');
+    }
     public function index(Request $request)
     {
         $q = Shipment::query()->with('personResponsible');

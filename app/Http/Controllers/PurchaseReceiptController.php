@@ -14,10 +14,60 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
 
 class PurchaseReceiptController extends Controller
 {
+    public function export(Request $request)
+    {
+        $q = PurchaseReceipt::query()
+            ->with('receivedBy')
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('name')) {
+            $q->whereHas('receivedBy', function ($u) use ($request) {
+                $u->where('name', 'like', '%'.$request->name.'%');
+            });
+        }
+
+        if ($request->filled('date_from')) {
+            $q->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $q->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $rows = $q->get()->map(function ($r) {
+            return [
+                'No. Penerimaan' => $r->receipt_number,
+                'Id Pengadaan' => $r->procurement->id,
+                'Tanggal Penerimaan' => $r->received_at,
+                'Nama Penerima' => $r->receivedBy->name ?? '-',
+            ];
+        });
+
+        $export = new class($rows) implements FromCollection, WithHeadings
+        {
+            public function __construct(private $rows) {}
+
+            public function collection()
+            {
+                return $this->rows;
+            }
+
+            public function headings(): array
+            {
+                return ['No. Penerimaan', 'Id Pengadaan', 'Tanggal Penerimaan', 'Nama Penerima'];
+            }
+        };
+
+        return Excel::download($export, 'purchase_receipts_'.now()->format('Ymd_His').'.xlsx');
+    }
+
     public function index(Request $request)
     {
         $q = PurchaseReceipt::query()->with('receivedBy')
@@ -80,7 +130,7 @@ class PurchaseReceiptController extends Controller
                 $userId = auth()->id();
 
                 // Receipt number (silakan sesuaikan format)
-                $receiptNumber = 'RCPT-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+                $receiptNumber = 'RCPT-'.now()->format('Ymd').'-'.strtoupper(Str::random(6));
                 $procurement = Procurement::findOrFail($validated['procurement_id']);
                 $warehouse_id = $procurement->warehouse_id;
                 $receipt = PurchaseReceipt::create([
@@ -127,7 +177,7 @@ class PurchaseReceiptController extends Controller
                 }
                 if ($request->hasFile('invoices')) {
                     foreach ($request->file('invoices') as $file) {
-                        if (!$file->isValid()) {
+                        if (! $file->isValid()) {
                             continue;
                         }
                         // file name rapi
@@ -135,8 +185,8 @@ class PurchaseReceiptController extends Controller
                         $ext = $file->getClientOriginalExtension();
 
                         $safeFileName = now()->format('YmdHis')
-                            . '-' . Str::slug($baseName)
-                            . '.' . $ext;
+                            .'-'.Str::slug($baseName)
+                            .'.'.$ext;
 
                         $receipt->addMedia($file)
                             ->usingFileName($safeFileName)
@@ -171,7 +221,7 @@ class PurchaseReceiptController extends Controller
         try {
             $receipt = PurchaseReceipt::findOrFail($id);
 
-            if (!$request->hasFile('invoices')) {
+            if (! $request->hasFile('invoices')) {
                 return back()->withErrors(['invoices' => 'File invoice tidak ditemukan.']);
             }
 
@@ -180,7 +230,7 @@ class PurchaseReceiptController extends Controller
             $files = is_array($files) ? $files : [$files];
 
             foreach ($files as $file) {
-                if (!$file || !$file->isValid()) {
+                if (! $file || ! $file->isValid()) {
                     continue;
                 }
 
@@ -188,8 +238,8 @@ class PurchaseReceiptController extends Controller
                 $ext = strtolower($file->getClientOriginalExtension());
 
                 $safeFileName = now()->format('YmdHis')
-                    . '-' . Str::slug($baseName)
-                    . '.' . $ext;
+                    .'-'.Str::slug($baseName)
+                    .'.'.$ext;
 
                 $receipt->addMedia($file)
                     ->usingFileName($safeFileName)

@@ -25,37 +25,65 @@
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
 
         {{-- TOP BAR --}}
-        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-3">
-            <div class="w-full lg:max-w-[560px]">
-                <form method="GET" action="{{ route('admin.executive-produk-variant') }}">
-                    <div class="relative">
-                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
+        {{-- FILTER --}}
+        <form method="GET" action="{{ route('admin.executive-produk-variant') }}" class="mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end">
 
-                        <input type="text" name="q" value="{{ $q ?? request('q') }}"
-                            class="block w-full rounded-lg border border-gray-400 bg-gray-100 pl-10 pr-20 py-2.5 text-sm text-gray-900 focus:border-gray-400 focus:ring-0"
-                            placeholder="Search: SKU / Nama / Unit / Status">
+                {{-- SKU --}}
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">SKU</label>
+                    <input type="text" name="sku" value="{{ request('sku') }}" placeholder="SKU"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
 
-                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 gap-2">
-                            @if (!empty($q))
-                                <a href="{{ route('admin.executive-produk-varian') }}"
-                                    class="rounded-md px-3 py-2 text-xs font-bold bg-gray-200 hover:bg-gray-300">
-                                    Reset
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-                </form>
+                {{-- Nama --}}
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">Nama Produk</label>
+                    <input type="text" name="name" value="{{ request('name') }}" placeholder="Nama Produk"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+
+                {{-- Status --}}
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">Status</label>
+                    <select name="status"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none">
+                        <option value="">Semua Status</option>
+                        <option value="aktif" @selected(request('status') === 'aktif')>Aktif</option>
+                        <option value="nonaktif" @selected(request('status') === 'nonaktif')>Nonaktif</option>
+                    </select>
+                </div>
+
+                {{-- Per Page --}}
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">Tampilkan</label>
+                    <select name="per_page"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none"
+                        onchange="this.form.submit()">
+                        @foreach ([10, 25, 50, 100, 500] as $n)
+                            <option value="{{ $n }}" @selected((int) request('per_page', 10) === $n)>
+                                {{ $n }} / halaman
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Button --}}
+                <button type="submit"
+                    class="rounded-md bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 transition">
+                    Filter
+                </button>
+
+                <a href="{{ route('admin.executive-produk-variant') }}"
+                    class="rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-800 transition text-center">
+                    Reset
+                </a>
             </div>
-
+        </form>
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-3">
             <div class="flex items-center gap-2 justify-end">
                 {{-- Export (placeholder) --}}
-                <a href="#"
+                <a href="{{ route('admin.executive-produk-variant.export') }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -65,13 +93,13 @@
                     Export .xlsx
                 </a>
 
-               @can('tambah produk varian')
+                @can('tambah produk varian')
                     <a href="{{ route('admin.add-executive-produk-variant') }}"
-                    class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                    <span class="text-lg leading-none">+</span>
-                    Tambah Produk
-                </a>
-               @endcan
+                        class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        <span class="text-lg leading-none">+</span>
+                        Tambah Produk
+                    </a>
+                @endcan
             </div>
         </div>
 
@@ -131,9 +159,9 @@
                                     <div class="flex items-center gap-4 font-semibold">
                                         @canany(['edit produk varian', 'baca produk varian'])
                                             <a href="{{ route('admin.executive-produk-variant.edit', $v->id) }}"
-                                            class="text-[#2D2ACD] hover:underline">
-                                            Sunting
-                                        </a>
+                                                class="text-[#2D2ACD] hover:underline">
+                                                Sunting
+                                            </a>
                                         @endcanany
                                     </div>
                                 </td>
