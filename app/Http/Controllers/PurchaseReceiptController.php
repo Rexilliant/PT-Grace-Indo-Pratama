@@ -21,6 +21,30 @@ use Throwable;
 
 class PurchaseReceiptController extends Controller
 {
+    public function getProcurementItems(Procurement $procurement)
+    {
+        try {
+            $procurement->load([
+                'procurement_items.raw_material',
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'warehouse_id' => $procurement->warehouse_id,
+                'total_price' => $procurement->total_price,
+                'items' => $procurement->procurement_items->map(function ($item) {
+                    return [
+                        'raw_material_id' => $item->raw_material_id,
+                        'raw_material_name' => $item->raw_material?->name,
+                        'quantity_received' => $item->quantity_requested,
+                    ];
+                }),
+            ]);
+        } catch (Throwable $e) {
+            save_log_error($e);
+        }
+    }
+
     public function export(Request $request)
     {
         $q = PurchaseReceipt::query()

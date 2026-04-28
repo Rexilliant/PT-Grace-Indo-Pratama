@@ -28,7 +28,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('admin.dashboard', absolute: false));
+        if (auth()->user()->can('akses dashboard')) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('admin.profile');
     }
 
     /**

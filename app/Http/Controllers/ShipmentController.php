@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\ProductStock;
 use App\Models\ProductStockMovement;
 use App\Models\Shipment;
@@ -20,7 +19,8 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ShipmentController extends Controller
 {
-    public function export(Request $request){
+    public function export(Request $request)
+    {
         $q = Shipment::query()
             ->with('personResponsible')
             ->orderBy('created_at', 'desc');
@@ -63,9 +63,27 @@ class ShipmentController extends Controller
 
         return Excel::download($export, 'shipments_'.now()->format('YmdHis').'.xlsx');
     }
+
     public function index(Request $request)
     {
-        $q = Shipment::query()->with('personResponsible');
+        $userWarehouseId = auth()->user()->employee?->warehouse_id;
+        if ($userWarehouseId !== null) {
+            $q = Shipment::query()
+                ->with([
+                    'personResponsible',
+                    'warehouse',
+                    'shipmentItems.productStock.warehouse',
+                    'shipmentItems.productStock.productVariant.product',
+                ])
+                ->where(function ($query) use ($userWarehouseId) {
+                    $query->where('warehouse_id', $userWarehouseId)
+                        ->orWhereHas('shipmentItems.productStock', function ($q) use ($userWarehouseId) {
+                            $q->where('warehouse_id', $userWarehouseId);
+                        });
+                });
+        } else {
+            $q = Shipment::query()->with(['personResponsible', 'shipmentItems.productStock.warehouse']);
+        }
 
         if ($request->filled('name')) {
             $q->whereHas('personResponsible', function ($query) use ($request) {
@@ -78,13 +96,7 @@ class ShipmentController extends Controller
         // ROWS PER PAGE (dropdown 10/25/50)
         $perPage = (int) ($request->get('per_page', 10));
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
-        $warehouseId = auth()->user()->employee?->warehouse_id;
-        if ($warehouseId !== null) {
-            $q->where('warehouse_id', $warehouseId);
-            $warehouses = Warehouse::where('id', $warehouseId)->get();
-        } else {
-            $warehouses = Warehouse::all();
-        }
+        $warehouses = Warehouse::all();
         $shipments = $q->latest()->paginate($perPage)->withQueryString();
         $statuses = Shipment::query()
             ->select('status')
@@ -103,7 +115,7 @@ class ShipmentController extends Controller
         $warehouseId = $user->employee?->warehouse_id;
         if ($warehouseId !== null) {
             $warehousesTujuan = Warehouse::where('id', $warehouseId)->where('type', 'pemasaran')->get();
-            $warehousesDari = Warehouse::where('id', $warehouseId)->where('type', 'produksi')->get();
+            $warehousesDari = Warehouse::where('type', 'produksi')->get();
         } else {
             $warehousesTujuan = Warehouse::where('type', 'pemasaran')->get();
             $warehousesDari = Warehouse::where('type', 'produksi')->get();
