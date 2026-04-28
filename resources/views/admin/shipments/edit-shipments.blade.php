@@ -277,7 +277,6 @@
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
                                 <div>
                                     <label class="mb-2 block text-xs font-bold text-gray-800">Produk</label>
-
                                     <template x-if="canEditDetail">
                                         <select :name="`items[${index}][product_stock_id]`" x-model="item.product_stock_id"
                                             @change="syncProductMeta(index)"

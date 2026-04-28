@@ -158,7 +158,7 @@
                                 ];
 
                                 $statusClass =
-                                    $sale->status === 'Terhutang'
+                                    strtolower($sale->status) === 'terhutang'
                                         ? 'bg-red-100 text-red-800 border-red-300'
                                         : 'bg-green-100 text-green-800 border-green-300';
                             @endphp
