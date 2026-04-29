@@ -158,10 +158,9 @@
                     {{-- Raw Material --}}
                     <div>
                         <label class="block text-sm font-bold mb-2">Nama Barang</label>
-
-                        <select :id="`material_${item.key}`" :name="`items[${index}][raw_material_id]`"
-                            x-ref="materialSelects" x-bind:data-key="item.key"
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
+                        {{-- <input type="hidden" :name="`items[${index}][raw_material_id]`" :value="item.raw_material_id"> --}}
+                        <select :id="`material_${item.key}`" x-ref="materialSelects" x-bind:data-key="item.key"
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900">
                             <option value="">-- Pilih Barang --</option>
                             @foreach ($rawMaterials as $rm)
                                 <option value="{{ $rm->id }}">{{ $rm->name }}</option>
@@ -176,7 +175,7 @@
                     <div>
                         <label class="block text-sm font-bold mb-2">Jumlah Barang Masuk</label>
                         <input :name="`items[${index}][quantity_received]`" x-model="item.quantity_received" type="number"
-                            min="1" placeholder="Contoh: 150"
+                            placeholder="Contoh: 150" min="1"
                             class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
                         <p class="mt-1 text-xs text-red-600" x-show="fieldError(`items.${index}.quantity_received`)"
                             x-text="fieldError(`items.${index}.quantity_received`)"></p>
@@ -272,7 +271,63 @@
                         this.initFilePond();
                     });
                 },
+                async fetchProcurementItems() {
+                    if (!this.procurement_id) {
+                        this.items = [this.createItem()];
+                        this.warehouse_id = '';
+                        return;
+                    }
 
+                    try {
+                        const url = `{{ url('/admin/purchase-receipts/procurement-items') }}/${this.procurement_id}`;
+                        console.log('Fetching procurement items from:', url);
+                        const response = await fetch(url, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            }
+                        });
+
+                        const result = await response.json();
+
+                        if (!result.success) {
+                            throw new Error('Gagal mengambil item pengadaan.');
+                        }
+
+                        this.warehouse_id = result.warehouse_id || '';
+
+                        if (this.hasSelect2()) {
+                            $(this.$refs.warehouseSelect).val(String(this.warehouse_id)).trigger('change.select2');
+                        }
+
+                        this.items = result.items.map((item) => ({
+                            key: crypto.randomUUID(),
+                            raw_material_id: item.raw_material_id,
+                            quantity_received: item.quantity_received,
+                        }));
+
+                        if (this.items.length === 0) {
+                            this.items = [this.createItem()];
+                        }
+
+                        this.$nextTick(() => {
+                            this.initMaterialSelects();
+
+                            this.items.forEach((item) => {
+                                const el = document.getElementById(`material_${item.key}`);
+
+                                if (el && this.hasSelect2()) {
+                                    $(el).val(String(item.raw_material_id)).trigger('change.select2');
+                                }
+                            });
+                        });
+
+                    } catch (error) {
+                        console.error(error);
+                        alert('Gagal mengambil item pengadaan.');
+                    }
+                },
                 fieldError(key) {
                     const e = this.errors?.[key];
                     if (!e) return '';
@@ -325,6 +380,7 @@
                     $(el).on('change', () => {
                         this.procurement_id = $(el).val() || '';
                         this.syncWarehouseFromProcurement();
+                        this.fetchProcurementItems();
                     });
 
                     if (this.procurement_id) {

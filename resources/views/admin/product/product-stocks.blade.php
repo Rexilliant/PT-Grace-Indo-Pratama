@@ -23,12 +23,32 @@
                 {{-- Search --}}
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
-                        Nama
+                        SKU
                     </label>
-                    <input type="text" name="name" value="{{ request('name') }}" placeholder="Nama"
+                    <input type="text" name="sku" value="{{ request('sku') }}" placeholder="SKU"
                         class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
                 </div>
-
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Nama Produk
+                    </label>
+                    <input type="text" name="name_product" value="{{ request('name_product') }}" placeholder="Nama Produk"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+                <div class="flex w-full flex-col">
+                    <label class="mb-1 text-xs font-semibold text-gray-700">
+                        Warehouse
+                    </label>
+                    <select name="warehouse_id"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5aba6f]">
+                        <option value="">Semua Gudang</option>
+                        @foreach ($warehouses as $warehouse)
+                            <option value="{{ $warehouse->id }}" @selected(request('warehouse_id') == $warehouse->id)>
+                                {{ $warehouse->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
                 {{-- Per Page --}}
                 <div class="flex flex-col w-full">
@@ -60,7 +80,7 @@
     </section>
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         <div class="mb-5 flex items-center gap-5">
-            <a href="{{ route('procurements.export', request()->query()) }}"
+            <a href="{{ route('product-stocks.export', request()->query()) }}"
                 class="inline-flex items-center
                 gap-2 rounded-lg bg-[#2E7E3F] px-5 py-2 text-sm font-semibold text-white hover:bg-green-800
                 focus:outline-none focus:ring-2 focus:ring-green-300">
@@ -85,6 +105,7 @@
                 <table class="w-full text-sm text-left text-gray-900">
                     <thead class="bg-[#5aba6f]/70 text-gray-900">
                         <tr class="[&>th]:border-b [&>th]:border-gray-500">
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">SKU</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Product</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Gudang</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Stock</th>
@@ -94,6 +115,7 @@
                     <tbody class="bg-gray-200 divide-y divide-gray-500">
                         @forelse ($productStocks as $productStock)
                             <tr class="[&>td]:border-b [&>td]:border-gray-400 hover:bg-gray-100">
+                                <td class="px-6 py-4 font-medium">{{ $productStock->productVariant->sku}}</td>
                                 <td class="px-6 py-4 font-medium">{{ $productStock->productVariant->name }}</td>
                                 <td class="px-6 py-4 font-medium">{{ $productStock->warehouse->name }}</td>
                                 <td class="px-6 py-4 font-medium">{{ $productStock->stock }}</td>

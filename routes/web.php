@@ -22,9 +22,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/phpinfo', function () {
     phpinfo();
 });
-
+Route::get('/', [DashboardController::class, 'index'])->middleware(['auth', 'permission:akses dashboard'])->name('admin.dashboard');
 Route::middleware('auth')->prefix('admin')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'permission:akses dashboard'])->name('admin.dashboard');
     Route::get('/profile', function () {
         return view('admin.profile');
     })->name('admin.profile');
@@ -80,25 +79,25 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     // Laporan Penjualan
     Route::prefix('admin')->middleware(['auth'])->group(function () {
-        Route::get('/pemasaran/laporan-penjualan', [SaleController::class, 'index'])
+        Route::get('/pemasaran/laporan-penjualan', [SaleController::class, 'index'])->middleware(['auth', 'permission:baca penjualan'])
             ->name('admin.pemasaran-laporan-penjualan');
         Route::get('/pemasaran/laporan-penjualan/export', [SaleController::class, 'export'])
             ->name('admin.pemasaran-laporan-penjualan.export');
-        Route::get('/pemasaran/laporan-penjualan/create', [SaleController::class, 'create'])
+        Route::get('/pemasaran/laporan-penjualan/create', [SaleController::class, 'create'])->middleware(['auth', 'permission:tambah penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.create');
-        Route::post('/pemasaran/laporan-penjualan', [SaleController::class, 'store'])
+        Route::post('/pemasaran/laporan-penjualan', [SaleController::class, 'store'])->middleware(['auth', 'permission:tambah penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.store');
         Route::get('/pemasaran/laporan-penjualan/stocks-by-warehouse', [SaleController::class, 'getStocksByWarehouse'])
             ->name('admin.pemasaran-laporan-penjualan.stocks-by-warehouse');
-        Route::get('/pemasaran/laporan-penjualan/{id}/edit', [SaleController::class, 'edit'])
+        Route::get('/pemasaran/laporan-penjualan/{id}/edit', [SaleController::class, 'edit'])->middleware(['auth', 'permission:edit penjualan|baca penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.edit');
-        Route::put('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'update'])
+        Route::put('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'update'])->middleware(['auth', 'permission:edit penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.update');
-        Route::delete('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'destroy'])
+        Route::delete('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'destroy'])->middleware(['auth', 'permission:hapus penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.destroy');
-        Route::get('/pemasaran/laporan-penjualan/{id}/history-pembayaran', [SaleController::class, 'historyPayment'])
+        Route::get('/pemasaran/laporan-penjualan/{id}/history-pembayaran', [SaleController::class, 'historyPayment'])->middleware(['auth', 'permission:baca penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.history-pembayaran');
-        Route::get('/pemasaran/laporan-penjualan/{id}/invoice', [SaleController::class, 'invoice'])
+        Route::get('/pemasaran/laporan-penjualan/{id}/invoice', [SaleController::class, 'invoice'])->middleware(['auth', 'permission:baca penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.invoice');
     });
 
@@ -148,12 +147,12 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     // Bahan Baku
     Route::controller(RawMaterialController::class)->prefix('raw-materials')->group(function () {
-        Route::get('/', 'index')->name('admin.gudang-bahan-baku');
-        Route::get('/create', 'create')->name('admin.add-bahan-baku');
-        Route::get('/stock', 'stockIndex')->name('admin.gudang-stok-bahan-baku');
-        Route::post('/store', 'store')->name('admin.add-bahan-baku.store');
-        Route::get('/{id}/edit', 'edit')->name('admin.gudang-bahan-baku.edit');
-        Route::put('/{id}', 'update')->name('admin.gudang-bahan-baku.update');
+        Route::get('/', 'index')->middleware(['auth', 'permission:baca bahan baku'])->name('admin.gudang-bahan-baku');
+        Route::get('/create', 'create')->middleware(['auth', 'permission:tambah bahan baku'])->name('admin.add-bahan-baku');
+        Route::get('/stock', 'stockIndex')->middleware(['auth', 'permission:baca stok bahan baku'])->name('admin.gudang-stok-bahan-baku');
+        Route::post('/store', 'store')->middleware(['auth', 'permission:tambah bahan baku'])->name('admin.add-bahan-baku.store');
+        Route::get('/{id}/edit', 'edit')->middleware(['auth', 'permission:edit bahan baku|baca bahan baku'])->name('admin.gudang-bahan-baku.edit');
+        Route::put('/{id}', 'update')->middleware(['auth', 'permission:edit bahan baku'])->name('admin.gudang-bahan-baku.update');
     });
 
     // Executive Produk
@@ -166,6 +165,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::put('/edit/{id}', 'updateExecutive')->middleware(['auth', 'permission:edit produk'])->name('admin.edit-executive-produk.update');
         Route::delete('/delete/{id}', 'destroyExecutive')->middleware(['auth', 'permission:hapus produk'])->name('admin.executive-produk.destroy');
         Route::get('/stock', 'productStock')->middleware(['auth', 'permission:baca produk stok'])->name('product-stocks');
+        Route::get('/stock/export', 'exportProductStock')->name('product-stocks.export');
     });
 
     // Employee
@@ -196,12 +196,12 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus izin'])->name('delete-permission');
     });
     Route::controller(UserController::class)->prefix('users')->group(function () {
-        Route::get('/', 'index')->name('users');
-        Route::get('/create', 'create')->name('create-user');
-        Route::post('/create', 'store')->name('store-user');
-        Route::get('/edit/{id}', 'edit')->name('edit-user');
-        Route::put('/edit/{id}', 'update')->name('update-user');
-        Route::delete('/delete/{id}', 'destroy')->name('delete-user');
+        Route::get('/', 'index')->middleware(['auth', 'permission:baca akun'])->name('users');
+        Route::get('/create', 'create')->middleware(['auth', 'permission:tambah akun'])->name('create-user');
+        Route::post('/create', 'store')->middleware(['auth', 'permission:tambah akun'])->name('store-user');
+        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit akun'])->name('edit-user');
+        Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit akun'])->name('update-user');
+        Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus akun'])->name('delete-user');
         Route::put('/restore/{id}', 'restore')->name('restore-user');
     });
 
@@ -223,6 +223,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit bahan baku masuk'])->name('update-purchase-receipt');
         Route::post('/add-media/{id}', 'addMedia')->name('purchase-receipts.add-media');
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus barang masuk'])->name('purchase-receipts.destroy');
+        Route::get('/procurement-items/{procurement}', 'getProcurementItems')->name('purchase-receipt.procurement-items');
     });
 
     Route::controller(MediaController::class)->prefix('media')->group(function () {
