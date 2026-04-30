@@ -1,0 +1,239 @@
+@extends('admin.layout.master')
+
+{{-- sidebar active (sesuaikan menu kamu) --}}
+@section('open-pemasaran', 'open')
+@section('menu-pemasaran', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-pemasaran-permintaan-pengiriman', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('content')
+
+    {{-- breadcrumb --}}
+    <section class="mb-5">
+        {{-- breadcrumb --}}
+        <div class="mb-4 text-xl font-semibold text-gray-700">
+            <span class="text-gray-700">Executive</span>
+            <span class="mx-1 text-gray-400">›</span>
+            <a href="#" class="text-blue-600 hover:underline">Pengiriman Produk</a>
+        </div>
+    </section>
+    <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
+        {{-- top bar --}}
+        <form method="GET" class="mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5  gap-4 items-end">
+
+                {{-- Search --}}
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Nama
+                    </label>
+                    <input type="text" name="name" value="{{ request('name') }}" placeholder="Nama"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Code
+                    </label>
+                    <input type="text" name="code" value="{{ request('code') }}" placeholder="Code"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+
+                {{-- Status --}}
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Status
+                    </label>
+                    <select name="status"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none">
+                        <option value="">Semua Status</option>
+                        @foreach ($statuses as $st)
+                            <option value="{{ $st }}" @selected(request('status') == $st)>
+                                {{ $st }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Warehouse
+                    </label>
+                    <select name="warehouse_id"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none">
+                        <option value="">Semua Gudang</option>
+                        @foreach ($warehouses as $warehouse)
+                            <option value="{{ $warehouse->id }}" @selected(request('warehouse_id') == $warehouse->id)>
+                                {{ $warehouse->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                {{-- Per Page --}}
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">
+                        Tampilkan
+                    </label>
+                    <select name="per_page"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none"
+                        onchange="this.form.submit()">
+                        @foreach ([10, 25, 50, 100] as $n)
+                            <option value="{{ $n }}" @selected((int) request('per_page', 10) === $n)>
+                                {{ $n }} / halaman
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <button type="submit"
+                    class="rounded-md bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 transition">
+                    Filter
+                </button>
+
+                <a href="{{ route('shipments') }}"
+                    class="rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-800 transition text-center">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </section>
+    <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
+        <div class="mb-5 flex items-center gap-5">
+            <a href="{{ route('shipments.export', request()->query()) }}"
+                class="inline-flex items-center
+                gap-2 rounded-lg bg-[#2E7E3F] px-5 py-2 text-sm font-semibold text-white hover:bg-green-800
+                focus:outline-none focus:ring-2 focus:ring-green-300">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 0 0014.9 3" />
+                </svg>
+                Export .xlsx
+            </a>
+
+            @can('tambah pengiriman produk')
+                <a href="{{ route('create-shipment') }}"
+                    class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    <span class="text-lg leading-none">+</span>
+                    Tambah Baru
+                </a>
+            @endcan
+        </div>
+        {{-- table --}}
+        <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm">
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-900">
+                    <thead class="bg-[#5aba6f]/70 text-gray-900">
+                        <tr class="[&>th]:border-b [&>th]:border-gray-500">
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Code</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Pemesanan</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Pengiriman</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama Pemesan</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Gudang</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Status</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="bg-gray-200 divide-y divide-gray-500">
+                        @forelse ($shipments as $shipment)
+                            <tr class="[&>td]:border-b [&>td]:border-gray-400 hover:bg-gray-100">
+                                <td class="px-6 py-4 font-medium">{{ $shipment->shipment_code }}</td>
+                                <td class="px-6 py-4">
+                                    {{ $shipment->created_at?->format('d M Y') ?? '-' }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {{ $shipment->shipment_at?->format('d M Y') ?? '-' }}
+                                </td>
+                                <td class="px-6 py-4">{{ $shipment->personResponsible->name }}</td>
+                                <td class="px-6 py-4">{{ $shipment->warehouse->name }}</td>
+                                <td class="px-6 py-4"><span
+                                        class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{{ $shipment->status }}</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    @canany(['edit pengiriman produk', 'edit status pengiriman produk', 'baca pengiriman
+                                        produk'])
+                                        <a href="{{ route('edit-shipment', $shipment->id) }}"
+                                            class="text-blue-600 hover:underline">Sunting</a>
+                                    @endcanany
+                                    @can('hapus pengiriman produk')
+                                        @if ($shipment->status == 'Menunggu')
+                                            |
+                                            <form action="{{ route('delete-shipment', ['id' => $shipment->id]) }}"
+                                                method="POST" class="inline-block form-delete">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:underline">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endcan
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="px-6 py-4 text-center text-gray-500">Data Tidak Ada</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- footer / pagination (mobile + ipad aman) --}}
+            <div
+                class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between
+                       bg-gray-200 px-3 sm:px-4 md:px-5 py-3 sm:py-4 border-t border-gray-400">
+
+                <div class="text-xs sm:text-sm font-semibold text-gray-800">
+                    Showing {{ $shipments->firstItem() ?? 0 }}–{{ $shipments->lastItem() ?? 0 }} of
+                    {{ $shipments->total() }}
+                </div>
+
+                <div class="w-full sm:w-auto overflow-x-auto">
+                    <div class="pagination">
+                        {{ $shipments->links() }}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+@endsection
+@section('addJs')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session('success') }}',
+            });
+        @endif
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
+            });
+        @endif
+        document.querySelectorAll('.form-delete').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Anda yakin?',
+                    text: 'Data Pengadaan yang dihapus tidak bisa dikembalikan.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+@endsection

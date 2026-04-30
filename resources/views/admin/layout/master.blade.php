@@ -23,8 +23,6 @@
         </div>
 
     </section>
-    {{-- <script src="{{ asset('assets/js/flowbite.min.js') }}"></script> --}}
-
     @yield('addJs')
 </body>
 

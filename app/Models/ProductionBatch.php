@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Models;
+
+use App\Models\ProductionHasMaterial;
+use App\Models\ProductStock;
+use App\Models\User;
+use App\Models\Warehouse;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class ProductionBatch extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'person_responsible_id',
+        'product_stock_id',
+        'warehouse_id',
+        'entry_date',
+        'quantity',
+        'note',
+        'status',
+        'deleted_by',
+    ];
+
+    protected $casts = [
+        'entry_date' => 'date',
+    ];
+
+    public function personResponsible()
+    {
+        return $this->belongsTo(User::class, 'person_responsible_id');
+    }
+
+    public function productStock()
+    {
+        return $this->belongsTo(ProductStock::class);
+    }
+
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
+
+    public function materials()
+    {
+        return $this->hasMany(ProductionHasMaterial::class);
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
+    }
+}

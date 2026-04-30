@@ -17,53 +17,62 @@
         </div>
     </section>
 
-    <form action="#" method="POST">
+    <form action="{{ route('admin.add-bahan-baku.store') }}" method="POST">
         @csrf
 
-        <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-            <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-5">
+        <div class="flex justify-end mb-4">
+            <button type="button" id="addRowBtn"
+                class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-6 py-2.5 text-sm font-bold text-white hover:bg-blue-800">
+                + Tambah Kolom
+            </button>
+        </div>
 
-                {{-- Kode Barang --}}
-                <div>
-                    <label class="block text-sm font-bold mb-2">Kode Barang</label>
-                    <input name="kode_barang" type="text" placeholder="Contoh: CA0001"
-                        class="w-full rounded-md border border-gray-400 bg-white
-                               px-3 py-2.5 text-sm font-semibold text-gray-900
-                               focus:border-blue-600 focus:ring-0">
+        <div id="rawMaterialRows" class="space-y-4">
+            <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl raw-material-row">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+                    {{-- Kode Barang --}}
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Kode Barang</label>
+                        <input name="items[0][kode_barang]" type="text" placeholder="Contoh: CA0001"
+                            class="w-full rounded-md border border-gray-400 bg-white
+                                   px-3 py-2.5 text-sm font-semibold text-gray-900
+                                   focus:border-blue-600 focus:ring-0">
+                    </div>
+
+                    {{-- Bahan Baku --}}
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Bahan Baku</label>
+                        <input name="items[0][bahan_baku]" type="text" placeholder="Contoh: Kalsium"
+                            class="w-full rounded-md border border-gray-400 bg-white
+                                   px-3 py-2.5 text-sm font-semibold text-gray-900
+                                   focus:border-blue-600 focus:ring-0">
+                    </div>
+
+                    {{-- Unit --}}
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Unit</label>
+                        <input name="items[0][unit]" type="text" placeholder="Contoh: Kg / Liter / Box"
+                            class="w-full rounded-md border border-gray-400 bg-white
+                                   px-3 py-2.5 text-sm font-semibold text-gray-900
+                                   focus:border-blue-600 focus:ring-0">
+                    </div>
+
+                    {{-- Status --}}
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Status</label>
+                        <select name="items[0][status]"
+                            class="w-full rounded-md border border-gray-400 bg-white
+                                   px-3 py-2.5 text-sm font-semibold text-gray-900
+                                   focus:border-blue-600 focus:ring-0">
+                            <option value="active" selected>Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+
                 </div>
-
-                {{-- Bahan Baku --}}
-                <div>
-                    <label class="block text-sm font-bold mb-2">Bahan Baku</label>
-                    <input name="bahan_baku" type="text" placeholder="Contoh: Kalsium"
-                        class="w-full rounded-md border border-gray-400 bg-white
-                               px-3 py-2.5 text-sm font-semibold text-gray-900
-                               focus:border-blue-600 focus:ring-0">
-                </div>
-
-                {{-- Stok Tersedia --}}
-                {{-- <div>
-                    <label class="block text-sm font-bold mb-2">Stok Tersedia</label>
-                    <input name="stok_tersedia" type="text" placeholder="Contoh: 200 Kg"
-                        class="w-full rounded-md border border-gray-400 bg-white
-                               px-3 py-2.5 text-sm font-semibold text-gray-900
-                               focus:border-blue-600 focus:ring-0">
-                </div> --}}
-
-                {{-- Status --}}
-                <div>
-                    <label class="block text-sm font-bold mb-2">Status</label>
-                    <select name="status"
-                        class="w-full rounded-md border border-gray-400 bg-white
-                               px-3 py-2.5 text-sm font-semibold text-gray-900
-                               focus:border-blue-600 focus:ring-0">
-                        <option value="active" selected>Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-
-            </div>
-        </section>
+            </section>
+        </div>
 
         {{-- ACTIONS --}}
         <div class="flex items-center justify-end gap-4 pt-2">
@@ -105,6 +114,60 @@
         </div>
     </div>
 
+    <template id="rawMaterialRowTemplate">
+        <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl raw-material-row">
+            <div class="flex justify-end mb-4">
+                <button type="button"
+                    class="removeRowBtn inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700">
+                    Hapus
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+                {{-- Kode Barang --}}
+                <div>
+                    <label class="block text-sm font-bold mb-2">Kode Barang</label>
+                    <input name="items[__INDEX__][kode_barang]" type="text" placeholder="Contoh: CA0001"
+                        class="w-full rounded-md border border-gray-400 bg-white
+                               px-3 py-2.5 text-sm font-semibold text-gray-900
+                               focus:border-blue-600 focus:ring-0">
+                </div>
+
+                {{-- Bahan Baku --}}
+                <div>
+                    <label class="block text-sm font-bold mb-2">Bahan Baku</label>
+                    <input name="items[__INDEX__][bahan_baku]" type="text" placeholder="Contoh: Kalsium"
+                        class="w-full rounded-md border border-gray-400 bg-white
+                               px-3 py-2.5 text-sm font-semibold text-gray-900
+                               focus:border-blue-600 focus:ring-0">
+                </div>
+
+                {{-- Unit --}}
+                <div>
+                    <label class="block text-sm font-bold mb-2">Unit</label>
+                    <input name="items[__INDEX__][unit]" type="text" placeholder="Contoh: Kg / Liter / Box"
+                        class="w-full rounded-md border border-gray-400 bg-white
+                               px-3 py-2.5 text-sm font-semibold text-gray-900
+                               focus:border-blue-600 focus:ring-0">
+                </div>
+
+                {{-- Status --}}
+                <div>
+                    <label class="block text-sm font-bold mb-2">Status</label>
+                    <select name="items[__INDEX__][status]"
+                        class="w-full rounded-md border border-gray-400 bg-white
+                               px-3 py-2.5 text-sm font-semibold text-gray-900
+                               focus:border-blue-600 focus:ring-0">
+                        <option value="active" selected>Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+
+            </div>
+        </section>
+    </template>
+
     <script>
         const modal = document.getElementById('cancelModal');
 
@@ -117,5 +180,35 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+
+        const addRowBtn = document.getElementById('addRowBtn');
+        const rawMaterialRows = document.getElementById('rawMaterialRows');
+        const rawMaterialRowTemplate = document.getElementById('rawMaterialRowTemplate');
+
+        function bindRemoveRowEvent(row) {
+            const removeBtn = row.querySelector('.removeRowBtn');
+            if (!removeBtn) return;
+
+            removeBtn.addEventListener('click', function() {
+                row.remove();
+            });
+        }
+
+        addRowBtn.addEventListener('click', function() {
+            const index = rawMaterialRows.querySelectorAll('.raw-material-row').length;
+            const html = rawMaterialRowTemplate.innerHTML.replaceAll('__INDEX__', index);
+
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = html.trim();
+
+            const newRow = wrapper.firstElementChild;
+            rawMaterialRows.appendChild(newRow);
+
+            bindRemoveRowEvent(newRow);
+        });
+
+        rawMaterialRows.querySelectorAll('.raw-material-row').forEach(row => {
+            bindRemoveRowEvent(row);
+        });
     </script>
 @endsection

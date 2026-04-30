@@ -6,93 +6,6 @@
 @section('menu-pemasaran-laporan-penjualan', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
-    @php
-        // =========================
-        // DUMMY DATA LIST + DETAIL
-        // =========================
-        $rows = [
-            [
-                'tgl_laporan' => '30/11/2025',
-                'tgl_penjualan' => '01/12/2025',
-                'pj' => 'Bambang Pratama Putra Hadi',
-                'provinsi' => 'Kalimantan Tengah',
-                'status' => 'Terhutang', // Terhutang | Lunas
-                'status_class' => 'bg-red-100 text-red-800 border-red-300',
-                'detail' => [
-                    'no' => 'LPN0001',
-                    'tgl_laporan' => '30/11/2025',
-                    'tgl_penjualan' => '01/12/2025',
-                    'pj' => 'Bambang Pratama Putra Hadi',
-                    'jenis_penjualan' => 'Perseorangan',
-                    'provinsi' => 'Kalimantan Tengah',
-                    'daerah' => 'Pasir Putih',
-                    'nama_pembeli' => 'Thahirudin',
-                    'kontak_pembeli' => '0812-0000-0000',
-                    'items' => [
-                        [
-                            'id' => 'BHOS001',
-                            'sku' => 'SKU-001',
-                            'nama' => 'BHOS Ekstra',
-                            'jumlah' => '150 Ltr',
-                            'harga' => 'Rp 500.000',
-                            'diskon' => 'Rp 50.000',
-                            'total' => 'Rp 67.500.000',
-                        ],
-                        [
-                            'id' => 'BHOS002',
-                            'sku' => 'SKU-002',
-                            'nama' => 'BHOS Turbo',
-                            'jumlah' => '150 Kg',
-                            'harga' => 'Rp500.000',
-                            'diskon' => 'Rp50.000',
-                            'total' => 'Rp67.500.000',
-                        ],
-                    ],
-                    'total_keseluruhan' => 'Rp135.000.000',
-                    'down_payment' => 'Rp134.100.000',
-                    'jumlah_terhutang' => 'Rp900.000', // tampil hanya jika Terhutang
-                    'catatan' => '',
-                    // dummy invoice (ganti sesuai aset kamu)
-                    'invoice_img' => asset('build/image/bhos-logo.png'),
-                ],
-            ],
-            [
-                'tgl_laporan' => '30/11/2025',
-                'tgl_penjualan' => '01/12/2025',
-                'pj' => 'Bambang Pratama Putra Hadi',
-                'provinsi' => 'Riau',
-                'status' => 'Lunas',
-                'status_class' => 'bg-green-100 text-green-800 border-green-300',
-                'detail' => [
-                    'no' => 'LPN0002',
-                    'tgl_laporan' => '30/11/2025',
-                    'tgl_penjualan' => '01/12/2025',
-                    'pj' => 'Bambang Pratama Putra Hadi',
-                    'jenis_penjualan' => 'Perseorangan',
-                    'provinsi' => 'Riau',
-                    'daerah' => 'Pasir Putih',
-                    'nama_pembeli' => 'Thahirudin',
-                    'kontak_pembeli' => '0812-0000-0000',
-                    'items' => [
-                        [
-                            'id' => 'BHOS001',
-                            'sku' => 'SKU-001',
-                            'nama' => 'BHOS Ekstra',
-                            'jumlah' => '150 Ltr',
-                            'harga' => 'Rp500.000',
-                            'diskon' => 'Rp50.000',
-                            'total' => 'Rp75.000.000',
-                        ],
-                    ],
-                    'total_keseluruhan' => 'Rp75.000.000',
-                    'jumlah_terhutang' => '',
-                    'catatan' => '',
-                    'invoice_img' => asset('build/image/bhos-logo.png'),
-                ],
-            ],
-        ];
-    @endphp
-
     {{-- breadcrumb --}}
     <section class="mb-5">
         <div class="mb-4 text-xl font-semibold text-gray-700">
@@ -101,27 +14,78 @@
             <a href="#" class="text-blue-600 hover:underline">Laporan Penjualan</a>
         </div>
     </section>
+    <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
+        {{-- top bar --}}
+        <form method="GET" class="mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end">
 
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">Nama Penanggung Jawab</label>
+                    <input type="text" name="name" value="{{ request('name') }}" placeholder="Nama"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">Status</label>
+                    <select name="status"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none">
+                        <option value="">Semua Status</option>
+                        @foreach ($statuses as $st)
+                            <option value="{{ $st }}" @selected(request('status') == $st)>
+                                {{ $st }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">Provinsi</label>
+                    <input type="text" name="province" value="{{ request('province') }}" placeholder="Provinsi"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">Tanggal Dari</label>
+                    <input type="date" name="date_from" value="{{ request('date_from') }}"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">Sampai</label>
+                    <input type="date" name="date_to" value="{{ request('date_to') }}"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none" />
+                </div>
+
+                <div class="flex flex-col w-full">
+                    <label class="text-xs font-semibold text-gray-700 mb-1">Tampilkan</label>
+                    <select name="per_page"
+                        class="rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#5aba6f] focus:outline-none"
+                        onchange="this.form.submit()">
+                        @foreach ([10, 25, 50, 100, 500] as $n)
+                            <option value="{{ $n }}" @selected((int) request('per_page', 10) === $n)>
+                                {{ $n }} / halaman
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <button type="submit"
+                    class="rounded-md bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 transition">
+                    Filter
+                </button>
+
+                <a href="{{ route('admin.pemasaran-laporan-penjualan') }}"
+                    class="rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-800 transition text-center">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </section>
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         {{-- top bar --}}
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-3">
-            <div class="w-full lg:max-w-[520px]">
-                <div class="relative">
-                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <svg class="w-5 h-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </div>
-                    <input type="text"
-                        class="block w-full rounded-lg border border-gray-400 bg-gray-100 pl-10 pr-3 py-2.5 text-sm text-gray-900 focus:border-gray-500 focus:ring-0"
-                        placeholder="Search for Name and Date">
-                </div>
-            </div>
-
             <div class="flex items-center gap-2 justify-end">
-                <a href="#"
+                <a href="{{ route('admin.pemasaran-laporan-penjualan.export') }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -131,7 +95,7 @@
                     Export .xlsx
                 </a>
 
-                <a href="{{ route('admin.add-laporan-penjualan') }}"
+                <a href="{{ route('admin.pemasaran-laporan-penjualan.create') }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
                     <span class="text-lg leading-none">+</span>
                     Tambah Baru
@@ -155,75 +119,116 @@
                     </thead>
 
                     <tbody class="bg-gray-200 divide-y divide-gray-500">
-                        @foreach ($rows as $r)
+                        @forelse ($sales as $sale)
+                            @php
+                                $detail = [
+                                    'sale_id' => $sale->id,
+                                    'invoice_url' => route('admin.pemasaran-laporan-penjualan.invoice', $sale->id),
+                                    'no' => 'SALE-' . str_pad($sale->id, 5, '0', STR_PAD_LEFT),
+                                    'tgl_laporan' => $sale->report_date
+                                        ? \Carbon\Carbon::parse($sale->report_date)->format('d/m/Y')
+                                        : '-',
+                                    'tgl_penjualan' => $sale->sale_date
+                                        ? \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y')
+                                        : '-',
+                                    'pj' => $sale->personResponsible?->name ?? '-',
+                                    'jenis_penjualan' => $sale->sale_type,
+                                    'provinsi' => $sale->customer_province,
+                                    'daerah' => $sale->customer_city,
+                                    'nama_pembeli' => $sale->customer_name,
+                                    'kontak_pembeli' => $sale->customer_contact,
+                                    'items' => $sale->items
+                                        ->map(function ($item) {
+                                            return [
+                                                'id' => $item->productStock?->productVariant?->product?->code ?? '-',
+                                                'sku' => $item->productStock?->productVariant?->sku ?? '-',
+                                                'nama' => $item->productStock?->productVariant?->name ?? '-',
+                                                'jumlah' => $item->quantity,
+                                                'harga' => 'Rp ' . number_format($item->price, 0, ',', '.'),
+                                                'diskon' => 'Rp ' . number_format($item->discount, 0, ',', '.'),
+                                                'total' => 'Rp ' . number_format($item->subtotal, 0, ',', '.'),
+                                            ];
+                                        })
+                                        ->values()
+                                        ->all(),
+                                    'total_keseluruhan' => 'Rp ' . number_format($sale->total_amount, 0, ',', '.'),
+                                    'down_payment' => 'Rp ' . number_format($sale->paid_amount, 0, ',', '.'),
+                                    'jumlah_terhutang' => 'Rp ' . number_format($sale->debt_amount, 0, ',', '.'),
+                                    'catatan' => $sale->notes ?? '',
+                                ];
+
+                                $statusClass =
+                                    strtolower($sale->status) === 'terhutang'
+                                        ? 'bg-red-100 text-red-800 border-red-300'
+                                        : 'bg-green-100 text-green-800 border-green-300';
+                            @endphp
+
                             <tr class="hover:bg-gray-300">
-                                <td class="px-6 py-4 font-semibold">{{ $r['tgl_laporan'] }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $r['tgl_penjualan'] }}</td>
-                                <td class="px-6 py-4 font-semibold leading-tight">{{ $r['pj'] }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $r['provinsi'] }}</td>
+                                <td class="px-6 py-4 font-semibold">
+                                    {{ $sale->created_at->format('d/m/Y') }}
+                                </td>
+
+                                <td class="px-6 py-4 font-semibold">
+                                    {{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') }}
+                                </td>
+
+                                <td class="px-6 py-4 font-semibold leading-tight">
+                                    {{ $sale->personResponsible?->name ?? '-' }}
+                                </td>
+
+                                <td class="px-6 py-4 font-semibold">
+                                    {{ $sale->customer_province }}
+                                </td>
 
                                 <td class="px-6 py-4">
-                                    <div class="flex items-center justify-start gap-6 font-semibold">
-                                        {{-- PENTING: pakai button, bukan <a href="#"> --}}
+                                    <div class="flex items-center gap-4 font-semibold">
+
                                         <button type="button" class="text-[#2D2ACD] hover:underline"
-                                            onclick='openDetailModal(@json($r['detail']), @json($r['status']))'>
+                                            onclick='openDetailModal(@json($detail), @json($sale->status))'>
                                             Lihat
                                         </button>
 
-                                        {{-- Hapus boleh untuk UI dummy (kalau nanti mau aturan khusus tinggal if) --}}
-                                        <a href="#" class="text-[#EC0000] hover:underline">Hapus</a>
+                                        <a href="{{ route('admin.pemasaran-laporan-penjualan.edit', $sale->id) }}"
+                                            class="text-yellow-600 hover:underline">
+                                            Sunting
+                                        </a>
+
+                                        <a href="#" class="text-[#EC0000] hover:underline"
+                                            onclick="event.preventDefault(); confirmDelete({{ $sale->id }})">
+                                            Hapus
+                                        </a>
+
+                                        <form id="delete-form-{{ $sale->id }}"
+                                            action="{{ route('admin.pemasaran-laporan-penjualan.destroy', $sale->id) }}"
+                                            method="POST" class="hidden">
+                                            @csrf
+                                            @method('DELETE')
+                                        </form>
                                     </div>
                                 </td>
 
                                 <td class="px-6 py-4">
-                                    <span
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border {{ $r['status_class'] }}">
-                                        {{ $r['status'] }}
-                                    </span>
+                                    <a href="{{ route('admin.pemasaran-laporan-penjualan.history-pembayaran', $sale->id) }}"
+                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border {{ $statusClass }} hover:opacity-80 transition">
+                                        {{ $sale->status }}
+                                    </a>
                                 </td>
                             </tr>
-                        @endforeach
+
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-6 py-6 text-center text-gray-600 font-semibold">
+                                    Belum ada data penjualan
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
 
             {{-- footer / pagination --}}
-            <div
-                class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between
-                       bg-gray-200 px-3 sm:px-4 md:px-5 py-3 sm:py-4 border-t border-gray-400">
-
-                <div class="text-xs sm:text-sm font-semibold text-gray-800">
-                    Showing 1–10 of 100
-                </div>
-
-                <div class="w-full sm:w-auto overflow-x-auto">
-                    <div class="inline-flex w-max rounded-lg border border-gray-400 overflow-hidden shadow-sm">
-                        <a href="#"
-                            class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gray-200 hover:bg-gray-300 border-r border-gray-400">
-                            Previous
-                        </a>
-                        <a href="#"
-                            class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gray-200 hover:bg-gray-300 border-r border-gray-400">
-                            1
-                        </a>
-                        <a href="#"
-                            class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gray-200 hover:bg-gray-300 border-r border-gray-400">
-                            2
-                        </a>
-                        <span
-                            class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gray-200 border-r border-gray-400">
-                            …
-                        </span>
-                        <a href="#"
-                            class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gray-200 hover:bg-gray-300 border-r border-gray-400">
-                            10
-                        </a>
-                        <a href="#"
-                            class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gray-200 hover:bg-gray-300">
-                            Next
-                        </a>
-                    </div>
-                </div>
+            <div class="px-4 py-3 bg-gray-200 border-t border-gray-400">
+                {{ $sales->links() }}
             </div>
 
         </div>
@@ -247,8 +252,9 @@
                 {{-- close pakai SVG X --}}
                 <button type="button" onclick="closeDetailModal()"
                     class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-600 hover:bg-red-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
                         <path d="M18 6L6 18"></path>
                         <path d="M6 6l12 12"></path>
                     </svg>
@@ -357,15 +363,10 @@
 
                 {{-- actions --}}
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-5">
-                    <button type="button" onclick="openInvoiceModal()"
-                        class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-6 sm:px-8 py-2.5 text-sm font-bold text-white hover:bg-blue-800">
-                        Invoice
-                    </button>
-
-                    <button type="button" onclick="printInvoice()"
+                    <a id="dm_invoice_link" href="#"
                         class="inline-flex items-center justify-center rounded-lg bg-[#2E7E3F] px-6 sm:px-8 py-2.5 text-sm font-bold text-white hover:bg-green-800">
                         Cetak Invoice
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -416,6 +417,10 @@
     </style>
 
     <script>
+        const invoiceBaseUrl = @json(url('/admin/pemasaran/laporan-penjualan'));
+    </script>
+
+    <script>
         // =========================
         // MODAL ELEMENTS
         // =========================
@@ -448,6 +453,7 @@
         const dmStatusBadge = document.getElementById('dm_status_badge');
 
         const imInvoice = document.getElementById('im_invoice');
+        const dmInvoiceLink = document.getElementById('dm_invoice_link');
 
         let currentDetail = null;
 
@@ -519,6 +525,10 @@
 
             currentDetail = detail;
 
+            if (dmInvoiceLink) {
+                dmInvoiceLink.href = detail.invoice_url ?? '#';
+            }
+
             dmNo.textContent = detail.no ?? '-';
             dmTglLaporan.value = detail.tgl_laporan ?? '';
             dmTglPenjualan.value = detail.tgl_penjualan ?? '';
@@ -534,13 +544,11 @@
             dmTotalKeseluruhan.value = detail.total_keseluruhan ?? '';
             dmCatatan.value = detail.catatan ?? '';
 
-            // status badge
             const st = status ?? 'Lunas';
             dmStatusBadge.textContent = st;
             dmStatusBadge.className =
                 `inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${statusBadgeClass(st)}`;
 
-            // reset blok tambahan
             dmDpWrap.classList.add('hidden');
             dmTerhutangWrap.classList.add('hidden');
             dmLunasWrap.classList.add('hidden');
@@ -549,27 +557,20 @@
             if (dmJumlahTerhutang) dmJumlahTerhutang.value = '';
             if (dmStatusLunas) dmStatusLunas.value = '';
 
-            // ✅ jika Terhutang: tampilkan DP + Status Terhutang
             if (st === 'Terhutang') {
                 dmDpWrap.classList.remove('hidden');
                 dmTerhutangWrap.classList.remove('hidden');
-
                 dmDownPayment.value = detail.down_payment ?? '';
                 dmJumlahTerhutang.value = detail.jumlah_terhutang ?? '';
             } else {
-                // ✅ jika Lunas: tampilkan Total + Status Lunas
                 dmLunasWrap.classList.remove('hidden');
                 dmStatusLunas.value = 'Lunas';
             }
-
-            // invoice image set
-            imInvoice.src = detail.invoice_img ?? '';
 
             detailModal.classList.remove('hidden');
             detailModal.classList.add('flex');
             document.body.classList.add('overflow-hidden');
         }
-
         window.closeDetailModal = function() {
             if (!invoiceModal.classList.contains('hidden')) window.closeInvoiceModal();
             detailModal.classList.add('hidden');
@@ -631,5 +632,11 @@
                 else if (!detailModal.classList.contains('hidden')) window.closeDetailModal();
             }
         });
+
+        function confirmDelete(id) {
+            if (confirm('Yakin ingin menghapus laporan ini?\nStok barang akan dikembalikan.')) {
+                document.getElementById('delete-form-' + id).submit();
+            }
+        }
     </script>
 @endsection
