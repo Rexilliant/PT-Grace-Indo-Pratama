@@ -283,7 +283,9 @@
                                             class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0">
                                             <option value="">-- Pilih Produk --</option>
                                             <template x-for="stock in productStocks" :key="stock.id">
-                                                <option :value="String(stock.id)" x-text="stock.label"></option>
+                                                <option :value="String(stock.id)"
+                                                    :selected="item.product_stock_id === String(stock.id)"
+                                                    x-text="stock.label"></option>
                                             </template>
                                         </select>
                                     </template>
@@ -369,9 +371,8 @@
             {{-- ALASAN --}}
             <section class="{{ $sectionClass }}" x-show="showReason" x-cloak>
                 <label class="{{ $labelClass }}">Alasan</label>
-                <textarea name="reason" rows="3"
-                    @if (!($status === 'Menunggu' && $canEditShipmentStatus) || $shipment->reason) readonly @endif
-                    class="@error('reason') {{ $inputErrorClass }} @else {{ ($status === 'Menunggu' && $canEditShipmentStatus && !$shipment->reason) ? $inputNormalClass : $readonlyClass }} @enderror">{{ old('reason', $shipment->reason) }}</textarea>
+                <textarea name="reason" rows="3" @if (!($status === 'Menunggu' && $canEditShipmentStatus) || $shipment->reason) readonly @endif
+                    class="@error('reason') {{ $inputErrorClass }} @else {{ $status === 'Menunggu' && $canEditShipmentStatus && !$shipment->reason ? $inputNormalClass : $readonlyClass }} @enderror">{{ old('reason', $shipment->reason) }}</textarea>
                 @error('reason')
                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                 @enderror
