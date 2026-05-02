@@ -153,6 +153,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::post('/store', 'store')->middleware(['auth', 'permission:tambah bahan baku'])->name('admin.add-bahan-baku.store');
         Route::get('/{id}/edit', 'edit')->middleware(['auth', 'permission:edit bahan baku|baca bahan baku'])->name('admin.gudang-bahan-baku.edit');
         Route::put('/{id}', 'update')->middleware(['auth', 'permission:edit bahan baku'])->name('admin.gudang-bahan-baku.update');
+        Route::delete('/{id}', 'destroy')->middleware(['auth', 'permission:hapus bahan baku'])->name('admin.gudang-bahan-baku.destroy');
     });
 
     // Executive Produk

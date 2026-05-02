@@ -214,6 +214,7 @@
 
                         <select :id="`material_${item.key}`" :name="`items[${index}][raw_material_id]`"
                             x-ref="materialSelects" x-bind:data-key="item.key" :disabled="!canEdit"
+                            x-model="item.raw_material_id"
                             class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
                             <option value="">-- Pilih Barang --</option>
                             @foreach ($rawMaterials as $rm)

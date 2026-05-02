@@ -123,13 +123,6 @@
                     <tbody class="bg-gray-200 divide-y divide-gray-500">
                         @forelse ($receipts as $receipt)
                             @php
-                                $canEdit =
-                                    auth()->user()->can('edit bahan baku masuk') &&
-                                    (int) $receipt->received_by === (int) auth()->id();
-
-                                $canRead =
-                                    auth()->user()->can('baca bahan baku masuk') ||
-                                    auth()->user()->can('edit bahan baku masuk');
 
                                 $canDelete = auth()->user()->can('hapus bahan baku masuk');
                             @endphp
@@ -141,16 +134,12 @@
                                 <td class="px-6 py-3">
                                     <div class="flex items-center justify-start gap-6 font-semibold">
                                         {{-- SUNGTING --}}
-                                        @if ($canEdit)
+                                        @canany(['baca bahan baku masuk', 'edit bahan baku masuk'])
                                             <a href="{{ route('edit-purchase-receipt', $receipt->id) }}"
                                                 class="text-[#2E7E3F] hover:underline">
                                                 Sunting
                                             </a>
-                                        @elseif ($canRead)
-                                            <span class="text-gray-400 cursor-not-allowed">
-                                                Sunting
-                                            </span>
-                                        @endif
+                                        @endcanany
 
                                         {{-- HAPUS --}}
                                         @if ($canDelete)
