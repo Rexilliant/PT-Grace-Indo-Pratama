@@ -160,6 +160,8 @@
                         <label class="block text-sm font-bold mb-2">Nama Barang</label>
                         {{-- <input type="hidden" :name="`items[${index}][raw_material_id]`" :value="item.raw_material_id"> --}}
                         <select :id="`material_${item.key}`" x-ref="materialSelects" x-bind:data-key="item.key"
+                            x-model="item.raw_material_id" x-init="item.raw_material_id = item.raw_material_id || ''"
+                            :name="`items[${index}][raw_material_id]`"
                             class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900">
                             <option value="">-- Pilih Barang --</option>
                             @foreach ($rawMaterials as $rm)

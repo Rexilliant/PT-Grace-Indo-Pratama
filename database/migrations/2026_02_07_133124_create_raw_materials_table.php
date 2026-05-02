@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('status');
             $table->timestamps();
             $table->softDeletes();
+            $table->unsignedBigInteger('deleted_by')->nullable();
         });
     }
 

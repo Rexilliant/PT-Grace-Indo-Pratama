@@ -1,0 +1,130 @@
+[1mdiff --git a/app/Http/Controllers/PurchaseReceiptController.php b/app/Http/Controllers/PurchaseReceiptController.php[m
+[1mindex 85530a3..ec25f61 100644[m
+[1m--- a/app/Http/Controllers/PurchaseReceiptController.php[m
+[1m+++ b/app/Http/Controllers/PurchaseReceiptController.php[m
+[36m@@ -53,7 +53,7 @@[m [mpublic function export(Request $request)[m
+ [m
+         if ($request->filled('name')) {[m
+             $q->whereHas('receivedBy', function ($u) use ($request) {[m
+[31m-                $u->where('name', 'like', '%'.$request->name.'%');[m
+[32m+[m[32m                $u->where('name', 'like', '%' . $request->name . '%');[m
+             });[m
+         }[m
+ [m
+[36m@@ -74,9 +74,9 @@[m [mpublic function export(Request $request)[m
+             ];[m
+         });[m
+ [m
+[31m-        $export = new class($rows) implements FromCollection, WithHeadings[m
+[31m-        {[m
+[31m-            public function __construct(private $rows) {}[m
+[32m+[m[32m        $export = new class ($rows) implements FromCollection, WithHeadings {[m
+[32m+[m[32m            public function __construct(private $rows)[m
+[32m+[m[32m            {}[m
+ [m
+             public function collection()[m
+             {[m
+[36m@@ -89,7 +89,7 @@[m [mpublic function headings(): array[m
+             }[m
+         };[m
+ [m
+[31m-        return Excel::download($export, 'purchase_receipts_'.now()->format('Ymd_His').'.xlsx');[m
+[32m+[m[32m        return Excel::download($export, 'purchase_receipts_' . now()->format('Ymd_His') . '.xlsx');[m
+     }[m
+ [m
+     public function index(Request $request)[m
+[36m@@ -132,6 +132,7 @@[m [mpublic function create()[m
+ [m
+     public function store(Request $request)[m
+     {[m
+[32m+[m[32m        // dd($request->all()); // Menampilkan semua data yang diterima[m
+         $validated = $request->validate([[m
+             'procurement_id' => ['required', 'integer', 'exists:procurements,id'],[m
+             'received_at' => ['required', 'date'],[m
+[36m@@ -142,6 +143,10 @@[m [mpublic function store(Request $request)[m
+             'invoices' => ['required', 'array'],[m
+             'invoices.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'], // 3MB[m
+         ]);[m
+[32m+[m
+[32m+[m[32m        // Cek apakah items berisi raw_material_id dan quantity_received[m
+[32m+[m[32m        // dd($validated['items']);[m
+[32m+[m
+         $rawIds = collect($validated['items'])->pluck('raw_material_id')->unique()->values();[m
+         $count = RawMaterial::whereIn('id', $rawIds)->count();[m
+         if ($count !== $rawIds->count()) {[m
+[36m@@ -154,7 +159,7 @@[m [mpublic function store(Request $request)[m
+                 $userId = auth()->id();[m
+ [m
+                 // Receipt number (silakan sesuaikan format)[m
+[31m-                $receiptNumber = 'RCPT-'.now()->format('Ymd').'-'.strtoupper(Str::random(6));[m
+[32m+[m[32m                $receiptNumber = 'RCPT-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));[m
+                 $procurement = Procurement::findOrFail($validated['procurement_id']);[m
+                 $warehouse_id = $procurement->warehouse_id;[m
+                 $receipt = PurchaseReceipt::create([[m
+[36m@@ -201,7 +206,7 @@[m [mpublic function store(Request $request)[m
+                 }[m
+                 if ($request->hasFile('invoices')) {[m
+                     foreach ($request->file('invoices') as $file) {[m
+[31m-                        if (! $file->isValid()) {[m
+[32m+[m[32m                        if (!$file->isValid()) {[m
+                             continue;[m
+                         }[m
+                         // file name rapi[m
+[36m@@ -209,8 +214,8 @@[m [mpublic function store(Request $request)[m
+                         $ext = $file->getClientOriginalExtension();[m
+ [m
+                         $safeFileName = now()->format('YmdHis')[m
+[31m-                            .'-'.Str::slug($baseName)[m
+[31m-                            .'.'.$ext;[m
+[32m+[m[32m                            . '-' . Str::slug($baseName)[m
+[32m+[m[32m                            . '.' . $ext;[m
+ [m
+                         $receipt->addMedia($file)[m
+                             ->usingFileName($safeFileName)[m
+[36m@@ -245,7 +250,7 @@[m [mpublic function addMedia(Request $request, $id)[m
+         try {[m
+             $receipt = PurchaseReceipt::findOrFail($id);[m
+ [m
+[31m-            if (! $request->hasFile('invoices')) {[m
+[32m+[m[32m            if (!$request->hasFile('invoices')) {[m
+                 return back()->withErrors(['invoices' => 'File invoice tidak ditemukan.']);[m
+             }[m
+ [m
+[36m@@ -254,7 +259,7 @@[m [mpublic function addMedia(Request $request, $id)[m
+             $files = is_array($files) ? $files : [$files];[m
+ [m
+             foreach ($files as $file) {[m
+[31m-                if (! $file || ! $file->isValid()) {[m
+[32m+[m[32m                if (!$file || !$file->isValid()) {[m
+                     continue;[m
+                 }[m
+ [m
+[36m@@ -262,8 +267,8 @@[m [mpublic function addMedia(Request $request, $id)[m
+                 $ext = strtolower($file->getClientOriginalExtension());[m
+ [m
+                 $safeFileName = now()->format('YmdHis')[m
+[31m-                    .'-'.Str::slug($baseName)[m
+[31m-                    .'.'.$ext;[m
+[32m+[m[32m                    . '-' . Str::slug($baseName)[m
+[32m+[m[32m                    . '.' . $ext;[m
+ [m
+                 $receipt->addMedia($file)[m
+                     ->usingFileName($safeFileName)[m
+[36m@@ -280,6 +285,8 @@[m [mpublic function addMedia(Request $request, $id)[m
+ [m
+     public function edit($id)[m
+     {[m
+[32m+[m[32m        // Hapus atau gunakan untuk debugging lainnya, seperti menampilkan ID yang diterima[m
+[32m+[m[32m        // dd($id);[m
+         $warehouses = Warehouse::all();[m
+ [m
+         $receipt = PurchaseReceipt::with([[m
+[36m@@ -383,7 +390,7 @@[m [mpublic function update(Request $request, $id)[m
+             });[m
+ [m
+             return redirect()[m
+[31m-                ->route('edit-barang-masuk', $id)[m
+[32m+[m[32m                ->route('edit-purchase-receipt', $id)[m
+                 ->with('success', 'Data barang masuk berhasil diupdate.');[m
+         } catch (\Throwable $th) {[m
+             save_log_error($th);[m
