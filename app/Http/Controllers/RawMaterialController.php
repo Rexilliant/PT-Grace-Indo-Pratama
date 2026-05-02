@@ -125,7 +125,7 @@ class RawMaterialController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'kode_barang' => 'required|unique:raw_materials,code,' . $id,
+            'kode_barang' => 'required|unique:raw_materials,code,'.$id,
             'bahan_baku' => 'required',
             'unit' => 'required',
             'status' => 'required',
@@ -143,5 +143,15 @@ class RawMaterialController extends Controller
         return redirect()
             ->route('admin.gudang-bahan-baku')
             ->with('success', 'Bahan baku berhasil diperbarui!');
+    }
+
+    public function destroy($id)
+    {
+        $material = RawMaterial::findOrFail($id);
+        $material->delete();
+
+        return redirect()
+            ->route('admin.gudang-bahan-baku')
+            ->with('success', 'Bahan baku berhasil dihapus!');
     }
 }
