@@ -6,9 +6,63 @@ use App\Models\RawMaterial;
 use App\Models\RawMaterialStock;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class RawMaterialController extends Controller
 {
+    public function export(Request $request)
+    {
+        $q = RawMaterial::query()->orderBy('created_at', 'desc');
+
+        if ($request->filled('code')) {
+            $q->where('code', 'like', "%{$request->code}%");
+        }
+
+        if ($request->filled('name')) {
+            $q->where('name', 'like', "%{$request->name}%");
+        }
+
+        if ($request->filled('status')) {
+            $q->where('status', 'like', "%{$request->status}%");
+        }
+
+        $rows = $q->get()->map(function ($material) {
+            return [
+                'Kode Barang' => $material->code,
+                'Bahan Baku' => $material->name,
+                'Unit' => $material->unit,
+                'Status' => $material->status,
+                'Dibuat Pada' => $material->created_at ? $material->created_at->format('Y-m-d H:i:s') : '-',
+            ];
+        });
+
+        $export = new class ($rows) implements FromCollection, WithHeadings {
+            public function __construct(private $rows)
+            {}
+
+            public function collection()
+            {
+                return $this->rows;
+            }
+
+            public function headings(): array
+            {
+                return [
+                    'Kode Barang',
+                    'Bahan Baku',
+                    'Unit',
+                    'Status',
+                    'Dibuat Pada',
+                ];
+            }
+        };
+
+        return Excel::download($export, 'bahan_baku_' . now()->format('Ymd_His') . '.xlsx');
+    }
+
     public function index(Request $request)
     {
         $q = RawMaterial::query()->orderBy('created_at', 'desc');
