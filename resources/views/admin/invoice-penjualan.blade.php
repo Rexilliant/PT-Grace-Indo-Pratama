@@ -159,11 +159,11 @@
             <div class="mt-3 space-y-1 text-[12px] leading-4 text-gray-800">
                 <div class="text-[13px] font-extrabold">{{ $customerDisplay }}</div>
                 <div>{{ $customerRegion ?: '-' }}</div>
-                <div>PIC: {{ $customerDisplay }}</div>
                 <div>Kontak: {{ $sale->customer_contact ?: '-' }}</div>
                 @if ($sale->customer_address)
-                    <div>{{ $sale->customer_address }}</div>
+                <div>{{ $sale->customer_address }}</div>
                 @endif
+                {{-- <div>PIC: {{ $sale->personResponsible?->name ?? '-' }}</div> --}}
             </div>
         </div>
 

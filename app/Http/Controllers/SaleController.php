@@ -30,7 +30,7 @@ class SaleController extends Controller
 
         if ($request->filled('name')) {
             $q->whereHas('personResponsible', function ($query) use ($request) {
-                $query->where('name', 'like', '%'.$request->name.'%');
+                $query->where('name', 'like', '%' . $request->name . '%');
             });
         }
 
@@ -39,7 +39,7 @@ class SaleController extends Controller
         }
 
         if ($request->filled('province')) {
-            $q->where('customer_province', 'like', '%'.$request->province.'%');
+            $q->where('customer_province', 'like', '%' . $request->province . '%');
         }
 
         if ($request->filled('date_from')) {
@@ -67,9 +67,9 @@ class SaleController extends Controller
             ];
         });
 
-        $export = new class($rows) implements FromCollection, WithHeadings
-        {
-            public function __construct(private $rows) {}
+        $export = new class ($rows) implements FromCollection, WithHeadings {
+            public function __construct(private $rows)
+            {}
 
             public function collection()
             {
@@ -79,23 +79,23 @@ class SaleController extends Controller
             public function headings(): array
             {
                 return [
-                    'id Penjualan',
-                    'Tanggal Penjualan',
-                    'Nama Pembeli',
-                    'Kontak Pembeli',
-                    'Provinsi Pembeli',
-                    'Kota Pembeli',
-                    'Total Amount',
-                    'Paid Amount',
-                    'Debt Amount',
-                    'Status',
+                'id Penjualan',
+                'Tanggal Penjualan',
+                'Nama Pembeli',
+                'Kontak Pembeli',
+                'Provinsi Pembeli',
+                'Kota Pembeli',
+                'Total Amount',
+                'Paid Amount',
+                'Debt Amount',
+                'Status',
                 ];
             }
         };
 
         return Excel::download(
             $export,
-            'sales_'.now()->format('Ymd_His').'.xlsx'
+            'sales_' . now()->format('Ymd_His') . '.xlsx'
         );
     }
 
@@ -110,7 +110,7 @@ class SaleController extends Controller
 
         if ($request->filled('name')) {
             $q->whereHas('personResponsible', function ($query) use ($request) {
-                $query->where('name', 'like', '%'.$request->name.'%');
+                $query->where('name', 'like', '%' . $request->name . '%');
             });
         }
 
@@ -119,7 +119,7 @@ class SaleController extends Controller
         }
 
         if ($request->filled('province')) {
-            $q->where('customer_province', 'like', '%'.$request->province.'%');
+            $q->where('customer_province', 'like', '%' . $request->province . '%');
         }
 
         if ($request->filled('date_from')) {
@@ -150,8 +150,10 @@ class SaleController extends Controller
 
     public function create()
     {
+        // Langsung tarik semua gudang pemasaran tanpa mandang user
         $warehouses = Warehouse::query()
             ->orderBy('name')
+            ->where('type', 'pemasaran') // Filter tipenya aja
             ->get(['id', 'name', 'province', 'city']);
 
         return view('admin.add-laporan-penjualan', [
@@ -250,7 +252,7 @@ class SaleController extends Controller
         // 3. Eksekusi Database Transaction
         return DB::transaction(function () use ($request, $itemsInput, $dpValue) {
 
-            $stockIds = $itemsInput->pluck('product_stock_id')->map(fn ($id) => (int) $id)->unique()->values();
+            $stockIds = $itemsInput->pluck('product_stock_id')->map(fn($id) => (int) $id)->unique()->values();
             $warehouseId = (int) $request->warehouse_id;
 
             // Ambil data stok dan kunci untuk update (Pencegahan Race Condition)
@@ -272,7 +274,7 @@ class SaleController extends Controller
 
                 $stock = $stocks->get($productStockId);
 
-                if (! $stock || (int) $stock->warehouse_id !== $warehouseId) {
+                if (!$stock || (int) $stock->warehouse_id !== $warehouseId) {
                     throw ValidationException::withMessages(["items.$index.product_stock_id" => 'Barang tidak valid atau tidak ada di gudang ini.']);
                 }
 
@@ -342,7 +344,7 @@ class SaleController extends Controller
                     'quantity' => $item['quantity'],
                     'ref_type' => Sale::class,
                     'ref_id' => $sale->id,
-                    'note' => 'Penjualan #'.$sale->id,
+                    'note' => 'Penjualan #' . $sale->id,
                 ]);
             }
 
@@ -418,7 +420,7 @@ class SaleController extends Controller
                 ]);
             }
 
-            if (! $request->hasFile('invoice')) {
+            if (!$request->hasFile('invoice')) {
                 throw ValidationException::withMessages([
                     'invoice' => 'Bukti pembayaran wajib diupload.',
                 ]);
@@ -431,7 +433,7 @@ class SaleController extends Controller
                 $remainingDebt = max(0, (int) $sale->total_amount - $existingPaid);
 
                 throw ValidationException::withMessages([
-                    'payment_amount' => 'Nominal cicilan melebihi sisa tagihan. Maksimal pembayaran yang bisa ditambahkan adalah Rp '.number_format($remainingDebt, 0, ',', '.').'.',
+                    'payment_amount' => 'Nominal cicilan melebihi sisa tagihan. Maksimal pembayaran yang bisa ditambahkan adalah Rp ' . number_format($remainingDebt, 0, ',', '.') . '.',
                 ]);
             }
 
@@ -476,7 +478,7 @@ class SaleController extends Controller
             $stockIds = $sale->items
                 ->pluck('product_stock_id')
                 ->filter()
-                ->map(fn ($id) => (int) $id)
+                ->map(fn($id) => (int) $id)
                 ->unique()
                 ->values();
 
@@ -489,7 +491,7 @@ class SaleController extends Controller
             foreach ($sale->items as $item) {
                 $stock = $stocks->get((int) $item->product_stock_id);
 
-                if (! $stock) {
+                if (!$stock) {
                     continue;
                 }
 
@@ -503,7 +505,7 @@ class SaleController extends Controller
                     'quantity' => (int) $item->quantity,
                     'ref_type' => Sale::class,
                     'ref_id' => $sale->id,
-                    'note' => 'Pengembalian stok karena hapus sale #'.$sale->id,
+                    'note' => 'Pengembalian stok karena hapus sale #' . $sale->id,
                 ]);
             }
 

@@ -27,11 +27,11 @@ class ShipmentController extends Controller
 
         if ($request->filled('name')) {
             $q->whereHas('personResponsible', function ($query) use ($request) {
-                $query->where('name', 'like', '%'.$request->name.'%');
+                $query->where('name', 'like', '%' . $request->name . '%');
             });
         }
         if ($request->filled('code')) {
-            $q->where('shipment_code', 'like', '%'.$request->code.'%');
+            $q->where('shipment_code', 'like', '%' . $request->code . '%');
         }
 
         $rows = $q->get()->map(function ($s) {
@@ -46,9 +46,9 @@ class ShipmentController extends Controller
             ];
         });
 
-        $export = new class($rows) implements FromCollection, WithHeadings
-        {
-            public function __construct(private $rows) {}
+        $export = new class ($rows) implements FromCollection, WithHeadings {
+            public function __construct(private $rows)
+            {}
 
             public function collection()
             {
@@ -61,7 +61,7 @@ class ShipmentController extends Controller
             }
         };
 
-        return Excel::download($export, 'shipments_'.now()->format('YmdHis').'.xlsx');
+        return Excel::download($export, 'shipments_' . now()->format('YmdHis') . '.xlsx');
     }
 
     public function index(Request $request)
@@ -87,11 +87,11 @@ class ShipmentController extends Controller
 
         if ($request->filled('name')) {
             $q->whereHas('personResponsible', function ($query) use ($request) {
-                $query->where('name', 'like', '%'.$request->name.'%');
+                $query->where('name', 'like', '%' . $request->name . '%');
             });
         }
         if ($request->filled('code')) {
-            $q->where('shipment_code', 'like', '%'.$request->code.'%');
+            $q->where('shipment_code', 'like', '%' . $request->code . '%');
         }
         // ROWS PER PAGE (dropdown 10/25/50)
         $perPage = (int) ($request->get('per_page', 10));
@@ -164,12 +164,12 @@ class ShipmentController extends Controller
             $targetWarehouseId = (int) $validated['warehouse_id'];
 
             $groupedItems = collect($validated['items'])
-                ->map(fn ($item) => [
+                ->map(fn($item) => [
                     'product_stock_id' => (int) $item['product_stock_id'],
                     'quantity' => (int) $item['quantity'],
                 ])
                 ->groupBy('product_stock_id')
-                ->map(fn ($rows, $productStockId) => [
+                ->map(fn($rows, $productStockId) => [
                     'product_stock_id' => (int) $productStockId,
                     'quantity' => $rows->sum('quantity'),
                 ])
@@ -187,7 +187,7 @@ class ShipmentController extends Controller
                 foreach ($groupedItems as $item) {
                     $sourceStock = $sourceStocks->get($item['product_stock_id']);
 
-                    if (! $sourceStock) {
+                    if (!$sourceStock) {
                         throw new \Exception('Produk stok tidak ditemukan.');
                     }
 
@@ -203,7 +203,7 @@ class ShipmentController extends Controller
                 }
 
                 $shipment = Shipment::create([
-                    'shipment_code' => 'SHP-'.now()->format('YmdHis'),
+                    'shipment_code' => 'SHP-' . now()->format('YmdHis'),
                     'shipment_type' => $validated['shipment_type'],
                     'person_responsible_id' => $userId,
                     'status' => 'Menunggu',
@@ -240,7 +240,7 @@ class ShipmentController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', 'Gagal menyimpan pengiriman: '.$th->getMessage());
+                ->with('error', 'Gagal menyimpan pengiriman: ' . $th->getMessage());
         }
     }
 
@@ -275,13 +275,16 @@ class ShipmentController extends Controller
             ->all();
 
         $productStocks = ProductStock::with(['productVariant', 'warehouse'])
-            ->when($warehouseId !== null, function ($query) use ($warehouseId) {
-                $query->where('warehouse_id', $warehouseId);
+            // ->when($warehouseId !== null, function ($query) use ($warehouseId) {
+            //     $query->where('warehouse_id', $warehouseId);
+            // })
+            ->whereHas('warehouse', function ($query) {
+                $query->where('type', 'produksi');
             })
             ->where(function ($query) use ($existingProductStockIds) {
                 $query->where('stock', '>', 0);
 
-                if (! empty($existingProductStockIds)) {
+                if (!empty($existingProductStockIds)) {
                     $query->orWhereIn('id', $existingProductStockIds);
                 }
             })
@@ -374,7 +377,7 @@ class ShipmentController extends Controller
                 'Selesai' => ['Selesai'],
             ];
 
-            if ($newStatus !== $currentStatus && ! in_array($newStatus, $allowedTransitions[$currentStatus] ?? [], true)) {
+            if ($newStatus !== $currentStatus && !in_array($newStatus, $allowedTransitions[$currentStatus] ?? [], true)) {
                 throw ValidationException::withMessages([
                     'status' => 'Perubahan status tidak valid.',
                 ]);
@@ -394,7 +397,7 @@ class ShipmentController extends Controller
                     $submittedItems = collect($validated['items'])
                         ->map(function ($item) {
                             return [
-                                'id' => ! empty($item['id']) ? (int) $item['id'] : null,
+                                'id' => !empty($item['id']) ? (int) $item['id'] : null,
                                 'product_stock_id' => (int) $item['product_stock_id'],
                                 'quantity' => (int) $item['quantity'],
                             ];
@@ -423,7 +426,7 @@ class ShipmentController extends Controller
                     foreach ($submittedItems as $item) {
                         $productStock = $productStocks->get($item['product_stock_id']);
 
-                        if (! $productStock) {
+                        if (!$productStock) {
                             throw ValidationException::withMessages([
                                 'items' => 'Produk stok tidak ditemukan.',
                             ]);
@@ -442,7 +445,7 @@ class ShipmentController extends Controller
                         if ($item['id']) {
                             $shipmentItem = $existingItems->get($item['id']);
 
-                            if (! $shipmentItem || (int) $shipmentItem->shipment_id !== (int) $shipment->id) {
+                            if (!$shipmentItem || (int) $shipmentItem->shipment_id !== (int) $shipment->id) {
                                 throw ValidationException::withMessages([
                                     "items.$index.id" => 'Item shipment tidak valid.',
                                 ]);
@@ -461,7 +464,7 @@ class ShipmentController extends Controller
                         }
                     }
 
-                    if (! empty($submittedItemIds)) {
+                    if (!empty($submittedItemIds)) {
                         $shipment->shipmentItems()
                             ->whereNotIn('id', $submittedItemIds)
                             ->delete();
@@ -518,7 +521,7 @@ class ShipmentController extends Controller
                                 ->lockForUpdate()
                                 ->find($item->product_stock_id);
 
-                            if (! $sourceStock) {
+                            if (!$sourceStock) {
                                 throw ValidationException::withMessages([
                                     'status' => 'Stok produk tidak ditemukan.',
                                 ]);
@@ -544,7 +547,7 @@ class ShipmentController extends Controller
                                 'quantity' => (int) $item->quantity,
                                 'ref_type' => Shipment::class,
                                 'ref_id' => $shipment->id,
-                                'note' => 'Pengeluaran stok untuk pengiriman '.$shipment->shipment_code,
+                                'note' => 'Pengeluaran stok untuk pengiriman ' . $shipment->shipment_code,
                             ]);
                         }
 
@@ -568,7 +571,7 @@ class ShipmentController extends Controller
 
                 if ($request->hasFile('invoices')) {
                     foreach ($request->file('invoices') as $file) {
-                        $filename = now()->format('YmdHis').'_'.uniqid().'.'.$file->getClientOriginalExtension();
+                        $filename = now()->format('YmdHis') . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
                         $shipment
                             ->addMedia($file)
@@ -596,7 +599,7 @@ class ShipmentController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', 'Gagal memperbarui pengiriman: '.$th->getMessage());
+                ->with('error', 'Gagal memperbarui pengiriman: ' . $th->getMessage());
         }
     }
 
@@ -640,7 +643,7 @@ class ShipmentController extends Controller
 
             return redirect()
                 ->back()
-                ->with('error', 'Gagal menghapus pengiriman: '.$th->getMessage());
+                ->with('error', 'Gagal menghapus pengiriman: ' . $th->getMessage());
         }
     }
 
