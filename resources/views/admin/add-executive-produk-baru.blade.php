@@ -62,7 +62,7 @@
                 {{-- Deskripsi --}}
                 <div class="sm:col-span-2 lg:col-span-3">
                     <label class="block text-sm font-bold mb-2">Deskripsi Produk</label>
-                    <textarea name="description" rows="5" placeholder="Tuliskan deskripsi produk..."
+                    <textarea name="description" id="description" rows="5" placeholder="Tuliskan deskripsi produk..."
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0 @error('description') border-red-500 @enderror">{{ old('description') }}</textarea>
                     @error('description')
                         <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
@@ -243,6 +243,21 @@
                 imageInput.files = e.dataTransfer.files;
                 handleFile(file);
             });
+        });
+    </script>
+
+    <!-- TinyMCE Local -->
+    <script src="{{ asset('vendor/tinymce/tinymce.min.js') }}" referrerpolicy="origin"></script>
+    <script>
+        tinymce.init({
+            selector: 'textarea[name="description"]',
+            plugins: 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking table emoticons template help',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | pagebreak | charmap emoticons | fullscreen preview save print | insertfile image media template link anchor codesample | ltr rtl',
+            menubar: 'file edit view insert format tools table help',
+            height: 400,
+            promotion: false,
+            branding: false,
+            license_key: 'gpl'
         });
     </script>
 @endsection

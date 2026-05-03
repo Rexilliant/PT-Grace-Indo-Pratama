@@ -5,7 +5,7 @@
     {{-- header --}}
     <div class="flex items-center mb-6 shrink-0">
         <div class="flex items-center mr-4">
-            <img src="{{ asset('build/image/bhos-logo.png') }}" alt="BHOS Technology" class="h-12 w-auto">
+        <img src="{{ asset('media/image/bhos-logo.png') }}" alt="BHOS Technology" class="h-12 w-auto">
         </div>
 
         <div class="text-left leading-tight">

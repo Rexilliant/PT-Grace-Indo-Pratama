@@ -77,7 +77,7 @@
                 {{-- Deskripsi --}}
                 <div class="sm:col-span-2 lg:col-span-3">
                     <label class="mb-2 block text-sm font-bold">Deskripsi Produk</label>
-                    <textarea name="description" rows="5"
+                    <textarea name="description" id="description" rows="5"
                         @if ($isReadOnly) readonly @endif
                         class="{{ $isReadOnly ? $readonlyClass : $inputClass }}">{{ old('description', $product->description) }}</textarea>
                 </div>
@@ -232,6 +232,22 @@
                     placeholder.classList.add('hidden');
                 }
             });
+        });
+    </script>
+
+    <!-- TinyMCE Local -->
+    <script src="{{ asset('vendor/tinymce/tinymce.min.js') }}" referrerpolicy="origin"></script>
+    <script>
+        tinymce.init({
+            selector: 'textarea[name="description"]',
+            plugins: 'advlist autolink lists link image charmap preview anchor pagebreak searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking table emoticons template help',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | outdent indent |  numlist bullist | forecolor backcolor removeformat | pagebreak | charmap emoticons | fullscreen preview save print | insertfile image media template link anchor codesample | ltr rtl',
+            menubar: 'file edit view insert format tools table help',
+            height: 400,
+            promotion: false,
+            branding: false,
+            readonly: {{ isset($isReadOnly) && $isReadOnly ? 'true' : 'false' }},
+            license_key: 'gpl'
         });
     </script>
 @endsection
