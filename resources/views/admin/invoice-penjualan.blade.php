@@ -115,7 +115,7 @@
             <div>
                 <div class="flex items-center gap-3">
                     <div class="flex items-center mr-4">
-                        <img src="{{ asset('build/image/bhos-logo.png') }}" alt="BHOS Technology" class="h-12 w-auto">
+                        <img src="{{ asset('media/image/bhos-logo.png') }}" alt="BHOS Technology" class="h-12 w-auto">
                     </div>
 
                     <div class="text-[18px] font-extrabold leading-tight tracking-wide text-[#127a45]">
@@ -161,7 +161,7 @@
                 <div>{{ $customerRegion ?: '-' }}</div>
                 <div>Kontak: {{ $sale->customer_contact ?: '-' }}</div>
                 @if ($sale->customer_address)
-                <div>{{ $sale->customer_address }}</div>
+                    <div>{{ $sale->customer_address }}</div>
                 @endif
                 {{-- <div>PIC: {{ $sale->personResponsible?->name ?? '-' }}</div> --}}
             </div>
