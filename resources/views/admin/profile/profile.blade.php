@@ -31,7 +31,7 @@
                 <div class="text-sm font-semibold text-gray-600">{{ auth()->user()->employee?->province ?? 'No Province' }}
                 </div>
                 <div class="mt-3">
-                    <a href="{{ route('admin.edit-profile') }}"
+                    <a href="{{ route('admin.profile.edit-profile') }}"
                         class="inline-flex items-center gap-2 rounded-lg bg-slate-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-300">
                         Edit Profile
                     </a>

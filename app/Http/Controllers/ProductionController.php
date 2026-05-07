@@ -114,7 +114,7 @@ class ProductionController extends Controller
         $productionBatches = $q->paginate($perPage)->withQueryString();
         $warehouses = Warehouse::all();
 
-        return view('admin.gudang-laporan-produksi', compact('productionBatches', 'warehouses'));
+        return view('admin.production_report.gudang-laporan-produksi', compact('productionBatches', 'warehouses'));
     }
 
     public function pilihProduk()
@@ -123,7 +123,7 @@ class ProductionController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('admin.add-pilih-produk', compact('products'));
+        return view('admin.production_report.add-pilih-produk', compact('products'));
     }
 
     public function create(ProductVariant $productVariant)
@@ -133,7 +133,7 @@ class ProductionController extends Controller
         $personResponsible = Auth::user();
         $warehouses = Warehouse::where('type', 'produksi')->get();
 
-        return view('admin.add-produk', compact(
+        return view('admin.production_report.add-produk', compact(
             'productVariant',
             'personResponsible',
             'warehouses'
@@ -160,7 +160,7 @@ class ProductionController extends Controller
             $personResponsible = $productionBatch->personResponsible;
             $warehouses = Warehouse::orderBy('name')->get();
 
-            return view('admin.edit-produk', compact(
+            return view('admin.production_report.edit-produk', compact(
                 'productionBatch',
                 'productVariant',
                 'personResponsible',

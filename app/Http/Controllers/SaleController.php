@@ -142,7 +142,7 @@ class SaleController extends Controller
             ->orderBy('status')
             ->pluck('status');
 
-        return view('admin.pemasaran-laporan-penjualan', compact(
+        return view('admin.sales.pemasaran-laporan-penjualan', compact(
             'sales',
             'statuses'
         ));
@@ -156,7 +156,7 @@ class SaleController extends Controller
             ->where('type', 'pemasaran') // Filter tipenya aja
             ->get(['id', 'name', 'province', 'city']);
 
-        return view('admin.add-laporan-penjualan', [
+        return view('admin.sales.add-laporan-penjualan', [
             'reportDate' => now()->format('Y-m-d'),
             'personResponsibleName' => Auth::user()?->name ?? '-',
             'provinceJsonUrl' => asset('assets/data/provinceAndCity.json'),
@@ -379,7 +379,7 @@ class SaleController extends Controller
             'paymentHistories',
         ])->findOrFail($id);
 
-        return view('admin.edit-laporan-penjualan', [
+        return view('admin.sales.edit-laporan-penjualan', [
             'sale' => $sale,
             'reportDate' => Carbon::parse($sale->report_date)->format('Y-m-d'),
             'personResponsibleName' => $sale->personResponsible?->name ?? '-',
@@ -540,7 +540,7 @@ class SaleController extends Controller
             'paymentHistories.createdBy',
         ])->findOrFail($id);
 
-        return view('admin.history-pembayaran-penjualan', compact('sale'));
+        return view('admin.sales.history-pembayaran-penjualan', compact('sale'));
     }
 
     private function parseMoney($value): int
@@ -562,6 +562,6 @@ class SaleController extends Controller
             },
         ])->findOrFail($id);
 
-        return view('admin.invoice-penjualan', compact('sale'));
+        return view('admin.sales.invoice-penjualan', compact('sale'));
     }
 }

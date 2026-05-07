@@ -24,9 +24,16 @@ Route::get('/phpinfo', function () {
 });
 Route::get('/', [DashboardController::class, 'index'])->middleware(['auth', 'permission:akses dashboard'])->name('admin.dashboard');
 Route::middleware('auth')->prefix('admin')->group(function () {
+
+    //Profile
     Route::get('/profile', function () {
-        return view('admin.profile');
+        return view('admin.profile.profile');
     })->name('admin.profile');
+
+    Route::get('/edit-profile', function () {
+        return view('admin.profile.edit-profile');
+    })->name('admin.profile.edit-profile');
+
 
     Route::get('/executive-pengadaan-barang', function () {
         return view('admin.executive-pengadaan-barang');
@@ -68,9 +75,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.edit-barang-masuk');
     })->name('admin.edit-barang-masuk');
 
-    Route::get('/edit-profile', function () {
-        return view('admin.edit-profile');
-    })->name('admin.edit-profile');
+    
 
     Route::get(
         '/add-pilih-produk',
@@ -269,4 +274,4 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus penerimaan pengiriman produk'])->name('delete-shipment-receipt');
     });
 });
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

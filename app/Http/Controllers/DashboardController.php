@@ -281,7 +281,7 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        return view('admin.dashboard', [
+        return view('admin.dashboard.dashboard', [
             'warehouses' => $warehouses,
             'dateFrom' => $dateFrom->format('Y-m-d'),
             'dateTo' => $dateTo->format('Y-m-d'),
