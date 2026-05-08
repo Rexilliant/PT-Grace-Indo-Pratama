@@ -125,7 +125,7 @@ class RawMaterialController extends Controller
      */
     public function create()
     {
-        return view('admin.add-bahan-baku');
+        return view('admin.raw_materials.add-bahan-baku');
     }
 
     /**
