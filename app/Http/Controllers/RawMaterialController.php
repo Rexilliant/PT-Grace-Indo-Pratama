@@ -117,7 +117,7 @@ class RawMaterialController extends Controller
         $stocks = $q->paginate(5)->withQueryString();
         $warehouses = Warehouse::all();
 
-        return view('admin.gudang-stok-bahan-baku', compact('stocks', 'warehouses'));
+        return view('admin.raw_materials_inventory.gudang-stok-bahan-baku', compact('stocks', 'warehouses'));
     }
 
     /**
@@ -125,7 +125,7 @@ class RawMaterialController extends Controller
      */
     public function create()
     {
-        return view('admin.add-bahan-baku');
+        return view('admin.raw_materials.add-bahan-baku');
     }
 
     /**
@@ -170,7 +170,7 @@ class RawMaterialController extends Controller
     {
         $material = RawMaterial::with('stock')->findOrFail($id);
 
-        return view('admin.edit-bahan-baku', compact('material'));
+        return view('admin.raw_materials.edit-bahan-baku', compact('material'));
     }
 
     /**

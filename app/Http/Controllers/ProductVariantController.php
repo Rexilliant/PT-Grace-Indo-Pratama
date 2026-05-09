@@ -75,7 +75,7 @@ class ProductVariantController extends Controller
 
         $variants = $query->paginate($perPage)->withQueryString();
 
-        return view('admin.executive-produk-variant', compact('variants'));
+        return view('admin.ex_product_variant.executive-produk-variant', compact('variants'));
     }
 
     // FORM ADD VARIANT
@@ -84,7 +84,7 @@ class ProductVariantController extends Controller
         // ambil list produk untuk dropdown product_id
         $products = Product::orderBy('name')->get(['id', 'name', 'code']);
 
-        return view('admin.add-executive-produk-variant', compact('products'));
+        return view('admin.ex_product_variant.add-executive-produk-variant', compact('products'));
     }
 
     // STORE VARIANT KE DB
@@ -134,7 +134,7 @@ class ProductVariantController extends Controller
         // buat dropdown relasi produk
         $products = Product::orderBy('name')->get(['id', 'code', 'name']);
 
-        return view('admin.edit-executive-produk-variant', compact('variant', 'products'));
+        return view('admin.ex_product_variant.edit-executive-produk-variant', compact('variant', 'products'));
     }
 
     public function update(Request $request, $id)

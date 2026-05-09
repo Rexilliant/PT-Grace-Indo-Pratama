@@ -58,7 +58,7 @@ class ProductController extends Controller
     // CREATE (FORM TAMBAH)
     public function createExecutive()
     {
-        return view('admin.add-executive-produk-baru');
+        return view('admin.ex_product.add-executive-produk-baru');
     }
 
     // STORE (SIMPAN)
@@ -102,7 +102,7 @@ class ProductController extends Controller
 
         // pastikan view ini sesuai file kamu:
         // resources/views/admin/edit-executive-produk.blade.php
-        return view('admin.edit-executive-produk', compact('product'));
+        return view('admin.ex_product.edit-executive-produk', compact('product'));
     }
 
     // UPDATE (SIMPAN PERUBAHAN)
@@ -162,7 +162,7 @@ class ProductController extends Controller
 
         $products = $query->paginate($perPage)->withQueryString();
 
-        return view('admin.executive-produk', compact('products'));
+        return view('admin.ex_product.executive-produk', compact('products'));
     }
 
     public function destroyExecutive($id)
