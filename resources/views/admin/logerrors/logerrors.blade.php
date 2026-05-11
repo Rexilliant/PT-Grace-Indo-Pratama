@@ -9,7 +9,7 @@
         <div class="mb-4 text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Executive</span>
             <span class="mx-1 text-gray-400">›</span>
-            <a href="#" class="text-blue-600 hover:underline">Pengadaan Barang</a>
+            <a href="#" class="text-blue-600 hover:underline">Log Error</a>
         </div>
     </section>
 

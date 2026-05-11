@@ -187,8 +187,7 @@
             'baca produk varian',
             'baca izin',
             'baca role',
-            'baca
-            log',
+            'baca log error',
             ])
             <details class="group" @yield('open-executive')>
                 <summary
@@ -265,7 +264,7 @@
                         </a>
                     @endcan
 
-                    @can('baca log')
+                    @can('baca log error')
                         <a href="{{ route('log-errors') }}"
                             class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-log')">
                             Log Error
@@ -494,8 +493,7 @@
             'baca produk varian',
             'baca izin',
             'baca role',
-            'baca
-            log',
+            'baca log error',
             ])
             <details class="group" @yield('open-executive')>
                 <summary
@@ -572,7 +570,7 @@
                         </a>
                     @endcan
 
-                    @can('baca log')
+                    @can('baca log error')
                         <a href="{{ route('log-errors') }}"
                             class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-executive-log')">
                             Log Error
