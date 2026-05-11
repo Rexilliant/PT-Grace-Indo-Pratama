@@ -449,17 +449,54 @@
             </section>
 
             {{-- invoice --}}
-            <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            {{-- <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 class="text-lg font-bold text-gray-900">Invoice Pembayaran</h2>
                 <p class="mt-1 text-sm text-gray-500">Dokumen yang terlampir pada transaksi ini</p>
 
                 <div class="mt-5">
-                    <button type="button"
-                        class="inline-flex w-full items-center justify-center rounded-xl bg-[#2D2ACD] px-4 py-3 text-sm font-bold text-white hover:bg-blue-800">
+                    <a href="{{ route('admin.pemasaran-laporan-penjualan.invoice', $sale->id) }}"
+                        class="inline-flex w-full items-center justify-center rounded-xl bg-[#2D2ACD] px-4 py-3 text-sm font-bold text-white hover:bg-blue-800 transition-colors">
+                        Cetak Invoice
+                    </a>
+                </div>
+            </section> --}}
 
-                        <a href="{{ route('admin.pemasaran-laporan-penjualan.invoice', $sale->id) }}">Cetak Invoice</a>
-                    </button>
+            {{-- invoice & bst --}}
+            <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h2 class="text-lg font-bold text-gray-900">Dokumen Transaksi</h2>
+                <p class="mt-1 text-sm text-gray-500">Cetak invoice atau lihat bukti serah terima</p>
 
+                <div class="mt-5 space-y-3">
+                    {{-- Tombol Cetak Invoice --}}
+                    <a href="{{ route('admin.pemasaran-laporan-penjualan.invoice', $sale->id) }}"
+                        class="inline-flex w-full items-center justify-center rounded-xl bg-[#2D2ACD] px-4 py-3 text-sm font-bold text-white hover:bg-blue-800 transition-colors">
+                        Cetak Invoice
+                    </a>
+
+                    {{-- Tombol Laporan BST --}}
+                    @php
+                        $bstUrl = method_exists($sale, 'getFirstMediaUrl')
+                            ? $sale->getFirstMediaUrl('delivery_proof')
+                            : null;
+                        $hasBst = !empty($bstUrl);
+                    @endphp
+
+                    @if ($hasBst)
+                        <a href="{{ $bstUrl }}" target="_blank"
+                            class="inline-flex w-full items-center justify-center rounded-xl bg-[#288d3e] px-4 py-3 text-sm font-bold text-white hover:bg-[#275931] transition-colors">
+                            Lihat Laporan BST
+                        </a>
+                    @else
+                        <button disabled
+                            class="inline-flex w-full cursor-not-allowed items-center justify-center rounded-xl bg-gray-300 px-4 py-3 text-sm font-bold text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-4 w-4" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            BST Belum Diupload
+                        </button>
+                    @endif
                 </div>
             </section>
         </div>

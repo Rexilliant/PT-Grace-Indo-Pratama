@@ -75,7 +75,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.edit-barang-masuk');
     })->name('admin.edit-barang-masuk');
 
-    
+
 
     Route::get(
         '/add-pilih-produk',
@@ -96,6 +96,9 @@ Route::middleware('auth')->prefix('admin')->group(function () {
             ->name('admin.pemasaran-laporan-penjualan.stocks-by-warehouse');
         Route::get('/pemasaran/laporan-penjualan/{id}/edit', [SaleController::class, 'edit'])->middleware(['auth', 'permission:edit penjualan|baca penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.edit');
+        Route::post('/pemasaran/laporan-penjualan/{id}/upload-bst', [SaleController::class, 'uploadDeliveryProof'])
+            ->middleware(['auth', 'permission:edit penjualan'])
+            ->name('admin.pemasaran-laporan-penjualan.upload-bst');
         Route::put('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'update'])->middleware(['auth', 'permission:edit penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.update');
         Route::delete('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'destroy'])->middleware(['auth', 'permission:hapus penjualan'])
@@ -109,29 +112,24 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     // This Point
     Route::name('admin.')
         ->group(function () {
-
             Route::get('/gudang/laporan-produksi', [ProductionController::class, 'index'])->middleware(['auth', 'permission:baca produksi'])
                 ->name('gudang-laporan-produksi');
             Route::get('/gudang/laporan-produksi/export', [ProductionController::class, 'export'])->name('gudang-laporan-produksi.export');
             Route::get('/gudang/laporan-produksi/tambah/{productVariant}', [ProductionController::class, 'create'])->middleware(['auth', 'permission:tambah produksi'])->name('add-produk');
             Route::get('/gudang/laporan-produksi/pilih-produk', [ProductionController::class, 'pilihProduk'])
                 ->name('add-pilih-produk');
-
             Route::get('/add-produk/{productVariant}', [ProductionController::class, 'create'])
                 ->name('add-produk');
-
             Route::get('/production/materials', [ProductionController::class, 'getMaterialsByWarehouse'])
                 ->name('production.materials');
-
             Route::post('/production/store', [ProductionController::class, 'store'])
                 ->name('production.store');
-
             Route::get('/edit-produk/{productionBatch}', [ProductionController::class, 'edit'])
                 ->name('edit-produk');
-
             Route::put('/edit-produk/{productionBatch}', [ProductionController::class, 'update'])
                 ->name('production.update');
-
+            Route::get('/gudang/laporan-produksi/print/{id}', [ProductionController::class, 'print'])
+                ->name('gudang-laporan-produksi.print');
             Route::delete('/production/{productionBatch}', [ProductionController::class, 'destroy'])
                 ->name('production.delete');
         });
@@ -220,6 +218,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus pengadaan bahan baku'])->name('delete-procurement');
 
         Route::put('/edit/{id}', 'update')->name('update-procurement');
+        Route::get('/print/{id}', 'print')->middleware(['auth', 'permission:baca pengadaan bahan baku'])->name('print-procurement');
     });
     Route::controller(PurchaseReceiptController::class)->prefix('purchase-receipts')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca bahan baku masuk'])->name('purchase-receipts');
@@ -229,6 +228,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit bahan baku masuk|baca bahan baku masuk'])->name('edit-purchase-receipt');
         Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit bahan baku masuk'])->name('update-purchase-receipt');
         Route::post('/add-media/{id}', 'addMedia')->name('purchase-receipts.add-media');
+        Route::get('/print/{id}', 'print')->middleware(['auth', 'permission:baca bahan baku masuk'])->name('purchase-receipts.print');
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus barang masuk'])->name('purchase-receipts.destroy');
         Route::get('/procurement-items/{procurement}', 'getProcurementItems')->name('purchase-receipt.procurement-items');
     });
@@ -249,6 +249,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::post('/store', 'store')->middleware(['auth', 'permission:tambah pengiriman produk'])->name('store-shipment');
         Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit pengiriman produk|baca pengiriman produk'])->name('edit-shipment');
         Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit pengiriman produk'])->name('update-shipment');
+        Route::get('/print/{id}', 'print')->middleware(['auth', 'permission:baca pengiriman produk'])->name('print-shipment');
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus pengiriman produk'])->name('delete-shipment');
         Route::get('/{id}/items', 'getShipmentItems')->name('shipments.items');
     });
@@ -271,6 +272,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::post('/store', 'store')->middleware(['auth', 'permission:tambah penerimaan pengiriman produk'])->name('store-shipment-receipt');
         Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit penerimaan pengiriman produk|baca penerimaan pengiriman produk|edit status penerimaan pengiriman produk'])->name('edit-shipment-receipt');
         Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit penerimaan pengiriman produk'])->name('update-shipment-receipt');
+        Route::get('/print/{id}', 'print')->middleware(['auth', 'permission:baca penerimaan pengiriman produk'])->name('print-shipment-receipt');
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus penerimaan pengiriman produk'])->name('delete-shipment-receipt');
     });
 });

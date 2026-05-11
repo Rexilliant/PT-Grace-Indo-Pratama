@@ -160,8 +160,14 @@
                                         </a>
                                     @endcanany
 
+                                    <span class="mx-1">|</span>
+                                    <a href="{{ route('print-procurement', ['id' => $procurement->id]) }}" target="_blank"
+                                        class="text-green-600 hover:underline">
+                                        Cetak
+                                    </a>
+
                                     @can('hapus pengadaan bahan baku')
-                                        |
+                                        <span class="mx-1">|</span>
                                         <form action="{{ route('delete-procurement', ['id' => $procurement->id]) }}"
                                             method="POST" class="inline-block form-delete">
                                             @csrf
@@ -171,6 +177,8 @@
                                             </button>
                                         </form>
                                     @endcan
+
+
                                 </td>
                             </tr>
                         @empty

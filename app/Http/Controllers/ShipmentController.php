@@ -108,6 +108,19 @@ class ShipmentController extends Controller
         return view('admin.shipments.shipments', compact('shipments', 'statuses', 'warehouses'));
     }
 
+    public function print($id)
+    {
+        $shipment = Shipment::with([
+            'personResponsible',
+            'receivedBy',
+            'warehouse',
+            'shipmentItems.productStock.productVariant',
+            'shipmentItems.productStock.warehouse',
+        ])->findOrFail($id);
+
+        return view('admin.shipments.print-shipments', compact('shipment'));
+    }
+
     public function create()
     {
         $users = User::all();

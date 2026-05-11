@@ -118,6 +118,18 @@ class PurchaseReceiptController extends Controller
         return view('admin.purchase.purchases', compact('receipts', 'warehouses'));
     }
 
+    public function print($id)
+    {
+        $receipt = PurchaseReceipt::with([
+            'items.rawMaterial',
+            'warehouse',
+            'receivedBy',
+            'procurement'
+        ])->findOrFail($id);
+
+        return view('admin.purchase.purchase-print', compact('receipt'));
+    }
+
     public function create()
     {
         $warehouses = Warehouse::all();

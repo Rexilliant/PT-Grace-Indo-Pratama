@@ -5,6 +5,7 @@
 @section('menu-pemasaran-laporan-penjualan', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('content')
+    {{-- BREADCRUMB --}}
     <section class="mb-5">
         <div class="text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Pemasaran</span>
@@ -17,6 +18,7 @@
         </div>
     </section>
 
+    {{-- ALERT MESSAGES --}}
     @if ($errors->any())
         <div class="mb-5 rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-700">
             <div class="font-bold mb-2">Ada data yang masih bermasalah:</div>
@@ -38,6 +40,7 @@
         $isPaidOff = $sale->status === 'Lunas' || (int) $sale->debt_amount <= 0;
     @endphp
 
+    {{-- FORM UTAMA: Update Pembayaran & Catatan --}}
     <form action="{{ route('admin.pemasaran-laporan-penjualan.update', $sale->id) }}" method="POST"
         enctype="multipart/form-data" class="space-y-5">
         @csrf
@@ -46,129 +49,60 @@
         @if ($isPaidOff)
             <div class="rounded-xl border border-green-300 bg-green-50 p-4 text-sm text-green-700">
                 <div class="font-bold">Transaksi ini sudah lunas.</div>
-                <div class="mt-1">Cicilan tambahan dan upload bukti pembayaran dinonaktifkan supaya nggak bikin bug aneh
-                    lagi.</div>
+                <div class="mt-1">Hanya catatan yang dapat diperbarui. Cicilan tambahan dan bukti bayar dikunci otomatis.
+                </div>
             </div>
         @endif
 
-        {{-- BLOK HEADER --}}
+        {{-- BLOK HEADER (READ ONLY) --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Tanggal Laporan</label>
-                    <input type="date" value="{{ $reportDate }}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
-                </div>
-
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Tanggal Penjualan</label>
-                    <input type="date" value="{{ \Carbon\Carbon::parse($sale->sale_date)->format('Y-m-d') }}" readonly
+                    <input value="{{ \Carbon\Carbon::parse($sale->sale_date)->format('d/m/Y') }}" readonly
                         class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Penanggung Jawab</label>
-                    <input type="text" value="{{ $personResponsibleName }}" readonly
+                    <input value="{{ $personResponsibleName }}" readonly
                         class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Jenis Penjualan</label>
-                    <input type="text" value="{{ $sale->sale_type }}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
-                </div>
-
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Gudang</label>
-                    <input type="text"
-                        value="{{ $sale->warehouse?->name ? $sale->warehouse->name . ' — ' . $sale->warehouse->province . ' / ' . $sale->warehouse->city : '-' }}"
-                        readonly
+                    <input value="{{ $sale->warehouse?->name ?? '-' }}" readonly
                         class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Provinsi</label>
-                    <input type="text" value="{{ $sale->customer_province }}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Daerah</label>
-                    <input type="text" value="{{ $sale->customer_city }}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Alamat Lengkap</label>
-                    <textarea rows="3" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">{{ $sale->customer_address }}</textarea>
-                </div>
-
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Nama Pembeli</label>
-                    <input type="text" value="{{ $sale->customer_name }}" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Kontak Pembeli</label>
-                    <input type="text" value="{{ $sale->customer_contact }}" readonly
+                    <input value="{{ $sale->customer_name }}" readonly
                         class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
             </div>
         </section>
 
-        {{-- DAFTAR BARANG READ ONLY --}}
-        <section class="space-y-4">
-            <div class="flex items-center justify-between gap-3">
-                <h2 class="text-sm sm:text-base font-bold text-gray-800">Daftar Barang Terjual</h2>
-            </div>
-
-            <div class="bg-[#a7dfb2] p-5 shadow border border-[#68b97a] rounded-xl overflow-x-auto">
-                <table class="min-w-full text-sm text-left text-gray-900">
-                    <thead class="border-b border-[#68b97a]">
-                        <tr>
-                            <th class="px-3 py-3 font-bold whitespace-nowrap">No</th>
-                            <th class="px-3 py-3 font-bold whitespace-nowrap">SKU</th>
-                            <th class="px-3 py-3 font-bold whitespace-nowrap">Nama Produk</th>
-                            <th class="px-3 py-3 font-bold whitespace-nowrap">Qty</th>
-                            <th class="px-3 py-3 font-bold whitespace-nowrap">Harga</th>
-                            <th class="px-3 py-3 font-bold whitespace-nowrap">Diskon</th>
-                            <th class="px-3 py-3 font-bold whitespace-nowrap">Subtotal</th>
+        {{-- TABEL DAFTAR BARANG (READ ONLY) --}}
+        <section class="bg-[#a7dfb2] p-5 shadow border border-[#68b97a] rounded-xl overflow-x-auto">
+            <table class="min-w-full text-sm text-left text-gray-900">
+                <thead class="border-b border-[#68b97a]">
+                    <tr>
+                        <th class="px-3 py-3 font-bold">No</th>
+                        <th class="px-3 py-3 font-bold">Nama Produk</th>
+                        <th class="px-3 py-3 font-bold">Qty</th>
+                        <th class="px-3 py-3 font-bold">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($sale->items as $item)
+                        <tr class="border-b border-[#8fcf9b] last:border-b-0">
+                            <td class="px-3 py-3">{{ $loop->iteration }}</td>
+                            <td class="px-3 py-3 font-semibold">{{ $item->productStock?->productVariant?->name ?? '-' }}
+                            </td>
+                            <td class="px-3 py-3">{{ $item->quantity }}</td>
+                            <td class="px-3 py-3 font-bold">Rp {{ number_format((int) $item->subtotal, 0, ',', '.') }}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($sale->items as $item)
-                            <tr class="border-b border-[#8fcf9b] last:border-b-0">
-                                <td class="px-3 py-3 font-semibold whitespace-nowrap">{{ $loop->iteration }}</td>
-                                <td class="px-3 py-3 font-semibold whitespace-nowrap">
-                                    {{ $item->productStock?->productVariant?->sku ?? '-' }}
-                                </td>
-                                <td class="px-3 py-3 font-semibold min-w-[200px]">
-                                    {{ $item->productStock?->productVariant?->name ?? '-' }}
-                                </td>
-                                <td class="px-3 py-3 font-semibold whitespace-nowrap">{{ $item->quantity }}</td>
-                                <td class="px-3 py-3 font-semibold whitespace-nowrap">
-                                    Rp {{ number_format((int) $item->price, 0, ',', '.') }}
-                                </td>
-                                <td class="px-3 py-3 font-semibold whitespace-nowrap">
-                                    Rp {{ number_format((int) $item->discount, 0, ',', '.') }}
-                                </td>
-                                <td class="px-3 py-3 font-bold whitespace-nowrap">
-                                    Rp {{ number_format((int) $item->subtotal, 0, ',', '.') }}
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="px-3 py-4 text-center font-semibold text-gray-700">
-                                    Tidak ada item penjualan.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                    @endforeach
+                </tbody>
+            </table>
         </section>
 
         {{-- TOTAL + PEMBAYARAN --}}
@@ -176,17 +110,14 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Total Pesanan Keseluruhan</label>
-                    <input id="grandTotalDisplay" value="Rp {{ number_format((int) $sale->total_amount, 0, ',', '.') }}"
-                        readonly
+                    <input value="Rp {{ number_format((int) $sale->total_amount, 0, ',', '.') }}" readonly
                         class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Status Saat Ini</label>
                     <input id="statusDisplay" value="{{ $sale->status }}" readonly
                         class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Total Sudah Dibayar</label>
                     <input id="currentPaidDisplay" value="Rp {{ number_format((int) $currentPaidAmount, 0, ',', '.') }}"
@@ -194,248 +125,276 @@
                         class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Tambahan Pembayaran</label>
-                    <input name="payment_amount" id="paymentAmount" value="{{ old('payment_amount', '') }}"
-                        inputmode="numeric" placeholder="Contoh: 400000" {{ $isPaidOff ? 'disabled' : '' }}
-                        class="w-full rounded-md border border-gray-400 {{ $isPaidOff ? 'bg-gray-100 cursor-not-allowed' : 'bg-white' }} px-3 py-2.5 text-sm font-semibold text-gray-900">
-                    <p class="mt-2 text-xs text-gray-600">
-                        Isi nominal cicilan tambahan. Harus lebih dari 0 dan tidak boleh melebihi sisa tagihan.
-                    </p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Sisa Tagihan Setelah Update</label>
-                    <input id="remainingDebtDisplay" readonly
-                        class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
-                </div>
-
-                <div class="flex items-end">
-                    <a href="{{ route('admin.pemasaran-laporan-penjualan.history-pembayaran', $sale->id) }}"
-                        class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-6 py-3 text-sm font-bold text-white hover:bg-blue-800 w-full md:w-auto">
-                        Lihat History Pembayaran
-                    </a>
-                </div>
+                @if (!$isPaidOff)
+                    <div>
+                        <label class="block text-xs font-bold text-gray-800 mb-2.5 text-blue-700">Input Tambahan
+                            Pembayaran</label>
+                        <input name="payment_amount" id="paymentAmount" value="{{ old('payment_amount') }}"
+                            inputmode="numeric" placeholder="Masukkan nominal cicilan"
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-800 mb-2.5">Sisa Tagihan Setelah Update</label>
+                        <input id="remainingDebtDisplay" readonly
+                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
+                    </div>
+                @endif
 
                 <div class="md:col-span-2">
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Catatan</label>
-                    <textarea name="notes" rows="4" placeholder="Contoh: Sisa pembayaran akan dilunasi tanggal 10 Mei"
+                    <textarea name="notes" rows="4" placeholder="Tambahkan catatan di sini..."
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">{{ old('notes', $sale->notes) }}</textarea>
                 </div>
             </div>
         </section>
 
-        {{-- BUKTI PEMBAYARAN --}}
-        <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-            <label for="invoice" class="block text-sm font-bold mb-3 text-gray-800">Bukti Pembayaran</label>
-
-            <div id="dropzone"
-                class="relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-400 {{ $isPaidOff ? 'bg-gray-200' : 'bg-gray-100' }} px-6 py-8 text-center min-h-[220px]">
-                <input id="invoice" name="invoice" type="file" accept=".png,.jpg,.jpeg,.pdf"
-                    {{ $isPaidOff ? 'disabled' : '' }}
-                    class="absolute inset-0 h-full w-full {{ $isPaidOff ? 'cursor-not-allowed' : 'cursor-pointer' }} opacity-0 z-10" />
-
-                <div id="dropzoneContent" class="flex flex-col items-center gap-3 w-full pointer-events-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-700" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
-                            d="M3 15a4 4 0 004 4h10a4 4 0 004-4m-4-4l-4-4m0 0L9 11m4-4v12" />
-                    </svg>
-                    <div class="text-sm text-gray-800">
-                        <span class="font-bold">Click to upload</span> or drag and drop
+        {{-- BUKTI PEMBAYARAN CICILAN (HANYA MUNCUL JIKA BELUM LUNAS) --}}
+        @if (!$isPaidOff)
+            <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl mt-5">
+                <label class="block text-sm font-bold mb-3 text-gray-800 text-blue-700">Upload Bukti Pembayaran</label>
+                <div id="dropzone"
+                    class="relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-400 bg-gray-100 px-6 py-8 text-center min-h-[200px] transition-colors">
+                    <input id="invoice" name="invoice" type="file" accept=".png,.jpg,.jpeg,.pdf"
+                        class="absolute inset-0 h-full w-full cursor-pointer opacity-0 z-10" />
+                    <div id="dropzoneContent"
+                        class="flex flex-col items-center gap-3 w-full pointer-events-none text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+                                d="M3 15a4 4 0 004 4h10a4 4 0 004-4m-4-4l-4-4m0 0L9 11m4-4v12" />
+                        </svg>
+                        <div class="text-sm font-bold text-gray-800">Klik atau seret bukti bayar ke sini</div>
+                        <div class="text-xs">PNG, JPG, JPEG, PDF (Maks. 3MB)</div>
                     </div>
-                    <div class="text-xs text-gray-600">PNG, JPG, JPEG, or PDF (MAX 3 Mb)</div>
                 </div>
-            </div>
+            </section>
+        @endif
 
-            @if (!$isPaidOff)
-                <p class="mt-2 text-xs text-gray-600">
-                    Bukti bayar wajib diupload kalau menambah cicilan.
-                </p>
-            @endif
-        </section>
-
-        {{-- ACTION --}}
-        <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-4 pt-2">
+        {{-- FOOTER ACTION --}}
+        <div
+            class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-4 pt-4 border-t border-gray-300">
             <a href="{{ route('admin.pemasaran-laporan-penjualan') }}"
-                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-10 py-3 text-sm font-bold text-white hover:bg-red-700">
+                class="inline-flex items-center justify-center rounded-lg bg-red-600 px-10 py-3 text-sm font-bold text-white hover:bg-red-700 transition-colors">
                 Batal
             </a>
-
-            <button type="submit" {{ $isPaidOff ? 'disabled' : '' }}
-                class="inline-flex items-center justify-center rounded-lg px-10 py-3 text-sm font-bold text-white {{ $isPaidOff ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#2D2ACD] hover:bg-blue-800' }}">
+            <button type="submit"
+                class="inline-flex items-center justify-center rounded-lg px-10 py-3 text-sm font-bold text-white bg-[#2D2ACD] hover:bg-blue-800 transition-colors">
                 Simpan Perubahan
             </button>
         </div>
     </form>
 
+    {{-- BUKTI SERAH TERIMA (HANYA MUNCUL JIKA LUNAS) --}}
+    {{-- SECTION BUKTI SERAH TERIMA (BST) --}}
+    @if ($isPaidOff)
+        <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl mt-10 animate-scale-in">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-800">Bukti Serah Terima Barang (BST)</label>
+                    <p class="text-[10px] text-blue-600 font-medium italic">Silakan unggah dokumen yang sudah
+                        ditandatangani penerima.</p>
+                </div>
+
+                @if ($sale->hasMedia('delivery_proof'))
+                    <a href="{{ $sale->getFirstMediaUrl('delivery_proof') }}" target="_blank"
+                        class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-800 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        Lihat BST Terunggah
+                    </a>
+                @endif
+            </div>
+
+            <form action="{{ route('admin.pemasaran-laporan-penjualan.upload-bst', $sale->id) }}" method="POST"
+                enctype="multipart/form-data" id="formBST">
+                @csrf
+                {{-- Desain Dropzone BST - Identik dengan Bukti Bayar --}}
+                <div id="dropzoneBST"
+                    class="relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-blue-400 bg-gray-100 px-6 py-8 text-center min-h-[200px] transition-all hover:bg-blue-50 group">
+
+                    <input id="delivery_proof" name="delivery_proof" type="file" accept=".png,.jpg,.jpeg,.pdf"
+                        class="absolute inset-0 h-full w-full cursor-pointer opacity-0 z-10"
+                        onchange="handleBSTPreview(this)" />
+
+                    <div id="bstDropzoneContent"
+                        class="flex flex-col items-center gap-3 w-full pointer-events-none text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="h-10 w-10 text-blue-600 group-hover:scale-110 transition-transform" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <div class="text-sm font-bold text-gray-800">Klik atau seret file BST ke sini</div>
+                        <div class="text-xs italic">PNG, JPG, JPEG, PDF (Maks. 3MB)</div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex justify-end">
+                    <button type="submit"
+                        class="inline-flex items-center justify-center rounded-lg px-8 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-800 transition-colors">
+                        Upload & Simpan BST
+                    </button>
+                </div>
+
+                @error('delivery_proof')
+                    <p class="mt-2 text-xs text-red-600 font-bold">{{ $message }}</p>
+                @enderror
+            </form>
+        </section>
+    @endif
+
+    <style>
+        @keyframes scaleIn {
+            from {
+                transform: scale(.98);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-scale-in {
+            animation: scaleIn 0.2s ease-out forwards;
+        }
+    </style>
+
     <script>
+        // DATA BINDING FROM BACKEND
         const totalAmount = @json((int) $sale->total_amount);
         const currentPaidAmount = @json((int) $currentPaidAmount);
         const isPaidOff = @json($isPaidOff);
 
         const paymentAmount = document.getElementById('paymentAmount');
-        const currentPaidDisplay = document.getElementById('currentPaidDisplay');
         const remainingDebtDisplay = document.getElementById('remainingDebtDisplay');
         const statusDisplay = document.getElementById('statusDisplay');
-
         const invoiceInput = document.getElementById('invoice');
         const dropzone = document.getElementById('dropzone');
         const dropzoneContent = document.getElementById('dropzoneContent');
 
-        function parseNumber(value) {
-            if (value === null || value === undefined) return 0;
-            const cleaned = String(value).replace(/[^\d]/g, '');
+        // HELPER FUNCTIONS
+        const parseNumber = (val) => {
+            const cleaned = String(val || 0).replace(/[^\d]/g, '');
             return cleaned ? parseInt(cleaned, 10) : 0;
-        }
+        };
 
-        function formatRupiah(num) {
-            return 'Rp ' + Number(num || 0).toLocaleString('id-ID');
-        }
+        const formatRupiah = (num) => 'Rp ' + Number(num).toLocaleString('id-ID');
 
+        // SINKRONISASI PEMBAYARAN
         function syncPaymentSummary() {
-            const additional = parseNumber(paymentAmount?.value || 0);
-            const simulatedPaid = currentPaidAmount + additional;
-            const remainingDebtRaw = totalAmount - simulatedPaid;
-            const remainingDebt = Math.max(0, remainingDebtRaw);
-            const status = remainingDebt <= 0 ? 'Lunas' : 'Terhutang';
+            if (isPaidOff || !paymentAmount) return;
 
-            if (currentPaidDisplay) {
-                currentPaidDisplay.value = formatRupiah(currentPaidAmount);
-            }
+            const additional = parseNumber(paymentAmount.value);
+            const totalPaid = currentPaidAmount + additional;
+            const remaining = Math.max(0, totalAmount - totalPaid);
 
-            if (remainingDebtDisplay) {
-                remainingDebtDisplay.value = formatRupiah(remainingDebt);
-            }
-
-            if (statusDisplay) {
-                statusDisplay.value = status;
-            }
+            if (remainingDebtDisplay) remainingDebtDisplay.value = formatRupiah(remaining);
+            if (statusDisplay) statusDisplay.value = (remaining <= 0) ? 'Lunas' : 'Terhutang';
         }
 
-        function validateInvoiceFile(file) {
-            const allowed = ['image/png', 'image/jpeg', 'application/pdf'];
+        // DROPZONE HANDLER
+        if (dropzone && !isPaidOff) {
+            ['dragenter', 'dragover'].forEach(e => dropzone.addEventListener(e, (evt) => {
+                evt.preventDefault();
+                dropzone.classList.add('border-blue-500', 'bg-blue-50');
+            }));
 
-            if (!allowed.includes(file.type)) {
-                alert('File harus PNG / JPG / JPEG / PDF');
-                return false;
-            }
+            ['dragleave', 'dragend', 'drop'].forEach(e => dropzone.addEventListener(e, (evt) => {
+                evt.preventDefault();
+                dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+            }));
 
-            const maxSize = 3 * 1024 * 1024;
-            if (file.size > maxSize) {
-                alert('Ukuran file maksimal 3MB');
-                return false;
-            }
-
-            return true;
+            dropzone.addEventListener('drop', (e) => {
+                const file = e.dataTransfer.files[0];
+                if (file && invoiceInput) {
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    invoiceInput.files = dataTransfer.files;
+                    invoiceInput.dispatchEvent(new Event('change'));
+                }
+            });
         }
 
-        function getDefaultDropzoneContent() {
-            return `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-700" fill="none"
-                    viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
-                        d="M3 15a4 4 0 004 4h10a4 4 0 004-4m-4-4l-4-4m0 0L9 11m4-4v12" />
-                </svg>
-                <div class="text-sm text-gray-800">
-                    <span class="font-bold">Click to upload</span> or drag and drop
-                </div>
-                <div class="text-xs text-gray-600">PNG, JPG, JPEG, or PDF (MAX 3 Mb)</div>
-            `;
-        }
+        // PREVIEW HANDLER
+        if (invoiceInput) {
+            invoiceInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (!file) return;
 
-        function showDropzonePreview(file) {
-            const isImage = file.type.startsWith('image/');
-            const isPdf = file.type === 'application/pdf';
-            const fileSizeKb = (file.size / 1024).toFixed(1);
+                // VALIDASI FILE
+                const allowed = ['image/png', 'image/jpeg', 'application/pdf'];
+                if (!allowed.includes(file.type)) {
+                    alert('Format file tidak didukung!');
+                    this.value = '';
+                    return;
+                }
 
-            if (isImage) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
+                if (file.size > 3 * 1024 * 1024) {
+                    alert('Ukuran file maksimal 3MB!');
+                    this.value = '';
+                    return;
+                }
+
+                // RENDER PREVIEW
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        dropzoneContent.innerHTML = `
+                            <img src="${e.target.result}" class="max-h-32 rounded border shadow-sm">
+                            <span class="text-xs font-bold mt-2">${file.name}</span>
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
                     dropzoneContent.innerHTML = `
-                        <div class="flex flex-col items-center gap-3 w-full">
-                            <img src="${e.target.result}" alt="Preview invoice"
-                                class="max-h-40 w-auto rounded-lg border border-gray-300 shadow-sm object-contain bg-white p-1">
-                            <div class="text-sm font-bold text-gray-800 break-all">${file.name}</div>
-                            <div class="text-xs text-gray-600">${fileSizeKb} KB</div>
-                        </div>
+                        <div class="bg-red-100 p-3 rounded font-bold text-red-600">PDF DOCUMENT</div>
+                        <span class="text-xs mt-2">${file.name}</span>
                     `;
-                };
-                reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        if (paymentAmount) paymentAmount.addEventListener('input', syncPaymentSummary);
+        syncPaymentSummary();
+
+        function handleBSTPreview(input) {
+            const file = input.files[0];
+            const content = document.getElementById('bstDropzoneContent');
+            if (!file) return;
+
+            // Validasi Sederhana
+            const allowed = ['image/png', 'image/jpeg', 'application/pdf'];
+            if (!allowed.includes(file.type)) {
+                alert('Format file BST tidak didukung!');
+                input.value = '';
                 return;
             }
 
-            if (isPdf) {
-                dropzoneContent.innerHTML = `
-                    <div class="flex flex-col items-center gap-3 w-full">
-                        <div class="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600 font-bold text-sm border border-red-200">
-                            PDF
-                        </div>
-                        <div class="text-sm font-bold text-gray-800 break-all">${file.name}</div>
-                        <div class="text-xs text-gray-600">${fileSizeKb} KB</div>
-                    </div>
-                `;
+            // Render Preview Identik dengan Bukti Bayar
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    content.innerHTML = `
+                <img src="${e.target.result}" class="max-h-40 rounded-lg border border-gray-300 shadow-sm object-contain bg-white p-1">
+                <div class="text-sm font-bold text-gray-800 mt-2 break-all">${file.name}</div>
+                <div class="text-xs text-gray-500">${(file.size / 1024).toFixed(1)} KB</div>
+            `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                content.innerHTML = `
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600 font-bold text-sm border border-red-200">PDF</div>
+            <div class="text-sm font-bold text-gray-800 mt-2 break-all">${file.name}</div>
+            <div class="text-xs text-gray-500">${(file.size / 1024).toFixed(1)} KB</div>
+        `;
             }
-        }
-
-        if (paymentAmount && !isPaidOff) {
-            paymentAmount.addEventListener('input', syncPaymentSummary);
-        }
-
-        syncPaymentSummary();
-
-        if (invoiceInput && !isPaidOff) {
-            invoiceInput.addEventListener('change', function() {
-                const file = this.files?.[0];
-
-                if (!file) {
-                    dropzoneContent.innerHTML = getDefaultDropzoneContent();
-                    return;
-                }
-
-                if (!validateInvoiceFile(file)) {
-                    this.value = '';
-                    dropzoneContent.innerHTML = getDefaultDropzoneContent();
-                    return;
-                }
-
-                showDropzonePreview(file);
-            });
-        }
-
-        if (dropzone && !isPaidOff) {
-            ['dragenter', 'dragover'].forEach(evt => {
-                dropzone.addEventListener(evt, e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    dropzone.classList.add('border-blue-600');
-                });
-            });
-
-            ['dragleave', 'dragend'].forEach(evt => {
-                dropzone.addEventListener(evt, e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    dropzone.classList.remove('border-blue-600');
-                });
-            });
-
-            dropzone.addEventListener('drop', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dropzone.classList.remove('border-blue-600');
-
-                const file = e.dataTransfer?.files?.[0];
-                if (!file) return;
-
-                if (!validateInvoiceFile(file)) return;
-
-                const dt = new DataTransfer();
-                dt.items.add(file);
-                invoiceInput.files = dt.files;
-
-                showDropzonePreview(file);
-            });
         }
     </script>
 @endsection

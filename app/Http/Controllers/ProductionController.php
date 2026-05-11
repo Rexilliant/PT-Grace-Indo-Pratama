@@ -29,7 +29,7 @@ class ProductionController extends Controller
             ->orderBy('entry_date', 'desc');
 
         if ($request->filled('id')) {
-            $q->where('id', 'like', '%'.$request->id.'%');
+            $q->where('id', 'like', '%' . $request->id . '%');
         }
 
         if ($request->filled('warehouse_id')) {
@@ -56,9 +56,9 @@ class ProductionController extends Controller
             ];
         });
 
-        $export = new class($rows) implements FromCollection, WithHeadings
-        {
-            public function __construct(private $rows) {}
+        $export = new class ($rows) implements FromCollection, WithHeadings {
+            public function __construct(private $rows)
+            {}
 
             public function collection()
             {
@@ -68,18 +68,18 @@ class ProductionController extends Controller
             public function headings(): array
             {
                 return [
-                    'Id Produksi',
-                    'Tanggal Produksi',
-                    'Nama Penanggung Jawab',
-                    'Gudang',
-                    'SKU',
-                    'Produk',
-                    'Variant',
+                'Id Produksi',
+                'Tanggal Produksi',
+                'Nama Penanggung Jawab',
+                'Gudang',
+                'SKU',
+                'Produk',
+                'Variant',
                 ];
             }
         };
 
-        return Excel::download($export, 'produksi-'.now()->format('YmdHis').'.xlsx');
+        return Excel::download($export, 'produksi-' . now()->format('YmdHis') . '.xlsx');
     }
 
     public function index(Request $request)
@@ -93,7 +93,7 @@ class ProductionController extends Controller
         ])->latest();
 
         if ($request->filled('id')) {
-            $q->where('id', 'like', '%'.$request->id.'%');
+            $q->where('id', 'like', '%' . $request->id . '%');
         }
 
         if ($request->filled('warehouse_id')) {
@@ -115,6 +115,22 @@ class ProductionController extends Controller
         $warehouses = Warehouse::all();
 
         return view('admin.production_report.gudang-laporan-produksi', compact('productionBatches', 'warehouses'));
+    }
+
+    public function print($id)
+    {
+        try {
+            $productionBatch = ProductionBatch::with([
+                'materials.rawMaterial',
+                'productStock.productVariant.product',
+                'personResponsible',
+                'warehouse'
+            ])->findOrFail($id);
+
+            return view('admin.production_report.print-produksi', compact('productionBatch'));
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Gagal memuat dokumen cetak.');
+        }
     }
 
     public function pilihProduk()
@@ -153,7 +169,7 @@ class ProductionController extends Controller
 
             $productVariant = $productionBatch->productStock?->productVariant;
 
-            if (! $productVariant) {
+            if (!$productVariant) {
                 throw new \Exception('Variant produk tidak ditemukan.');
             }
 
@@ -300,7 +316,7 @@ class ProductionController extends Controller
                         'quantity_use' => (int) $item['quantity_use'],
                     ];
                 })
-                ->filter(fn ($item) => $item['quantity_use'] > 0)
+                ->filter(fn($item) => $item['quantity_use'] > 0)
                 ->values();
 
             if ($items->isEmpty()) {
@@ -338,7 +354,7 @@ class ProductionController extends Controller
                         ->lockForUpdate()
                         ->first();
 
-                    if (! $rawStock) {
+                    if (!$rawStock) {
                         throw new \Exception("Stok bahan baku tidak ditemukan untuk gudang ID {$warehouseId}.");
                     }
 
@@ -418,11 +434,11 @@ class ProductionController extends Controller
             $note = $validated['note'] ?? null;
 
             $items = collect($validated['items'])
-                ->map(fn ($item) => [
+                ->map(fn($item) => [
                     'raw_material_id' => (int) $item['raw_material_id'],
                     'quantity_use' => (int) $item['quantity_use'],
                 ])
-                ->filter(fn ($item) => $item['quantity_use'] > 0)
+                ->filter(fn($item) => $item['quantity_use'] > 0)
                 ->values();
 
             if ($items->isEmpty()) {
@@ -486,7 +502,7 @@ class ProductionController extends Controller
                         ->lockForUpdate()
                         ->first();
 
-                    if (! $rawStock) {
+                    if (!$rawStock) {
                         throw new \Exception("Stok bahan baku tidak ditemukan untuk gudang ID {$warehouseId}.");
                     }
 
@@ -574,7 +590,7 @@ class ProductionController extends Controller
                     ];
                 })
                 ->filter(function ($province) {
-                    return ! empty($province['name']);
+                    return !empty($province['name']);
                 })
                 ->values();
         } catch (\Throwable $th) {

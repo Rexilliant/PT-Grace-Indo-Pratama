@@ -139,10 +139,17 @@
                                                 class="text-[#2E7E3F] hover:underline">
                                                 Sunting
                                             </a>
+                                            <span class="mx-1">|</span>
                                         @endcanany
+
+                                        <a href="{{ route('purchase-receipts.print', $receipt->id) }}" target="_blank"
+                                            class="text-indigo-600 hover:underline flex items-center gap-1">
+                                            Cetak
+                                        </a>
 
                                         {{-- HAPUS --}}
                                         @if ($canDelete)
+                                            <span class="mx-1">|</span>
                                             <form action="{{ route('purchase-receipts.destroy', ['id' => $receipt->id]) }}"
                                                 method="POST" class="inline-block form-delete">
                                                 @csrf

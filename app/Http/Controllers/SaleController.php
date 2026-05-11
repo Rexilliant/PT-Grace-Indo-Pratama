@@ -389,10 +389,28 @@ class SaleController extends Controller
 
     public function update(Request $request, $id)
     {
-        $sale = Sale::with([
-            'paymentHistories',
-        ])->findOrFail($id);
+        $sale = Sale::findOrFail($id);
 
+        // Cek status lunas
+        $isPaidOff = $sale->status === 'Lunas' || (int) $sale->debt_amount <= 0;
+
+        // 1. Jika sudah lunas, kita hanya izinkan update Catatan (Notes)
+        if ($isPaidOff) {
+            $request->validate([
+                'notes' => ['nullable', 'string', 'max:1000'],
+            ]);
+
+            $sale->update([
+                'notes' => $request->input('notes'),
+                'updated_by' => Auth::id(),
+            ]);
+
+            return redirect()
+                ->route('admin.pemasaran-laporan-penjualan.edit', $sale->id)
+                ->with('success', 'Catatan laporan berhasil diperbarui.');
+        }
+
+        // 2. Jika BELUM lunas, jalankan validasi pembayaran cicilan seperti biasa
         $request->validate([
             'payment_amount' => ['required', 'string'],
             'invoice' => ['required', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
@@ -400,18 +418,11 @@ class SaleController extends Controller
         ], [
             'payment_amount.required' => 'Nominal cicilan wajib diisi.',
             'invoice.required' => 'Bukti pembayaran wajib diupload.',
-            'invoice.file' => 'Bukti pembayaran tidak valid.',
             'invoice.mimes' => 'Bukti pembayaran harus berupa PNG, JPG, JPEG, atau PDF.',
             'invoice.max' => 'Ukuran bukti pembayaran maksimal 3 MB.',
         ]);
 
         return DB::transaction(function () use ($request, $sale) {
-            if ($sale->status === 'Lunas' || (int) $sale->debt_amount <= 0) {
-                throw ValidationException::withMessages([
-                    'payment_amount' => 'Transaksi ini sudah lunas, tidak bisa menambah pembayaran lagi.',
-                ]);
-            }
-
             $additionalPayment = $this->parseMoney($request->input('payment_amount'));
 
             if ($additionalPayment <= 0) {
@@ -420,26 +431,21 @@ class SaleController extends Controller
                 ]);
             }
 
-            if (!$request->hasFile('invoice')) {
-                throw ValidationException::withMessages([
-                    'invoice' => 'Bukti pembayaran wajib diupload.',
-                ]);
-            }
-
             $existingPaid = (int) $sale->paymentHistories()->sum('amount');
             $newPaid = $existingPaid + $additionalPayment;
 
+            // Validasi agar tidak overpayment
             if ($newPaid > (int) $sale->total_amount) {
                 $remainingDebt = max(0, (int) $sale->total_amount - $existingPaid);
-
                 throw ValidationException::withMessages([
-                    'payment_amount' => 'Nominal cicilan melebihi sisa tagihan. Maksimal pembayaran yang bisa ditambahkan adalah Rp ' . number_format($remainingDebt, 0, ',', '.') . '.',
+                    'payment_amount' => 'Nominal cicilan melebihi sisa tagihan (Sisa: Rp ' . number_format($remainingDebt, 0, ',', '.') . ').',
                 ]);
             }
 
             $debtAmount = max(0, (int) $sale->total_amount - $newPaid);
             $finalStatus = $debtAmount <= 0 ? 'Lunas' : 'Terhutang';
 
+            // Update data utama
             $sale->update([
                 'paid_amount' => $newPaid,
                 'debt_amount' => $debtAmount,
@@ -448,6 +454,7 @@ class SaleController extends Controller
                 'updated_by' => Auth::id(),
             ]);
 
+            // Simpan history cicilan
             $paymentHistory = HistorySalePayment::create([
                 'sale_id' => $sale->id,
                 'created_by' => Auth::id(),
@@ -455,15 +462,12 @@ class SaleController extends Controller
                 'amount' => $additionalPayment,
             ]);
 
-            $paymentHistory
-                ->addMedia($request->file('invoice'))
+            $paymentHistory->addMedia($request->file('invoice'))
                 ->toMediaCollection('payment_proof');
 
             return redirect()
                 ->route('admin.pemasaran-laporan-penjualan.edit', $sale->id)
-                ->with('success', $finalStatus === 'Lunas'
-                    ? 'Pembayaran berhasil ditambahkan. Transaksi sekarang sudah lunas.'
-                    : 'Pembayaran berhasil ditambahkan.');
+                ->with('success', 'Pembayaran berhasil ditambahkan.');
         });
     }
 
@@ -541,6 +545,34 @@ class SaleController extends Controller
         ])->findOrFail($id);
 
         return view('admin.sales.history-pembayaran-penjualan', compact('sale'));
+    }
+
+    public function uploadDeliveryProof(Request $request, $id)
+    {
+        $sale = Sale::findOrFail($id);
+
+        if ($sale->status !== 'Lunas' && (int) $sale->debt_amount > 0) {
+            return back()->withErrors(['delivery_proof' => 'Gagal: Bukti Serah Terima hanya bisa diunggah setelah status Lunas.']);
+        }
+
+        $request->validate([
+            'delivery_proof' => ['required', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
+        ], [
+            'delivery_proof.required' => 'File bukti serah terima wajib dipilih.',
+            'delivery_proof.mimes' => 'Format file harus PNG, JPG, JPEG, atau PDF.',
+            'delivery_proof.max' => 'Ukuran file maksimal adalah 3 MB.',
+        ]);
+
+        try {
+            if ($request->hasFile('delivery_proof')) {
+                $sale->addMediaFromRequest('delivery_proof')
+                    ->toMediaCollection('delivery_proof');
+            }
+
+            return back()->with('success', 'Bukti serah terima barang (BST) berhasil diunggah.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['delivery_proof' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
+        }
     }
 
     private function parseMoney($value): int

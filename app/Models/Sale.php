@@ -62,6 +62,8 @@ class Sale extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('invoice_payment')->singleFile();
+
+        $this->addMediaCollection('delivery_proof')->singleFile();
     }
 
     public function warehouse()

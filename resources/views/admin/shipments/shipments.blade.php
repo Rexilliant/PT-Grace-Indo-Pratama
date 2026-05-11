@@ -148,14 +148,26 @@
                                         class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{{ $shipment->status }}</span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    @canany(['edit pengiriman produk', 'edit status pengiriman produk', 'baca pengiriman
-                                        produk'])
+                                    @canany([
+                                        'edit pengiriman produk',
+                                        'edit status pengiriman produk',
+                                        'baca pengiriman
+                                        produk',
+                                        ])
                                         <a href="{{ route('edit-shipment', $shipment->id) }}"
                                             class="text-blue-600 hover:underline">Sunting</a>
                                     @endcanany
+
+                                    {{-- Tombol Print Baru --}}
+                                    @can('baca pengiriman produk')
+                                        <span class="mx-1">|</span>
+                                        <a href="{{ route('print-shipment', $shipment->id) }}" target="_blank"
+                                            class="text-green-600 hover:underline">Print</a>
+                                    @endcan
+
                                     @can('hapus pengiriman produk')
                                         @if ($shipment->status == 'Menunggu')
-                                            |
+                                            <span class="mx-1">|</span>
                                             <form action="{{ route('delete-shipment', ['id' => $shipment->id]) }}"
                                                 method="POST" class="inline-block form-delete">
                                                 @csrf

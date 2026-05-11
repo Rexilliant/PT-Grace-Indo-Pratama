@@ -21,7 +21,7 @@ class ProcurementController extends Controller
 
         if ($request->filled('name')) {
             $q->whereHas('userRequest', function ($query) use ($request) {
-                $query->where('name', 'like', '%'.$request->name.'%');
+                $query->where('name', 'like', '%' . $request->name . '%');
             });
         }
 
@@ -51,9 +51,9 @@ class ProcurementController extends Controller
             ];
         });
 
-        $export = new class($rows) implements FromCollection, WithHeadings
-        {
-            public function __construct(private $rows) {}
+        $export = new class ($rows) implements FromCollection, WithHeadings {
+            public function __construct(private $rows)
+            {}
 
             public function collection()
             {
@@ -66,7 +66,7 @@ class ProcurementController extends Controller
             }
         };
 
-        return Excel::download($export, 'procurements_'.now()->format('Ymd_His').'.xlsx');
+        return Excel::download($export, 'procurements_' . now()->format('Ymd_His') . '.xlsx');
     }
 
     public function index(Request $request)
@@ -77,7 +77,7 @@ class ProcurementController extends Controller
 
         if ($request->filled('name')) {
             $q->whereHas('userRequest', function ($query) use ($request) {
-                $query->where('name', 'like', '%'.$request->name.'%');
+                $query->where('name', 'like', '%' . $request->name . '%');
             });
         }
 
@@ -111,6 +111,24 @@ class ProcurementController extends Controller
             ->pluck('status');
 
         return view('admin.procurement.procurements', compact('procurements', 'warehouses', 'statuses'));
+    }
+
+    public function print($id)
+    {
+        try {
+            $procurement = Procurement::with([
+                'procurement_items.raw_material',
+                'userRequest',
+                'warehouse',
+                'userApproved',
+                'userRejected'
+            ])->findOrFail($id);
+
+            return view('admin.procurement.print-procurement', compact('procurement'));
+        } catch (\Throwable $th) {
+            save_log_error($th);
+            return redirect()->back()->with('error', 'Gagal memuat data cetak.');
+        }
     }
 
     public function create()
