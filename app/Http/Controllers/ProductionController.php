@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\ProductionBatch;
 use App\Models\ProductionHasMaterial;
 use App\Models\ProductStock;
@@ -11,13 +10,16 @@ use App\Models\ProductVariant;
 use App\Models\RawMaterialStock;
 use App\Models\RawMaterialStockMovement;
 use App\Models\Warehouse;
+use Carbon\Carbon;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProductionController extends Controller
@@ -25,11 +27,16 @@ class ProductionController extends Controller
     public function export(Request $request)
     {
         $q = ProductionBatch::query()
-            ->with('personResponsible')
+            ->with([
+                'personResponsible',
+                'warehouse',
+                'productStock.productVariant.product',
+                'materials.rawMaterial',
+            ])
             ->orderBy('entry_date', 'desc');
 
         if ($request->filled('id')) {
-            $q->where('id', 'like', '%' . $request->id . '%');
+            $q->where('id', 'like', '%'.$request->id.'%');
         }
 
         if ($request->filled('warehouse_id')) {
@@ -44,21 +51,56 @@ class ProductionController extends Controller
             $q->whereDate('entry_date', '<=', $request->date_to);
         }
 
-        $rows = $q->get()->map(function ($p) {
-            return [
-                'Id Produksi' => $p->id,
-                'Tanggal Produksi' => $p->entry_date,
-                'Nama Penanggung Jawab' => $p->personResponsible->name ?? '-',
-                'Gudang' => $p->warehouse->name ?? '-',
-                'SKU' => $p->productStock->productVariant->sku ?? '-',
-                'Produk' => $p->productStock->productVariant->product->name ?? '-',
-                'Variant' => $p->productStock->productVariant->name ?? '-',
-            ];
+        $rows = collect();
+        $mergeRanges = [];
+        $currentRow = 2;
+
+        $q->get()->each(function ($p) use ($rows, &$mergeRanges, &$currentRow) {
+            $startRow = $currentRow;
+
+            $variant = $p->productStock?->productVariant;
+            $product = $variant?->product;
+
+            foreach ($p->materials as $material) {
+                $rawMaterial = $material->rawMaterial;
+
+                $rows->push([
+                    'Id Produksi' => $p->id,
+                    'Tanggal Produksi' => $p->entry_date
+                        ? Carbon::parse($p->entry_date)->format('d/m/Y')
+                        : '-',
+                    'Nama Penanggung Jawab' => $p->personResponsible->name ?? '-',
+                    'Gudang' => $p->warehouse->name ?? '-',
+                    'ID Barang Jadi' => $product->code ?? '-',
+                    'SKU' => $variant->sku ?? '-',
+                    'Produk' => $product->name ?? '-',
+                    'Variant' => $variant->name ?? '-',
+                    'Jumlah Produksi' => $p->quantity ?? 0,
+                    'Catatan' => $p->note ?? '-',
+
+                    'ID Bahan Baku' => $rawMaterial->code ?? '-',
+                    'Nama Bahan Baku' => $rawMaterial->name ?? '-',
+                    'Stok Sebelum Dipakai' => $material->stock ?? 0,
+                    'Stok Digunakan' => $material->quantity_use ?? 0,
+                    'Satuan' => $rawMaterial->unit ?? '-',
+                ]);
+
+                $currentRow++;
+            }
+
+            $endRow = $currentRow - 1;
+
+            if ($endRow > $startRow) {
+                $mergeRanges[] = [
+                    'start' => $startRow,
+                    'end' => $endRow,
+                ];
+            }
         });
 
-        $export = new class ($rows) implements FromCollection, WithHeadings {
-            public function __construct(private $rows)
-            {}
+        $export = new class($rows, $mergeRanges) implements FromCollection, WithEvents, WithHeadings
+        {
+            public function __construct(private $rows, private $mergeRanges) {}
 
             public function collection()
             {
@@ -68,18 +110,41 @@ class ProductionController extends Controller
             public function headings(): array
             {
                 return [
-                'Id Produksi',
-                'Tanggal Produksi',
-                'Nama Penanggung Jawab',
-                'Gudang',
-                'SKU',
-                'Produk',
-                'Variant',
+                    'Id Produksi',
+                    'Tanggal Produksi',
+                    'Nama Penanggung Jawab',
+                    'Gudang',
+                    'ID Barang Jadi',
+                    'SKU',
+                    'Produk',
+                    'Variant',
+                    'Jumlah Produksi',
+                    'Catatan',
+                    'ID Bahan Baku',
+                    'Nama Bahan Baku',
+                    'Stok Sebelum Dipakai',
+                    'Stok Digunakan',
+                    'Satuan',
+                ];
+            }
+
+            public function registerEvents(): array
+            {
+                return [
+                    AfterSheet::class => function (AfterSheet $event) {
+                        foreach ($this->mergeRanges as $range) {
+                            foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'] as $column) {
+                                $event->sheet->mergeCells(
+                                    $column.$range['start'].':'.$column.$range['end']
+                                );
+                            }
+                        }
+                    },
                 ];
             }
         };
 
-        return Excel::download($export, 'produksi-' . now()->format('YmdHis') . '.xlsx');
+        return Excel::download($export, 'produksi_'.now()->format('YmdHis').'.xlsx');
     }
 
     public function index(Request $request)
@@ -93,7 +158,7 @@ class ProductionController extends Controller
         ])->latest();
 
         if ($request->filled('id')) {
-            $q->where('id', 'like', '%' . $request->id . '%');
+            $q->where('id', 'like', '%'.$request->id.'%');
         }
 
         if ($request->filled('warehouse_id')) {
@@ -124,7 +189,7 @@ class ProductionController extends Controller
                 'materials.rawMaterial',
                 'productStock.productVariant.product',
                 'personResponsible',
-                'warehouse'
+                'warehouse',
             ])->findOrFail($id);
 
             return view('admin.production_report.print-produksi', compact('productionBatch'));
@@ -169,7 +234,7 @@ class ProductionController extends Controller
 
             $productVariant = $productionBatch->productStock?->productVariant;
 
-            if (!$productVariant) {
+            if (! $productVariant) {
                 throw new \Exception('Variant produk tidak ditemukan.');
             }
 
@@ -316,7 +381,7 @@ class ProductionController extends Controller
                         'quantity_use' => (int) $item['quantity_use'],
                     ];
                 })
-                ->filter(fn($item) => $item['quantity_use'] > 0)
+                ->filter(fn ($item) => $item['quantity_use'] > 0)
                 ->values();
 
             if ($items->isEmpty()) {
@@ -354,7 +419,7 @@ class ProductionController extends Controller
                         ->lockForUpdate()
                         ->first();
 
-                    if (!$rawStock) {
+                    if (! $rawStock) {
                         throw new \Exception("Stok bahan baku tidak ditemukan untuk gudang ID {$warehouseId}.");
                     }
 
@@ -434,11 +499,11 @@ class ProductionController extends Controller
             $note = $validated['note'] ?? null;
 
             $items = collect($validated['items'])
-                ->map(fn($item) => [
+                ->map(fn ($item) => [
                     'raw_material_id' => (int) $item['raw_material_id'],
                     'quantity_use' => (int) $item['quantity_use'],
                 ])
-                ->filter(fn($item) => $item['quantity_use'] > 0)
+                ->filter(fn ($item) => $item['quantity_use'] > 0)
                 ->values();
 
             if ($items->isEmpty()) {
@@ -502,7 +567,7 @@ class ProductionController extends Controller
                         ->lockForUpdate()
                         ->first();
 
-                    if (!$rawStock) {
+                    if (! $rawStock) {
                         throw new \Exception("Stok bahan baku tidak ditemukan untuk gudang ID {$warehouseId}.");
                     }
 
@@ -590,7 +655,7 @@ class ProductionController extends Controller
                     ];
                 })
                 ->filter(function ($province) {
-                    return !empty($province['name']);
+                    return ! empty($province['name']);
                 })
                 ->values();
         } catch (\Throwable $th) {

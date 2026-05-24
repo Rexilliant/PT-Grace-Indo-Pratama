@@ -6,9 +6,12 @@ use App\Models\Procurement;
 use App\Models\ProcurementItem;
 use App\Models\RawMaterial;
 use App\Models\Warehouse;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProcurementController extends Controller
@@ -16,12 +19,18 @@ class ProcurementController extends Controller
     public function export(Request $request)
     {
         $q = Procurement::query()
-            ->with('userRequest')
+            ->with([
+                'userRequest',
+                'warehouse',
+                'procurement_items.raw_material.stock',
+                'userApproved',
+                'userRejected',
+            ])
             ->orderBy('created_at', 'desc');
 
         if ($request->filled('name')) {
             $q->whereHas('userRequest', function ($query) use ($request) {
-                $query->where('name', 'like', '%' . $request->name . '%');
+                $query->where('name', 'like', '%'.$request->name.'%');
             });
         }
 
@@ -41,19 +50,59 @@ class ProcurementController extends Controller
             $q->whereDate('purchase_at', '<=', $request->date_to);
         }
 
-        $rows = $q->get()->map(function ($p) {
-            return [
-                'id Pengadaan' => $p->id,
-                'Tanggal Pemesanan' => $p->purchase_at,
-                'Nama Pemesan' => $p->userRequest->name ?? '-',
-                'Gudang' => $p->warehouse->name ?? '-',
-                'Status' => $p->status ?? '-',
-            ];
+        $rows = collect();
+        $mergeRanges = [];
+        $currentRow = 2;
+
+        $q->get()->each(function ($p) use ($rows, &$mergeRanges, &$currentRow) {
+            $startRow = $currentRow;
+
+            foreach ($p->procurement_items as $item) {
+                $rawMaterial = $item->raw_material;
+
+                $rows->push([
+                    'ID Pengadaan' => $p->id,
+                    'Tanggal Pemesanan' => $p->purchase_at
+                        ? Carbon::parse($p->purchase_at)->format('d/m/Y')
+                        : '-',
+                    'Nama Pemesan' => $p->userRequest->name ?? '-',
+                    'Gudang' => $p->warehouse->name ?? '-',
+                    'Status' => $p->status ?? '-',
+                    'Catatan' => $p->note ?? '-',
+                    'Alasan Penolakan' => $p->reason ?? '-',
+
+                    'Kode Raw Material' => $rawMaterial->code ?? 'RM-'.($rawMaterial->id ?? '-'),
+                    'Nama Raw Material' => $rawMaterial->name ?? '-',
+                    'Stok' => $rawMaterial->stock->stock ?? 0,
+                    'Jumlah Diminta' => $item->quantity_requested ?? 0,
+                    'Satuan' => $rawMaterial->unit ?? '-',
+
+                    'Approved By' => $p->userApproved->name ?? '-',
+                    'Approved At' => $p->approved_at
+                        ? Carbon::parse($p->approved_at)->format('d/m/Y H:i')
+                        : '-',
+                    'Rejected By' => $p->userRejected->name ?? '-',
+                    'Rejected At' => $p->rejected_at
+                        ? Carbon::parse($p->rejected_at)->format('d/m/Y H:i')
+                        : '-',
+                ]);
+
+                $currentRow++;
+            }
+
+            $endRow = $currentRow - 1;
+
+            if ($endRow > $startRow) {
+                $mergeRanges[] = [
+                    'start' => $startRow,
+                    'end' => $endRow,
+                ];
+            }
         });
 
-        $export = new class ($rows) implements FromCollection, WithHeadings {
-            public function __construct(private $rows)
-            {}
+        $export = new class($rows, $mergeRanges) implements FromCollection, WithEvents, WithHeadings
+        {
+            public function __construct(private $rows, private $mergeRanges) {}
 
             public function collection()
             {
@@ -62,11 +111,43 @@ class ProcurementController extends Controller
 
             public function headings(): array
             {
-                return ['id Pengadaan', 'Tanggal Pemesanan', 'Nama Pemesan', 'Gudang', 'Status'];
+                return [
+                    'ID Pengadaan',
+                    'Tanggal Pemesanan',
+                    'Nama Pemesan',
+                    'Gudang',
+                    'Status',
+                    'Catatan',
+                    'Alasan Penolakan',
+                    'Kode Raw Material',
+                    'Nama Raw Material',
+                    'Stok',
+                    'Jumlah Diminta',
+                    'Satuan',
+                    'Approved By',
+                    'Approved At',
+                    'Rejected By',
+                    'Rejected At',
+                ];
+            }
+
+            public function registerEvents(): array
+            {
+                return [
+                    AfterSheet::class => function (AfterSheet $event) {
+                        foreach ($this->mergeRanges as $range) {
+                            foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'M', 'N', 'O', 'P'] as $column) {
+                                $event->sheet->mergeCells(
+                                    $column.$range['start'].':'.$column.$range['end']
+                                );
+                            }
+                        }
+                    },
+                ];
             }
         };
 
-        return Excel::download($export, 'procurements_' . now()->format('Ymd_His') . '.xlsx');
+        return Excel::download($export, 'procurements_'.now()->format('Ymd_His').'.xlsx');
     }
 
     public function index(Request $request)
@@ -77,7 +158,7 @@ class ProcurementController extends Controller
 
         if ($request->filled('name')) {
             $q->whereHas('userRequest', function ($query) use ($request) {
-                $query->where('name', 'like', '%' . $request->name . '%');
+                $query->where('name', 'like', '%'.$request->name.'%');
             });
         }
 
@@ -121,12 +202,13 @@ class ProcurementController extends Controller
                 'userRequest',
                 'warehouse',
                 'userApproved',
-                'userRejected'
+                'userRejected',
             ])->findOrFail($id);
 
             return view('admin.procurement.print-procurement', compact('procurement'));
         } catch (\Throwable $th) {
             save_log_error($th);
+
             return redirect()->back()->with('error', 'Gagal memuat data cetak.');
         }
     }
