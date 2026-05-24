@@ -2,7 +2,7 @@
     <nav class="font-semibold ">
         <div class="flex justify-end items-center">
             <button class="cursor-pointer hidden lg:block" id="dropdownDefaultButton" data-dropdown-toggle="dropdown">Hi,
-                <span class="text-[#F16C1B]">Administrator</span></button>
+                <span class="text-[#F16C1B]">{{ Auth::user()->name }}</span></button>
         </div>
 
         <div class="lg:hidden flex justify-between gap-3 items-center">

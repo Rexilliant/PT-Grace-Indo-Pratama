@@ -5,7 +5,7 @@
     {{-- header --}}
     <div class="flex items-center mb-6 shrink-0">
         <div class="flex items-center mr-4">
-        <img src="{{ asset('media/image/bhos-logo.png') }}" alt="BHOS Technology" class="h-12 w-auto">
+            <img src="{{ asset('media/image/bhos-logo.png') }}" alt="BHOS Technology" class="h-12 w-auto">
         </div>
 
         <div class="text-left leading-tight">
@@ -81,8 +81,15 @@
 
                     @can('baca pengadaan bahan baku')
                         <a href="{{ route('procurements') }}"
-                            class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pengadaan')">
-                            Pengadaan Bahan Baku
+                            class="flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pengadaan')">
+
+                            <span>Pengadaan Bahan Baku</span>
+
+                            @if (($totalProcurementMenunggu ?? 0) > 0)
+                                <span class="bg-yellow-500 text-white text-[11px] px-2 py-0.5 rounded-full">
+                                    {{ $totalProcurementMenunggu }}
+                                </span>
+                            @endif
                         </a>
                     @endcan
 
@@ -187,7 +194,8 @@
             'baca produk varian',
             'baca izin',
             'baca role',
-            'baca log error',
+            'baca log
+            error',
             ])
             <details class="group" @yield('open-executive')>
                 <summary
@@ -387,8 +395,15 @@
 
                     @can('baca pengadaan bahan baku')
                         <a href="{{ route('procurements') }}"
-                            class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pengadaan')">
-                            Pengadaan Bahan Baku
+                            class="flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pengadaan')">
+
+                            <span>Pengadaan Bahan Baku</span>
+
+                            @if (($totalProcurementMenunggu ?? 0) > 0)
+                                <span class="bg-yellow-500 text-white text-[11px] px-2 py-0.5 rounded-full">
+                                    {{ $totalProcurementMenunggu }}
+                                </span>
+                            @endif
                         </a>
                     @endcan
 
@@ -493,7 +508,8 @@
             'baca produk varian',
             'baca izin',
             'baca role',
-            'baca log error',
+            'baca log
+            error',
             ])
             <details class="group" @yield('open-executive')>
                 <summary

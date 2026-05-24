@@ -216,9 +216,10 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca pengadaan bahan baku'])->name('procurements');
         Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit pengadaan bahan baku|baca pengadaan bahan baku'])->name('edit-procurement');
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus pengadaan bahan baku'])->name('delete-procurement');
-
         Route::put('/edit/{id}', 'update')->name('update-procurement');
         Route::get('/print/{id}', 'print')->middleware(['auth', 'permission:baca pengadaan bahan baku'])->name('print-procurement');
+        Route::get('/export', 'export')->middleware(['auth', 'permission:export pengadaan bahan baku'])->name('procurements.export');
+
     });
     Route::controller(PurchaseReceiptController::class)->prefix('purchase-receipts')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca bahan baku masuk'])->name('purchase-receipts');
@@ -240,8 +241,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca log error'])->name('log-errors');
     });
 
-    Route::get('/procurements/export', [ProcurementController::class, 'export'])
-        ->name('procurements.export');
+   
     Route::controller(ShipmentController::class)->prefix('shipments')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca pengiriman produk'])->name('shipments');
         Route::get('/export', 'export')->name('shipments.export');
@@ -262,7 +262,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::put('/update/{id}', 'update')->middleware(['auth', 'permission:edit gudang'])->name('update-warehouse');
         Route::get('/cities/{adminCode1}', 'getCities')->name('warehouse-cities');
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus gudang'])->name('delete-warehouse');
-        Route::get('/export', 'export')->name('warehouses.export');
+        Route::get('/export', 'export')->middleware(['auth', 'permission:export gudang'])->name('warehouses.export');
     });
 
     Route::controller(ShipmentReceiptController::class)->prefix('shipment-receipts')->group(function () {

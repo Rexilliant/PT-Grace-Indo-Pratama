@@ -24,6 +24,7 @@ class PermissionSeeder extends Seeder
             'edit gudang',
             'hapus gudang',
             'baca gudang',
+            'export gudang',
 
             // Pengadaan Bahan Baku
             'tambah pengadaan bahan baku',
@@ -31,6 +32,7 @@ class PermissionSeeder extends Seeder
             'edit status pengadaan bahan baku',
             'hapus pengadaan bahan baku',
             'baca pengadaan bahan baku',
+            'export pengadaan bahan baku',
 
             // Bahan Baku
             'tambah bahan baku',
@@ -38,18 +40,21 @@ class PermissionSeeder extends Seeder
             'hapus bahan baku',
             'baca bahan baku',
             'baca stok bahan baku',
+            'export bahan baku',
 
             // Bahan Baku Masuk
             'tambah bahan baku masuk',
             'edit bahan baku masuk',
             'hapus bahan baku masuk',
             'baca bahan baku masuk',
+            'export bahan baku masuk',
 
             // Produksi
             'tambah produksi',
             'edit produksi',
             'hapus produksi',
             'baca produksi',
+            'export produksi',
 
             // Pengiriman Produk
             'tambah pengiriman produk',
@@ -58,6 +63,7 @@ class PermissionSeeder extends Seeder
             'edit status dikirim pengiriman produk',
             'hapus pengiriman produk',
             'baca pengiriman produk',
+            'export pengiriman produk',
 
             // Penerimaan Pengiriman Produk
             'tambah penerimaan pengiriman produk',
@@ -65,12 +71,14 @@ class PermissionSeeder extends Seeder
             'edit status penerimaan pengiriman produk',
             'hapus penerimaan pengiriman produk',
             'baca penerimaan pengiriman produk',
+            'export penerimaan pengiriman produk',
 
             // Penjualan
             'tambah penjualan',
             'edit penjualan',
             'hapus penjualan',
             'baca penjualan',
+            'export penjualan',
 
             // Karyawan
             'tambah karyawan',
@@ -89,15 +97,18 @@ class PermissionSeeder extends Seeder
             'edit produk',
             'hapus produk',
             'baca produk',
+            'export produk',
 
             // Produk Varian
             'tambah produk varian',
             'edit produk varian',
             'hapus produk varian',
             'baca produk varian',
+            'export produk varian',
 
             // Stok Produk
             'baca produk stok',
+            'export produk stok',
 
             // Role
             'tambah role',

@@ -152,9 +152,16 @@ class ProcurementController extends Controller
 
     public function index(Request $request)
     {
+        $warehouseId = auth()->user()->employee?->warehouse_id;
+
         $q = Procurement::query()
             ->with(['procurement_items', 'userRequest', 'warehouse'])
             ->orderBy('created_at', 'desc');
+
+        // Jika user punya warehouse_id, procurement hanya gudang itu
+        if ($warehouseId) {
+            $q->where('warehouse_id', $warehouseId);
+        }
 
         if ($request->filled('name')) {
             $q->whereHas('userRequest', function ($query) use ($request) {
@@ -166,7 +173,8 @@ class ProcurementController extends Controller
             $q->where('status', $request->status);
         }
 
-        if ($request->filled('warehouse_id')) {
+        // Filter warehouse_id dari request hanya berlaku kalau user tidak punya gudang
+        if (! $warehouseId && $request->filled('warehouse_id')) {
             $q->where('warehouse_id', $request->warehouse_id);
         }
 
@@ -182,7 +190,13 @@ class ProcurementController extends Controller
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
 
         $procurements = $q->paginate($perPage)->withQueryString();
-        $warehouses = Warehouse::all();
+
+        // Jika user punya warehouse_id, dropdown gudang hanya gudang itu
+        if ($warehouseId) {
+            $warehouses = Warehouse::where('id', $warehouseId)->get();
+        } else {
+            $warehouses = Warehouse::all();
+        }
 
         $statuses = Procurement::query()
             ->select('status')
@@ -191,7 +205,11 @@ class ProcurementController extends Controller
             ->orderBy('status')
             ->pluck('status');
 
-        return view('admin.procurement.procurements', compact('procurements', 'warehouses', 'statuses'));
+        return view('admin.procurement.procurements', compact(
+            'procurements',
+            'warehouses',
+            'statuses'
+        ));
     }
 
     public function print($id)
