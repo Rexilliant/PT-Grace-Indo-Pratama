@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\HistorySalePayment;
 use App\Models\ProductStock;
 use App\Models\ProductStockMovement;
@@ -14,7 +13,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SaleController extends Controller
@@ -23,14 +24,17 @@ class SaleController extends Controller
     {
         $q = Sale::query()
             ->with([
+                'warehouse',
                 'personResponsible',
                 'items.productStock.productVariant.product',
+                'paymentHistories.createdBy',
+                'media',
             ])
             ->latest();
 
         if ($request->filled('name')) {
             $q->whereHas('personResponsible', function ($query) use ($request) {
-                $query->where('name', 'like', '%' . $request->name . '%');
+                $query->where('name', 'like', '%'.$request->name.'%');
             });
         }
 
@@ -39,7 +43,7 @@ class SaleController extends Controller
         }
 
         if ($request->filled('province')) {
-            $q->where('customer_province', 'like', '%' . $request->province . '%');
+            $q->where('customer_province', 'like', '%'.$request->province.'%');
         }
 
         if ($request->filled('date_from')) {
@@ -50,26 +54,104 @@ class SaleController extends Controller
             $q->whereDate('sale_date', '<=', $request->date_to);
         }
 
-        $rows = $q->get()->map(function ($s) {
-            return [
-                'id Penjualan' => $s->id,
-                'Tanggal Penjualan' => $s->sale_date
-                    ? \Carbon\Carbon::parse($s->sale_date)->format('d-m-Y')
-                    : '-',
-                'Nama Pembeli' => $s->customer_name ?? '-',
-                'Kontak Pembeli' => $s->customer_contact ?? '-',
-                'Provinsi Pembeli' => $s->customer_province ?? '-',
-                'Kota Pembeli' => $s->customer_city ?? '-',
-                'Total Amount' => $s->total_amount ?? 0,
-                'Paid Amount' => $s->paid_amount ?? 0,
-                'Debt Amount' => $s->debt_amount ?? 0,
-                'Status' => $s->status ?? '-',
-            ];
+        $rows = collect();
+        $mergeRanges = [];
+        $currentRow = 2;
+
+        $q->get()->each(function ($s) use ($rows, &$mergeRanges, &$currentRow) {
+
+            $startRow = $currentRow;
+
+            $paymentHistories = $s->paymentHistories
+                ->map(function ($history) {
+                    return
+                        ($history->payment_date
+                            ? Carbon::parse($history->payment_date)->format('d/m/Y')
+                            : '-').
+                        ' - Rp '.number_format((int) $history->amount, 0, ',', '.').
+                        ' ('.($history->createdBy->name ?? '-').')';
+                })
+                ->implode(' | ');
+
+            $deliveryProof = $s->getFirstMedia('delivery_proof');
+
+            foreach ($s->items as $item) {
+
+                $stock = $item->productStock;
+                $variant = $stock?->productVariant;
+                $product = $variant?->product;
+
+                $rows->push([
+                    'ID Penjualan' => $s->id,
+
+                    'Tanggal Penjualan' => $s->sale_date
+                        ? Carbon::parse($s->sale_date)->format('d/m/Y')
+                        : '-',
+
+                    'Penanggung Jawab' => $s->personResponsible->name ?? '-',
+
+                    'Gudang' => $s->warehouse?->name ?? '-',
+
+                    'Jenis Penjualan' => $s->sale_type ?? '-',
+
+                    'Nama Pembeli' => $s->customer_name ?? '-',
+
+                    'Kontak Pembeli' => $s->customer_contact ?? '-',
+
+                    'Provinsi Pembeli' => $s->customer_province ?? '-',
+
+                    'Kota Pembeli' => $s->customer_city ?? '-',
+
+                    'Alamat Pembeli' => $s->customer_address ?? '-',
+
+                    'Total Amount' => $s->total_amount ?? 0,
+
+                    'Paid Amount' => $s->paid_amount ?? 0,
+
+                    'Debt Amount' => $s->debt_amount ?? 0,
+
+                    'Status' => $s->status ?? '-',
+
+                    'Catatan' => $s->notes ?? '-',
+
+                    'Riwayat Pembayaran' => $paymentHistories ?: '-',
+
+                    'BST / Bukti Serah Terima' => $deliveryProof?->file_name ?? '-',
+
+                    'SKU' => $variant->sku ?? '-',
+
+                    'Produk' => $product->name ?? ($variant->name ?? '-'),
+
+                    'Variant' => $variant->name ?? '-',
+
+                    'Qty' => $item->quantity ?? 0,
+
+                    'Harga Satuan' => $item->price ?? 0,
+
+                    'Diskon' => $item->discount ?? 0,
+
+                    'Subtotal' => $item->subtotal ?? 0,
+                ]);
+
+                $currentRow++;
+            }
+
+            $endRow = $currentRow - 1;
+
+            if ($endRow > $startRow) {
+                $mergeRanges[] = [
+                    'start' => $startRow,
+                    'end' => $endRow,
+                ];
+            }
         });
 
-        $export = new class ($rows) implements FromCollection, WithHeadings {
-            public function __construct(private $rows)
-            {}
+        $export = new class($rows, $mergeRanges) implements FromCollection, WithEvents, WithHeadings
+        {
+            public function __construct(
+                private $rows,
+                private $mergeRanges
+            ) {}
 
             public function collection()
             {
@@ -79,23 +161,59 @@ class SaleController extends Controller
             public function headings(): array
             {
                 return [
-                'id Penjualan',
-                'Tanggal Penjualan',
-                'Nama Pembeli',
-                'Kontak Pembeli',
-                'Provinsi Pembeli',
-                'Kota Pembeli',
-                'Total Amount',
-                'Paid Amount',
-                'Debt Amount',
-                'Status',
+                    'ID Penjualan',
+                    'Tanggal Penjualan',
+                    'Penanggung Jawab',
+                    'Gudang',
+                    'Jenis Penjualan',
+                    'Nama Pembeli',
+                    'Kontak Pembeli',
+                    'Provinsi Pembeli',
+                    'Kota Pembeli',
+                    'Alamat Pembeli',
+                    'Total Amount',
+                    'Paid Amount',
+                    'Debt Amount',
+                    'Status',
+                    'Catatan',
+                    'Riwayat Pembayaran',
+                    'BST / Bukti Serah Terima',
+                    'SKU',
+                    'Produk',
+                    'Variant',
+                    'Qty',
+                    'Harga Satuan',
+                    'Diskon',
+                    'Subtotal',
+                ];
+            }
+
+            public function registerEvents(): array
+            {
+                return [
+                    AfterSheet::class => function (AfterSheet $event) {
+
+                        foreach ($this->mergeRanges as $range) {
+
+                            foreach ([
+                                'A', 'B', 'C', 'D', 'E', 'F', 'G',
+                                'H', 'I', 'J', 'K', 'L', 'M',
+                                'N', 'O', 'P', 'Q',
+                            ] as $column) {
+
+                                $event->sheet->mergeCells(
+                                    $column.$range['start'].':'.$column.$range['end']
+                                );
+                            }
+                        }
+                    },
                 ];
             }
         };
 
         return Excel::download(
             $export,
-            'sales_' . now()->format('Ymd_His') . '.xlsx'
+            'Penjualan_'.now()->format('Ymd_His').'.xlsx'
         );
     }
 
@@ -110,7 +228,7 @@ class SaleController extends Controller
 
         if ($request->filled('name')) {
             $q->whereHas('personResponsible', function ($query) use ($request) {
-                $query->where('name', 'like', '%' . $request->name . '%');
+                $query->where('name', 'like', '%'.$request->name.'%');
             });
         }
 
@@ -119,7 +237,7 @@ class SaleController extends Controller
         }
 
         if ($request->filled('province')) {
-            $q->where('customer_province', 'like', '%' . $request->province . '%');
+            $q->where('customer_province', 'like', '%'.$request->province.'%');
         }
 
         if ($request->filled('date_from')) {
@@ -252,7 +370,7 @@ class SaleController extends Controller
         // 3. Eksekusi Database Transaction
         return DB::transaction(function () use ($request, $itemsInput, $dpValue) {
 
-            $stockIds = $itemsInput->pluck('product_stock_id')->map(fn($id) => (int) $id)->unique()->values();
+            $stockIds = $itemsInput->pluck('product_stock_id')->map(fn ($id) => (int) $id)->unique()->values();
             $warehouseId = (int) $request->warehouse_id;
 
             // Ambil data stok dan kunci untuk update (Pencegahan Race Condition)
@@ -274,7 +392,7 @@ class SaleController extends Controller
 
                 $stock = $stocks->get($productStockId);
 
-                if (!$stock || (int) $stock->warehouse_id !== $warehouseId) {
+                if (! $stock || (int) $stock->warehouse_id !== $warehouseId) {
                     throw ValidationException::withMessages(["items.$index.product_stock_id" => 'Barang tidak valid atau tidak ada di gudang ini.']);
                 }
 
@@ -344,7 +462,7 @@ class SaleController extends Controller
                     'quantity' => $item['quantity'],
                     'ref_type' => Sale::class,
                     'ref_id' => $sale->id,
-                    'note' => 'Penjualan #' . $sale->id,
+                    'note' => 'Penjualan #'.$sale->id,
                 ]);
             }
 
@@ -389,10 +507,28 @@ class SaleController extends Controller
 
     public function update(Request $request, $id)
     {
-        $sale = Sale::with([
-            'paymentHistories',
-        ])->findOrFail($id);
+        $sale = Sale::findOrFail($id);
 
+        // Cek status lunas
+        $isPaidOff = $sale->status === 'Lunas' || (int) $sale->debt_amount <= 0;
+
+        // 1. Jika sudah lunas, kita hanya izinkan update Catatan (Notes)
+        if ($isPaidOff) {
+            $request->validate([
+                'notes' => ['nullable', 'string', 'max:1000'],
+            ]);
+
+            $sale->update([
+                'notes' => $request->input('notes'),
+                'updated_by' => Auth::id(),
+            ]);
+
+            return redirect()
+                ->route('admin.pemasaran-laporan-penjualan.edit', $sale->id)
+                ->with('success', 'Catatan laporan berhasil diperbarui.');
+        }
+
+        // 2. Jika BELUM lunas, jalankan validasi pembayaran cicilan seperti biasa
         $request->validate([
             'payment_amount' => ['required', 'string'],
             'invoice' => ['required', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
@@ -400,18 +536,11 @@ class SaleController extends Controller
         ], [
             'payment_amount.required' => 'Nominal cicilan wajib diisi.',
             'invoice.required' => 'Bukti pembayaran wajib diupload.',
-            'invoice.file' => 'Bukti pembayaran tidak valid.',
             'invoice.mimes' => 'Bukti pembayaran harus berupa PNG, JPG, JPEG, atau PDF.',
             'invoice.max' => 'Ukuran bukti pembayaran maksimal 3 MB.',
         ]);
 
         return DB::transaction(function () use ($request, $sale) {
-            if ($sale->status === 'Lunas' || (int) $sale->debt_amount <= 0) {
-                throw ValidationException::withMessages([
-                    'payment_amount' => 'Transaksi ini sudah lunas, tidak bisa menambah pembayaran lagi.',
-                ]);
-            }
-
             $additionalPayment = $this->parseMoney($request->input('payment_amount'));
 
             if ($additionalPayment <= 0) {
@@ -420,26 +549,21 @@ class SaleController extends Controller
                 ]);
             }
 
-            if (!$request->hasFile('invoice')) {
-                throw ValidationException::withMessages([
-                    'invoice' => 'Bukti pembayaran wajib diupload.',
-                ]);
-            }
-
             $existingPaid = (int) $sale->paymentHistories()->sum('amount');
             $newPaid = $existingPaid + $additionalPayment;
 
+            // Validasi agar tidak overpayment
             if ($newPaid > (int) $sale->total_amount) {
                 $remainingDebt = max(0, (int) $sale->total_amount - $existingPaid);
-
                 throw ValidationException::withMessages([
-                    'payment_amount' => 'Nominal cicilan melebihi sisa tagihan. Maksimal pembayaran yang bisa ditambahkan adalah Rp ' . number_format($remainingDebt, 0, ',', '.') . '.',
+                    'payment_amount' => 'Nominal cicilan melebihi sisa tagihan (Sisa: Rp '.number_format($remainingDebt, 0, ',', '.').').',
                 ]);
             }
 
             $debtAmount = max(0, (int) $sale->total_amount - $newPaid);
             $finalStatus = $debtAmount <= 0 ? 'Lunas' : 'Terhutang';
 
+            // Update data utama
             $sale->update([
                 'paid_amount' => $newPaid,
                 'debt_amount' => $debtAmount,
@@ -448,6 +572,7 @@ class SaleController extends Controller
                 'updated_by' => Auth::id(),
             ]);
 
+            // Simpan history cicilan
             $paymentHistory = HistorySalePayment::create([
                 'sale_id' => $sale->id,
                 'created_by' => Auth::id(),
@@ -455,15 +580,12 @@ class SaleController extends Controller
                 'amount' => $additionalPayment,
             ]);
 
-            $paymentHistory
-                ->addMedia($request->file('invoice'))
+            $paymentHistory->addMedia($request->file('invoice'))
                 ->toMediaCollection('payment_proof');
 
             return redirect()
                 ->route('admin.pemasaran-laporan-penjualan.edit', $sale->id)
-                ->with('success', $finalStatus === 'Lunas'
-                    ? 'Pembayaran berhasil ditambahkan. Transaksi sekarang sudah lunas.'
-                    : 'Pembayaran berhasil ditambahkan.');
+                ->with('success', 'Pembayaran berhasil ditambahkan.');
         });
     }
 
@@ -478,7 +600,7 @@ class SaleController extends Controller
             $stockIds = $sale->items
                 ->pluck('product_stock_id')
                 ->filter()
-                ->map(fn($id) => (int) $id)
+                ->map(fn ($id) => (int) $id)
                 ->unique()
                 ->values();
 
@@ -491,7 +613,7 @@ class SaleController extends Controller
             foreach ($sale->items as $item) {
                 $stock = $stocks->get((int) $item->product_stock_id);
 
-                if (!$stock) {
+                if (! $stock) {
                     continue;
                 }
 
@@ -505,7 +627,7 @@ class SaleController extends Controller
                     'quantity' => (int) $item->quantity,
                     'ref_type' => Sale::class,
                     'ref_id' => $sale->id,
-                    'note' => 'Pengembalian stok karena hapus sale #' . $sale->id,
+                    'note' => 'Pengembalian stok karena hapus sale #'.$sale->id,
                 ]);
             }
 
@@ -541,6 +663,34 @@ class SaleController extends Controller
         ])->findOrFail($id);
 
         return view('admin.sales.history-pembayaran-penjualan', compact('sale'));
+    }
+
+    public function uploadDeliveryProof(Request $request, $id)
+    {
+        $sale = Sale::findOrFail($id);
+
+        if ($sale->status !== 'Lunas' && (int) $sale->debt_amount > 0) {
+            return back()->withErrors(['delivery_proof' => 'Gagal: Bukti Serah Terima hanya bisa diunggah setelah status Lunas.']);
+        }
+
+        $request->validate([
+            'delivery_proof' => ['required', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
+        ], [
+            'delivery_proof.required' => 'File bukti serah terima wajib dipilih.',
+            'delivery_proof.mimes' => 'Format file harus PNG, JPG, JPEG, atau PDF.',
+            'delivery_proof.max' => 'Ukuran file maksimal adalah 3 MB.',
+        ]);
+
+        try {
+            if ($request->hasFile('delivery_proof')) {
+                $sale->addMediaFromRequest('delivery_proof')
+                    ->toMediaCollection('delivery_proof');
+            }
+
+            return back()->with('success', 'Bukti serah terima barang (BST) berhasil diunggah.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['delivery_proof' => 'Terjadi kesalahan sistem: '.$e->getMessage()]);
+        }
     }
 
     private function parseMoney($value): int

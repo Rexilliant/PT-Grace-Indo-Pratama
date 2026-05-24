@@ -92,15 +92,17 @@
 
     <section class="mb-5 rounded-lg border border-gray-300 bg-white p-5 shadow">
         <div class="mb-5 flex items-center gap-5">
-            <a href="{{ route('shipment-receipts.export') }}"
-                class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
-                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 0 0014.9 3" />
-                </svg>
-                Export .xlsx
-            </a>
+            @can('export penerimaan pengiriman produk')
+                <a href="{{ route('shipment-receipts.export') }}"
+                    class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 0 0014.9 3" />
+                    </svg>
+                    Export .xlsx
+                </a>
+            @endcan
 
             @can('tambah penerimaan pengiriman produk')
                 <a href="{{ route('create-shipment-receipt') }}"
@@ -117,7 +119,7 @@
                     <thead class="bg-[#5aba6f]/70 text-gray-900">
                         <tr class="[&>th]:border-b [&>th]:border-gray-500">
                             <th scope="col" class="px-6 py-4 text-left font-extrabold">Code Shipment</th>
-                            <th scope="col" class="px-6 py-4 text-left font-extrabold">Tanggal Receipt</th>
+                            {{-- <th scope="col" class="px-6 py-4 text-left font-extrabold">Tanggal Receipt</th> --}}
                             <th scope="col" class="px-6 py-4 text-left font-extrabold">Tanggal Diterima</th>
                             <th scope="col" class="px-6 py-4 text-left font-extrabold">Penerima</th>
                             <th scope="col" class="px-6 py-4 text-left font-extrabold">Gudang</th>
@@ -135,9 +137,9 @@
                                 <td class="px-6 py-4">
                                     {{ $shipmentReceipt->created_at?->format('d M Y') ?? '-' }}
                                 </td>
-                                <td class="px-6 py-4">
+                                {{-- <td class="px-6 py-4">
                                     {{ $shipmentReceipt->received_at?->format('d M Y H:i') ?? '-' }}
-                                </td>
+                                </td> --}}
                                 <td class="px-6 py-4">
                                     {{ $shipmentReceipt->receivedBy->name ?? '-' }}
                                 </td>
@@ -159,29 +161,38 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    @canany([
-                                        'edit penerimaan pengiriman produk',
-                                        'edit status penerimaan pengiriman
-                                        produk',
-                                        'baca penerimaan pengiriman produk',
-                                        ])
-                                        <a href="{{ route('edit-shipment-receipt', $shipmentReceipt->id) }}"
-                                            class="text-blue-600 hover:underline">
-                                            Sunting
-                                        </a>
-                                    @endcanany
+                                    <div class="flex items-center justify-start gap-3 font-semibold">
+                                        @canany([
+                                            'edit penerimaan pengiriman produk',
+                                            'edit status penerimaan pengiriman
+                                            produk',
+                                            'baca penerimaan pengiriman produk',
+                                            ])
+                                            <a href="{{ route('edit-shipment-receipt', $shipmentReceipt->id) }}"
+                                                class="text-blue-600 hover:underline">
+                                                Sunting
+                                            </a>
+                                        @endcanany
 
-                                    @can('hapus penerimaan pengiriman produk')
-                                        |
-                                        <form action="{{ route('delete-shipment-receipt', ['id' => $shipmentReceipt->id]) }}"
-                                            method="POST" class="form-delete inline-block">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:underline">
-                                                Hapus
-                                            </button>
-                                        </form>
-                                    @endcan
+                                        {{-- <span class="mx-1">|</span> --}}
+                                        <a href="{{ route('print-shipment-receipt', $shipmentReceipt->id) }}"
+                                            target="_blank" class="text-green-600 hover:underline">
+                                            Cetak
+                                        </a>
+
+                                        @can('hapus penerimaan pengiriman produk')
+                                            {{-- <span class="mx-1">|</span> --}}
+                                            <form
+                                                action="{{ route('delete-shipment-receipt', ['id' => $shipmentReceipt->id]) }}"
+                                                method="POST" class="form-delete inline-block">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:underline">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        @endcan
+                                    </div>
                                 </td>
                             </tr>
                         @empty

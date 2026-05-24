@@ -5,19 +5,22 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use App\Models\User;
 use App\Models\Warehouse;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Facades\Excel;
-
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 class WarehouseController extends Controller
 {
     public function export(Request $request)
     {
-        $query = Warehouse::query()->orderBy('created_at', 'desc');
+        $query = Warehouse::query()
+            ->with('employees')
+            ->orderBy('created_at', 'desc');
 
-        // Filter sama seperti index
         if ($request->filled('name')) {
             $query->where('name', 'like', '%'.$request->name.'%');
         }
@@ -29,24 +32,62 @@ class WarehouseController extends Controller
         if ($request->filled('city')) {
             $query->where('city', 'like', '%'.$request->city.'%');
         }
+
         if ($request->filled('type')) {
-            $uery->where('type', 'like', '%'.$request->type.'%');
+            $query->where('type', 'like', '%'.$request->type.'%');
         }
 
-        $rows = $query->get()->map(function ($w, $index) {
-            return [
-                'No' => $index + 1,
-                'Nama Gudang' => $w->name,
-                'Provinsi' => $w->province ?? '-',
-                'Kota' => $w->city ?? '-',
-                'Jenis' => $w->type ?? '-',
-                'Dibuat Pada' => optional($w->created_at)->format('d-m-Y H:i'),
-            ];
+        $rows = collect();
+        $mergeRanges = [];
+        $currentRow = 2;
+        $no = 1;
+
+        $query->get()->each(function ($w) use ($rows, &$mergeRanges, &$currentRow, &$no) {
+            $startRow = $currentRow;
+
+            $employees = $w->employees;
+
+            if ($employees->isEmpty()) {
+                $employees = collect([null]);
+            }
+
+            foreach ($employees as $employee) {
+                $rows->push([
+                    'No' => $no,
+                    'ID Gudang' => $w->id,
+                    'Nama Gudang' => $w->name ?? '-',
+                    'Provinsi' => $w->province ?? '-',
+                    'Kota' => $w->city ?? '-',
+                    'Jenis' => $w->type ?? '-',
+                    'Dibuat Pada' => $w->created_at
+                        ? Carbon::parse($w->created_at)->format('d/m/Y H:i')
+                        : '-',
+
+                    'NIP Karyawan' => $employee->nip ?? '-',
+                    'Nama Karyawan' => $employee->name ?? '-',
+                    'Email Karyawan' => $employee->email ?? '-',
+                    'No. HP Karyawan' => $employee->phone ?? '-',
+                    'Jabatan Karyawan' => $employee->position ?? '-',
+                ]);
+
+                $currentRow++;
+            }
+
+            $endRow = $currentRow - 1;
+
+            if ($endRow > $startRow) {
+                $mergeRanges[] = [
+                    'start' => $startRow,
+                    'end' => $endRow,
+                ];
+            }
+
+            $no++;
         });
 
-        $export = new class($rows) implements FromCollection, WithHeadings
+        $export = new class($rows, $mergeRanges) implements FromCollection, WithEvents, WithHeadings
         {
-            public function __construct(private $rows) {}
+            public function __construct(private $rows, private $mergeRanges) {}
 
             public function collection()
             {
@@ -57,11 +98,32 @@ class WarehouseController extends Controller
             {
                 return [
                     'No',
+                    'ID Gudang',
                     'Nama Gudang',
                     'Provinsi',
                     'Kota',
                     'Jenis',
                     'Dibuat Pada',
+                    'NIP Karyawan',
+                    'Nama Karyawan',
+                    'Email Karyawan',
+                    'No. HP Karyawan',
+                    'Jabatan Karyawan',
+                ];
+            }
+
+            public function registerEvents(): array
+            {
+                return [
+                    AfterSheet::class => function (AfterSheet $event) {
+                        foreach ($this->mergeRanges as $range) {
+                            foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G'] as $column) {
+                                $event->sheet->mergeCells(
+                                    $column.$range['start'].':'.$column.$range['end']
+                                );
+                            }
+                        }
+                    },
                 ];
             }
         };

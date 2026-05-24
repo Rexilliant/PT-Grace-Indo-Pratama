@@ -309,16 +309,16 @@
         {{-- signatures --}}
         <div class="mt-8 grid grid-cols-2 gap-16 text-center">
             <div>
-                <div class="text-[12px] text-gray-800">Dibuat oleh</div>
+                <div class="text-[12px] text-gray-800">Penanggung Jawab</div>
                 <div class="mt-16 border-t border-gray-400 pt-3 text-[12px] font-bold text-gray-900">
                     {{ $sale->personResponsible?->name ?? '-' }}
                 </div>
             </div>
 
             <div>
-                <div class="text-[12px] text-gray-800">Disetujui oleh</div>
-                <div class="mt-16 border-t border-gray-400 pt-3 text-[12px] italic font-semibold text-gray-900">
-                    {{ $approvedBy }}
+                <div class="text-[12px] text-gray-800">Diterima Oleh</div>
+                <div class="mt-16 border-t border-gray-400 pt-3 text-[12px] font-semibold text-gray-900">
+                    <pre>(                                      )</pre>
                 </div>
             </div>
         </div>

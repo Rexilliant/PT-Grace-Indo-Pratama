@@ -8,12 +8,16 @@ use App\Models\Shipment;
 use App\Models\ShipmentReceipt;
 use App\Models\ShipmentReceiptItem;
 use App\Models\Warehouse;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ShipmentReceiptController extends Controller
@@ -23,7 +27,12 @@ class ShipmentReceiptController extends Controller
         $q = ShipmentReceipt::query()
             ->with([
                 'shipment.warehouse',
+                'shipment.receivedBy',
                 'receivedBy',
+                'approvedBy',
+                'rejectedBy',
+                'items.shipmentItem.productStock.productVariant.product',
+                'media',
             ])
             ->orderBy('created_at', 'desc');
 
@@ -49,21 +58,76 @@ class ShipmentReceiptController extends Controller
             });
         }
 
-        $rows = $q->get()->map(function ($sr) {
-            return [
-                'Kode Shipment' => $sr->shipment->shipment_code ?? '-',
-                'Gudang' => $sr->shipment->warehouse->name ?? '-',
-                'Status' => $sr->status ?? '-',
-                'Diterima Oleh' => $sr->receivedBy->name ?? '-',
-                'Tanggal Diterima' => $sr->received_at
-                    ? $sr->received_at->format('Y-m-d H:i:s')
-                    : '-',
-            ];
+        $rows = collect();
+        $mergeRanges = [];
+        $currentRow = 2;
+
+        $q->get()->each(function ($sr) use ($rows, &$mergeRanges, &$currentRow) {
+            $startRow = $currentRow;
+
+            $damageProofNames = $sr->media
+                ->where('collection_name', 'damage_proofs')
+                ->pluck('file_name')
+                ->implode(', ');
+
+            foreach ($sr->items as $item) {
+                $shipmentItem = $item->shipmentItem;
+                $stock = $shipmentItem?->productStock;
+                $variant = $stock?->productVariant;
+                $product = $variant?->product;
+
+                $rows->push([
+                    'Kode Shipment' => $sr->shipment->shipment_code ?? '-',
+                    'Tanggal Receipt' => $sr->created_at
+                        ? Carbon::parse($sr->created_at)->format('d/m/Y')
+                        : '-',
+                    'Status Receipt' => $sr->status ?? '-',
+                    'Tanggal Diterima' => $sr->received_at
+                        ? Carbon::parse($sr->received_at)->format('d/m/Y H:i')
+                        : '-',
+                    'Diterima Oleh' => $sr->receivedBy->name ?? '-',
+                    'Gudang Tujuan' => $sr->shipment->warehouse->name ?? '-',
+                    'Jenis Shipment' => $sr->shipment->shipment_type ?? '-',
+                    'Armada Pengiriman' => $sr->shipment->shipping_fleet ?? '-',
+                    'Kontak' => $sr->shipment->contact ?? '-',
+                    'Penerima Shipment' => $sr->shipment->receivedBy->name ?? '-',
+                    'Alamat Shipment' => $sr->shipment->address ?? '-',
+                    'Catatan Receipt' => $sr->notes ?? '-',
+                    'Alasan Penolakan' => $sr->reject_reason ?? '-',
+                    'Approved By' => $sr->approvedBy->name ?? '-',
+                    'Approved At' => $sr->approved_at
+                        ? Carbon::parse($sr->approved_at)->format('d/m/Y H:i')
+                        : '-',
+                    'Rejected By' => $sr->rejectedBy->name ?? '-',
+                    'Rejected At' => $sr->rejected_at
+                        ? Carbon::parse($sr->rejected_at)->format('d/m/Y H:i')
+                        : '-',
+                    'Bukti Barang Rusak' => $damageProofNames ?: '-',
+
+                    'SKU' => $variant->sku ?? '-',
+                    'Produk' => $product->name ?? ($variant->name ?? '-'),
+                    'Variant' => $variant->name ?? '-',
+                    'Qty Dikirim' => $shipmentItem->quantity ?? 0,
+                    'Qty Diterima' => $item->qty_received ?? 0,
+                    'Catatan Item' => $item->notes ?? '-',
+                ]);
+
+                $currentRow++;
+            }
+
+            $endRow = $currentRow - 1;
+
+            if ($endRow > $startRow) {
+                $mergeRanges[] = [
+                    'start' => $startRow,
+                    'end' => $endRow,
+                ];
+            }
         });
 
-        $export = new class($rows) implements FromCollection, WithHeadings
+        $export = new class($rows, $mergeRanges) implements FromCollection, WithEvents, WithHeadings
         {
-            public function __construct(private $rows) {}
+            public function __construct(private $rows, private $mergeRanges) {}
 
             public function collection()
             {
@@ -74,17 +138,54 @@ class ShipmentReceiptController extends Controller
             {
                 return [
                     'Kode Shipment',
-                    'Gudang',
-                    'Status',
-                    'Diterima Oleh',
+                    'Tanggal Receipt',
+                    'Status Receipt',
                     'Tanggal Diterima',
+                    'Diterima Oleh',
+                    'Gudang Tujuan',
+                    'Jenis Shipment',
+                    'Armada Pengiriman',
+                    'Kontak',
+                    'Penerima Shipment',
+                    'Alamat Shipment',
+                    'Catatan Receipt',
+                    'Alasan Penolakan',
+                    'Approved By',
+                    'Approved At',
+                    'Rejected By',
+                    'Rejected At',
+                    'Bukti Barang Rusak',
+                    'SKU',
+                    'Produk',
+                    'Variant',
+                    'Qty Dikirim',
+                    'Qty Diterima',
+                    'Catatan Item',
+                ];
+            }
+
+            public function registerEvents(): array
+            {
+                return [
+                    AfterSheet::class => function (AfterSheet $event) {
+                        foreach ($this->mergeRanges as $range) {
+                            foreach ([
+                                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
+                                'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+                            ] as $column) {
+                                $event->sheet->mergeCells(
+                                    $column.$range['start'].':'.$column.$range['end']
+                                );
+                            }
+                        }
+                    },
                 ];
             }
         };
 
         return Excel::download(
             $export,
-            'shipment_receipts_'.now()->format('Ymd_His').'.xlsx'
+            'Penerimaan Pengiriman Produk_'.now()->format('Ymd_His').'.xlsx'
         );
     }
 
@@ -136,6 +237,18 @@ class ShipmentReceiptController extends Controller
             'statuses',
             'warehouses'
         ));
+    }
+
+    public function print($id)
+    {
+        $shipmentReceipt = ShipmentReceipt::with([
+            'shipment.warehouse',
+            'receivedBy',
+            'items.shipmentItem.productStock.productVariant',
+            'media', // Tambahkan ini untuk memanggil file gambar
+        ])->findOrFail($id);
+
+        return view('admin.shipment-receipts.print-shipment-receipt', compact('shipmentReceipt'));
     }
 
     public function create()
@@ -222,7 +335,7 @@ class ShipmentReceiptController extends Controller
                     $ext = $file->getClientOriginalExtension();
 
                     $safeFileName = now()->format('YmdHis')
-                        .'-'.\Illuminate\Support\Str::slug($baseName)
+                        .'-'.Str::slug($baseName)
                         .'.'.$ext;
 
                     $shipmentReceipt->addMedia($file)

@@ -9,13 +9,16 @@ use App\Models\RawMaterial;
 use App\Models\RawMaterialStock;
 use App\Models\RawMaterialStockMovement;
 use App\Models\Warehouse;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
 
@@ -48,12 +51,18 @@ class PurchaseReceiptController extends Controller
     public function export(Request $request)
     {
         $q = PurchaseReceipt::query()
-            ->with('receivedBy')
+            ->with([
+                'receivedBy',
+                'warehouse',
+                'procurement',
+                'items.rawMaterial',
+                'media',
+            ])
             ->orderBy('created_at', 'desc');
 
         if ($request->filled('name')) {
             $q->whereHas('receivedBy', function ($u) use ($request) {
-                $u->where('name', 'like', '%' . $request->name . '%');
+                $u->where('name', 'like', '%'.$request->name.'%');
             });
         }
 
@@ -65,18 +74,55 @@ class PurchaseReceiptController extends Controller
             $q->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $rows = $q->get()->map(function ($r) {
-            return [
-                'No. Penerimaan' => $r->receipt_number,
-                'Id Pengadaan' => $r->procurement->id,
-                'Tanggal Penerimaan' => $r->received_at,
-                'Nama Penerima' => $r->receivedBy->name ?? '-',
-            ];
+        $rows = collect();
+        $mergeRanges = [];
+        $currentRow = 2;
+
+        $q->get()->each(function ($r) use ($rows, &$mergeRanges, &$currentRow) {
+            $startRow = $currentRow;
+
+            $invoiceNames = $r->media
+                ->where('collection_name', 'invoices')
+                ->pluck('file_name')
+                ->implode(', ');
+
+            foreach ($r->items as $item) {
+                $rawMaterial = $item->rawMaterial;
+
+                $rows->push([
+                    'No. Penerimaan' => $r->receipt_number ?? '-',
+                    'Id Pengadaan' => $r->procurement->id ?? '-',
+                    'Gudang' => $r->warehouse->name ?? '-',
+                    'Total Pesanan' => $r->total_price ?? 0,
+                    'Tanggal Barang Masuk' => $r->received_at
+                        ? Carbon::parse($r->received_at)->format('d/m/Y')
+                        : '-',
+                    'Nama Penerima' => $r->receivedBy->name ?? '-',
+                    'Status' => $r->status ?? '-',
+                    'Invoice' => $invoiceNames ?: '-',
+
+                    'Kode Barang' => $rawMaterial->code ?? 'RM-'.($rawMaterial->id ?? '-'),
+                    'Nama Barang' => $rawMaterial->name ?? '-',
+                    'Jumlah Barang Masuk' => $item->quantity_received ?? 0,
+                    'Satuan' => $rawMaterial->unit ?? '-',
+                ]);
+
+                $currentRow++;
+            }
+
+            $endRow = $currentRow - 1;
+
+            if ($endRow > $startRow) {
+                $mergeRanges[] = [
+                    'start' => $startRow,
+                    'end' => $endRow,
+                ];
+            }
         });
 
-        $export = new class ($rows) implements FromCollection, WithHeadings {
-            public function __construct(private $rows)
-            {}
+        $export = new class($rows, $mergeRanges) implements FromCollection, WithEvents, WithHeadings
+        {
+            public function __construct(private $rows, private $mergeRanges) {}
 
             public function collection()
             {
@@ -85,11 +131,39 @@ class PurchaseReceiptController extends Controller
 
             public function headings(): array
             {
-                return ['No. Penerimaan', 'Id Pengadaan', 'Tanggal Penerimaan', 'Nama Penerima'];
+                return [
+                    'No. Penerimaan',
+                    'Id Pengadaan',
+                    'Gudang',
+                    'Total Pesanan',
+                    'Tanggal Barang Masuk',
+                    'Nama Penerima',
+                    'Status',
+                    'Invoice',
+                    'Kode Barang',
+                    'Nama Barang',
+                    'Jumlah Barang Masuk',
+                    'Satuan',
+                ];
+            }
+
+            public function registerEvents(): array
+            {
+                return [
+                    AfterSheet::class => function (AfterSheet $event) {
+                        foreach ($this->mergeRanges as $range) {
+                            foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] as $column) {
+                                $event->sheet->mergeCells(
+                                    $column.$range['start'].':'.$column.$range['end']
+                                );
+                            }
+                        }
+                    },
+                ];
             }
         };
 
-        return Excel::download($export, 'purchase_receipts_' . now()->format('Ymd_His') . '.xlsx');
+        return Excel::download($export, 'Bahan Baku Masuk_'.now()->format('Ymd_His').'.xlsx');
     }
 
     public function index(Request $request)
@@ -116,6 +190,18 @@ class PurchaseReceiptController extends Controller
         $warehouses = Warehouse::all();
 
         return view('admin.purchase.purchases', compact('receipts', 'warehouses'));
+    }
+
+    public function print($id)
+    {
+        $receipt = PurchaseReceipt::with([
+            'items.rawMaterial',
+            'warehouse',
+            'receivedBy',
+            'procurement',
+        ])->findOrFail($id);
+
+        return view('admin.purchase.purchase-print', compact('receipt'));
     }
 
     public function create()
@@ -159,7 +245,7 @@ class PurchaseReceiptController extends Controller
                 $userId = auth()->id();
 
                 // Receipt number (silakan sesuaikan format)
-                $receiptNumber = 'RCPT-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));
+                $receiptNumber = 'RCPT-'.now()->format('Ymd').'-'.strtoupper(Str::random(6));
                 $procurement = Procurement::findOrFail($validated['procurement_id']);
                 $warehouse_id = $procurement->warehouse_id;
                 $receipt = PurchaseReceipt::create([
@@ -206,7 +292,7 @@ class PurchaseReceiptController extends Controller
                 }
                 if ($request->hasFile('invoices')) {
                     foreach ($request->file('invoices') as $file) {
-                        if (!$file->isValid()) {
+                        if (! $file->isValid()) {
                             continue;
                         }
                         // file name rapi
@@ -214,8 +300,8 @@ class PurchaseReceiptController extends Controller
                         $ext = $file->getClientOriginalExtension();
 
                         $safeFileName = now()->format('YmdHis')
-                            . '-' . Str::slug($baseName)
-                            . '.' . $ext;
+                            .'-'.Str::slug($baseName)
+                            .'.'.$ext;
 
                         $receipt->addMedia($file)
                             ->usingFileName($safeFileName)
@@ -250,7 +336,7 @@ class PurchaseReceiptController extends Controller
         try {
             $receipt = PurchaseReceipt::findOrFail($id);
 
-            if (!$request->hasFile('invoices')) {
+            if (! $request->hasFile('invoices')) {
                 return back()->withErrors(['invoices' => 'File invoice tidak ditemukan.']);
             }
 
@@ -259,7 +345,7 @@ class PurchaseReceiptController extends Controller
             $files = is_array($files) ? $files : [$files];
 
             foreach ($files as $file) {
-                if (!$file || !$file->isValid()) {
+                if (! $file || ! $file->isValid()) {
                     continue;
                 }
 
@@ -267,8 +353,8 @@ class PurchaseReceiptController extends Controller
                 $ext = strtolower($file->getClientOriginalExtension());
 
                 $safeFileName = now()->format('YmdHis')
-                    . '-' . Str::slug($baseName)
-                    . '.' . $ext;
+                    .'-'.Str::slug($baseName)
+                    .'.'.$ext;
 
                 $receipt->addMedia($file)
                     ->usingFileName($safeFileName)
@@ -276,7 +362,7 @@ class PurchaseReceiptController extends Controller
             }
 
             return back()->with('success', 'Invoice berhasil ditambahkan.');
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             save_log_error($th);
 
             return back()->withErrors(['error' => 'Gagal menyimpan invoice. Silakan coba lagi.']);
@@ -392,7 +478,7 @@ class PurchaseReceiptController extends Controller
             return redirect()
                 ->route('edit-purchase-receipt', $id)
                 ->with('success', 'Data barang masuk berhasil diupdate.');
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             save_log_error($th);
 
             return back()
@@ -441,7 +527,7 @@ class PurchaseReceiptController extends Controller
             return redirect()
                 ->route('purchase-receipts')
                 ->with('success', 'Barang masuk berhasil dihapus (soft delete).');
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
             save_log_error($th);
 
             return back()->withErrors([

@@ -138,15 +138,17 @@
         <section class="mb-5 rounded-lg border border-gray-300 bg-white p-5 shadow">
             <div class="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div class="flex items-center justify-end gap-2">
-                    <a href="{{ route('admin.gudang-laporan-produksi.export') }}"
-                        class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
-                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
-                        </svg>
-                        Export .xlsx
-                    </a>
+                    @can('export produksi')
+                        <a href="{{ route('admin.gudang-laporan-produksi.export') }}"
+                            class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 4v6h6M20 20v-6h-6M20 8a8 8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
+                            </svg>
+                            Export .xlsx
+                        </a>
+                    @endcan
 
                     @can('tambah produksi')
                         <a href="{{ route('admin.add-pilih-produk') }}"
@@ -217,13 +219,19 @@
                                     <td class="px-6 py-4 font-semibold">{{ $batch->personResponsible?->name ?? '-' }}</td>
                                     <td class="px-6 py-4 font-semibold">{{ $batch->warehouse->name ?? '-' }}</td>
                                     <td class="px-6 py-4">
-                                        <div class="flex items-center justify-start gap-6 font-semibold">
+                                        <div class="flex items-center justify-start gap-3 font-semibold">
                                             @can('edit produksi')
                                                 <a href="{{ route('admin.edit-produk', $batch->id) }}"
                                                     class="text-[#2E7E3F] hover:underline">
                                                     Sunting
                                                 </a>
                                             @endcan
+
+                                            <a href="{{ route('admin.gudang-laporan-produksi.print', $batch->id) }}"
+                                                target="_blank"
+                                                class="text-gray-700 hover:underline flex items-center gap-1">
+                                                Cetak
+                                            </a>
 
                                             @can('baca produksi')
                                                 <button type="button" @click='showDetail(@json($detailData))'
@@ -234,15 +242,15 @@
 
                                             @can('hapus produksi')
                                                 <form action="{{ route('admin.production.delete', $batch->id) }}"
-                                                method="POST"
-                                                onsubmit="return confirm('Yakin ingin menghapus data produksi ini?')"
-                                                class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-[#EC0000] hover:underline">
-                                                    Hapus
-                                                </button>
-                                            </form>
+                                                    method="POST"
+                                                    onsubmit="return confirm('Yakin ingin menghapus data produksi ini?')"
+                                                    class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-[#EC0000] hover:underline">
+                                                        Hapus
+                                                    </button>
+                                                </form>
                                             @endcan
                                         </div>
                                     </td>

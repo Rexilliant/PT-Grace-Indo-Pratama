@@ -88,15 +88,17 @@
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         {{-- top bar --}}
         <div class="mb-5 flex items-center gap-5">
-            <a href="{{ route('purchase-receipts.export') }}"
-                class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
-                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 0 0014.9 3" />
-                </svg>
-                Export .xlsx
-            </a>
+            @can('export bahan baku masuk')
+                <a href="{{ route('purchase-receipts.export') }}"
+                    class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 0 0014.9 3" />
+                    </svg>
+                    Export .xlsx
+                </a>
+            @endcan
 
             @can('tambah bahan baku masuk')
                 <a href="{{ route('create-purchase-receipt') }}"
@@ -139,10 +141,17 @@
                                                 class="text-[#2E7E3F] hover:underline">
                                                 Sunting
                                             </a>
+                                            <span class="mx-1">|</span>
                                         @endcanany
+
+                                        <a href="{{ route('purchase-receipts.print', $receipt->id) }}" target="_blank"
+                                            class="text-indigo-600 hover:underline flex items-center gap-1">
+                                            Cetak
+                                        </a>
 
                                         {{-- HAPUS --}}
                                         @if ($canDelete)
+                                            <span class="mx-1">|</span>
                                             <form action="{{ route('purchase-receipts.destroy', ['id' => $receipt->id]) }}"
                                                 method="POST" class="inline-block form-delete">
                                                 @csrf

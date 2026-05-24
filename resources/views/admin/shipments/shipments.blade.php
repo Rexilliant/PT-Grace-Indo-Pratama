@@ -95,18 +95,19 @@
     </section>
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         <div class="mb-5 flex items-center gap-5">
-            <a href="{{ route('shipments.export', request()->query()) }}"
-                class="inline-flex items-center
+            @can('export pengiriman produk')
+                <a href="{{ route('shipments.export', request()->query()) }}"
+                    class="inline-flex items-center
                 gap-2 rounded-lg bg-[#2E7E3F] px-5 py-2 text-sm font-semibold text-white hover:bg-green-800
                 focus:outline-none focus:ring-2 focus:ring-green-300">
-                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 0 0014.9 3" />
-                </svg>
-                Export .xlsx
-            </a>
-
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 0 0014.9 3" />
+                    </svg>
+                    Export .xlsx
+                </a>
+            @endcan
             @can('tambah pengiriman produk')
                 <a href="{{ route('create-shipment') }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
@@ -148,14 +149,26 @@
                                         class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{{ $shipment->status }}</span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    @canany(['edit pengiriman produk', 'edit status pengiriman produk', 'baca pengiriman
-                                        produk'])
+                                    @canany([
+                                        'edit pengiriman produk',
+                                        'edit status pengiriman produk',
+                                        'baca pengiriman
+                                        produk',
+                                        ])
                                         <a href="{{ route('edit-shipment', $shipment->id) }}"
                                             class="text-blue-600 hover:underline">Sunting</a>
                                     @endcanany
+
+                                    {{-- Tombol Print Baru --}}
+                                    @can('baca pengiriman produk')
+                                        <span class="mx-1">|</span>
+                                        <a href="{{ route('print-shipment', $shipment->id) }}" target="_blank"
+                                            class="text-green-600 hover:underline">Print</a>
+                                    @endcan
+
                                     @can('hapus pengiriman produk')
                                         @if ($shipment->status == 'Menunggu')
-                                            |
+                                            <span class="mx-1">|</span>
                                             <form action="{{ route('delete-shipment', ['id' => $shipment->id]) }}"
                                                 method="POST" class="inline-block form-delete">
                                                 @csrf
