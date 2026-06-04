@@ -110,7 +110,12 @@
                     @can('baca pengiriman produk')
                         <a href="{{ route('shipments') }}"
                             class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-permintaan-pengiriman')">
-                            Permintaan Pengiriman Produk
+                            <span>Permintaan Pengiriman Produk </span>
+                            @if (($totalNotifPermintaanPengirimanProduk ?? 0) > 0)
+                                <span class="bg-yellow-500 text-white text-[11px] px-2 py-0.5 rounded-full">
+                                    {{ $totalNotifPermintaanPengirimanProduk }}
+                                </span>
+                            @endif
                         </a>
                     @endcan
 
@@ -164,15 +169,25 @@
                 <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
                     @can('baca pengiriman produk')
                         <a href="{{ route('shipments') }}"
-                            class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pemasaran-permintaan-pengiriman')">
-                            Permintaan Pengiriman Produk
+                            class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-permintaan-pengiriman')">
+                            <span>Permintaan Pengiriman Produk </span>
+                            @if (($totalNotifPermintaanPengirimanProduk ?? 0) > 0)
+                                <span class="bg-yellow-500 text-white text-[11px] px-2 py-0.5 rounded-full">
+                                    {{ $totalNotifPermintaanPengirimanProduk }}
+                                </span>
+                            @endif
                         </a>
                     @endcan
 
                     @can('baca penerimaan pengiriman produk')
                         <a href="{{ route('shipment-receipts') }}"
                             class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pemasaran-penerimaan-pengiriman-produk')">
-                            Penerimaan Pengiriman Produk
+                            <span>Penerimaan Pengiriman Produk</span>
+                            @if (($totalNotifPenerimaanPengirimanProduk ?? 0) > 0)
+                                <span class="bg-yellow-500 text-white text-[11px] px-2 py-0.5 rounded-full">
+                                    {{ $totalNotifPenerimaanPengirimanProduk }}
+                                </span>
+                            @endif
                         </a>
                     @endcan
 
@@ -399,7 +414,7 @@
 
                             <span>Pengadaan Bahan Baku</span>
 
-                            @if (($totalProcurementMenunggu ?? 0) > 0)
+                            @if (($totalProcurementMenunggu ?? 0) > 0 && Auth::user()->hasPermissionTo('edit status pengadaan bahan baku'))
                                 <span class="bg-yellow-500 text-white text-[11px] px-2 py-0.5 rounded-full">
                                     {{ $totalProcurementMenunggu }}
                                 </span>
@@ -424,7 +439,12 @@
                     @can('baca pengiriman produk')
                         <a href="{{ route('shipments') }}"
                             class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-permintaan-pengiriman')">
-                            Permintaan Pengiriman Produk
+                            <span>Permintaan Pengiriman Produk </span>
+                            @if (($totalNotifPermintaanPengirimanProduk ?? 0) > 0)
+                                <span class="bg-yellow-500 text-white text-[11px] px-2 py-0.5 rounded-full">
+                                    {{ $totalNotifPermintaanPengirimanProduk }}
+                                </span>
+                            @endif
                         </a>
                     @endcan
 
@@ -478,15 +498,25 @@
                 <div class="mt-2 ml-11 mr-2 rounded-2xl bg-white shadow-md p-2 space-y-1">
                     @can('baca pengiriman produk')
                         <a href="{{ route('shipments') }}"
-                            class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pemasaran-permintaan-pengiriman')">
-                            Permintaan Pengiriman Produk
+                            class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-permintaan-pengiriman')">
+                            <span>Permintaan Pengiriman Produk </span>
+                            @if (($totalNotifPermintaanPengirimanProduk ?? 0) > 0)
+                                <span class="bg-yellow-500 text-white text-[11px] px-2 py-0.5 rounded-full">
+                                    {{ $totalNotifPermintaanPengirimanProduk }}
+                                </span>
+                            @endif
                         </a>
                     @endcan
 
                     @can('baca penerimaan pengiriman produk')
                         <a href="{{ route('shipment-receipts') }}"
                             class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-pemasaran-penerimaan-pengiriman-produk')">
-                            Penerimaan Pengiriman Produk
+                            <span>Penerimaan Pengiriman Produk</span>
+                            @if (($totalNotifPenerimaanPengirimanProduk ?? 0) > 0)
+                                <span class="bg-yellow-500 text-white text-[11px] px-2 py-0.5 rounded-full">
+                                    {{ $totalNotifPenerimaanPengirimanProduk }}
+                                </span>
+                            @endif
                         </a>
                     @endcan
 
