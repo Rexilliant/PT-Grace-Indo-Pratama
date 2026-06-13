@@ -85,7 +85,7 @@
 
                 <div>
                     <label class="mb-2 block text-xs font-bold">Tanggal Pemesanan</label>
-                    <input type="date" readonly value="{{ $procurement->created_at->format('Y-m-d') }}"
+                    <input type="date" readonly value="{{ $procurement->purchase_at->format('Y-m-d') }}"
                         class="w-full rounded-md border px-3 py-2.5 text-sm font-semibold {{ $canEditData ? '' : $disabledClass }}">
                 </div>
 
@@ -167,7 +167,7 @@
                                 <input type="number" name="items[{{ $index }}][quantity_requested]" min="1"
                                     value="{{ old('items.' . $index . '.quantity_requested', $item->quantity_requested) }}"
                                     {{ $canEditData ? '' : 'readonly' }}
-                                    class="w-full rounded-md border px-3 py-2.5 text-sm font-semibold {{$disabledClass }}">
+                                    class="w-full rounded-md border px-3 py-2.5 text-sm font-semibold {{ $disabledClass }}">
 
                                 @error('items.' . $index . '.quantity_requested')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>

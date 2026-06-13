@@ -7,7 +7,7 @@
 
         <div class="lg:hidden flex justify-between gap-3 items-center">
             <div class="flex gap-4 items-center">
-                <img src="{{ asset('build/image/bhos-logo.png') }}" alt="logo" class="w-10">
+                <img src="{{ asset('image/bhos-logo.png') }}" alt="logo" class="w-10">
                 <span class="font-bold lg:text-lg">PT Grace Indo Pratama</span>
             </div>
 

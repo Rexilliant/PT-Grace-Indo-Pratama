@@ -134,12 +134,12 @@
                                 <td class="px-6 py-4 font-medium">
                                     {{ $shipmentReceipt->shipment->shipment_code ?? '-' }}
                                 </td>
-                                <td class="px-6 py-4">
-                                    {{ $shipmentReceipt->created_at?->format('d M Y') ?? '-' }}
-                                </td>
                                 {{-- <td class="px-6 py-4">
-                                    {{ $shipmentReceipt->received_at?->format('d M Y H:i') ?? '-' }}
+                                    {{ $shipmentReceipt->created_at?->format('d M Y') ?? '-' }}
                                 </td> --}}
+                                <td class="px-6 py-4">
+                                    {{ $shipmentReceipt->received_at?->format('d M Y') ?? '-' }}
+                                </td>
                                 <td class="px-6 py-4">
                                     {{ $shipmentReceipt->receivedBy->name ?? '-' }}
                                 </td>

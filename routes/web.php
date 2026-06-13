@@ -230,7 +230,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit bahan baku masuk'])->name('update-purchase-receipt');
         Route::post('/add-media/{id}', 'addMedia')->name('purchase-receipts.add-media');
         Route::get('/print/{id}', 'print')->middleware(['auth', 'permission:baca bahan baku masuk'])->name('purchase-receipts.print');
-        Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus barang masuk'])->name('purchase-receipts.destroy');
+        Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus bahan baku masuk'])->name('purchase-receipts.destroy');
         Route::get('/procurement-items/{procurement}', 'getProcurementItems')->name('purchase-receipt.procurement-items');
     });
 
