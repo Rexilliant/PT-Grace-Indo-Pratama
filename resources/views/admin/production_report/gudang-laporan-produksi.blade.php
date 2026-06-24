@@ -123,11 +123,11 @@
                 </div>
             </form>
         </section>
-        @if (session('success'))
+        {{-- @if (session('success'))
             <div class="mb-4 rounded-lg border border-green-300 bg-green-50 p-4 text-sm text-green-700">
                 {{ session('success') }}
             </div>
-        @endif
+        @endif --}}
 
         @if (session('error'))
             <div class="mb-4 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700">
@@ -243,8 +243,7 @@
                                             @can('hapus produksi')
                                                 <form action="{{ route('admin.production.delete', $batch->id) }}"
                                                     method="POST"
-                                                    onsubmit="return confirm('Yakin ingin menghapus data produksi ini?')"
-                                                    class="inline">
+                                                    class="inline-block form-delete">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-[#EC0000] hover:underline">
@@ -394,4 +393,40 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('addJs')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        @if (session('success'))
+            Swal.fire({
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonColor: '#53BF6A'
+            });
+        @endif
+
+        document.querySelectorAll('.form-delete').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Anda yakin?',
+                    text: 'Data gudang yang dihapus tidak bisa dikembalikan.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
 @endsection

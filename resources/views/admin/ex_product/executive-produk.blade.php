@@ -14,11 +14,11 @@
         </div>
 
         {{-- flash message --}}
-        @if (session('success'))
+        {{-- @if (session('success'))
             <div class="mb-3 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
                 {{ session('success') }}
             </div>
-        @endif
+        @endif --}}
     </section>
 
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
@@ -224,6 +224,8 @@
         }
     </style>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         const deleteModal = document.getElementById('deleteModal');
         const deleteForm = document.getElementById('deleteForm');
@@ -253,6 +255,16 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && deleteModal.classList.contains('flex')) closeDeleteModal();
         });
+
+        // Notif Sukses (Simpan/Update/Hapus)
+        @if (session('success'))
+            Swal.fire({
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonColor: '#53BF6A'
+            });
+        @endif
     </script>
 
 @endsection

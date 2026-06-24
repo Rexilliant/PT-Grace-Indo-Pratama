@@ -15,11 +15,11 @@
         </div>
 
         {{-- flash message --}}
-        @if (session('success'))
+        {{-- @if (session('success'))
             <div class="mt-3 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
                 {{ session('success') }}
             </div>
-        @endif
+        @endif --}}
     </section>
 
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
@@ -188,4 +188,19 @@
         </div>
 
     </section>
+@endsection
+
+@section('addJs')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        @if (session('success'))
+            Swal.fire({
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonColor: '#53BF6A'
+            });
+        @endif
+    </script>
 @endsection

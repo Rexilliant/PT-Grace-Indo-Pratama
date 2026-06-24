@@ -195,16 +195,13 @@
                                             Sunting
                                         </a>
 
-                                        <a href="#" class="text-[#EC0000] hover:underline"
-                                            onclick="event.preventDefault(); confirmDelete({{ $sale->id }})">
-                                            Hapus
-                                        </a>
-
-                                        <form id="delete-form-{{ $sale->id }}"
-                                            action="{{ route('admin.pemasaran-laporan-penjualan.destroy', $sale->id) }}"
-                                            method="POST" class="hidden">
+                                        <form action="{{ route('admin.pemasaran-laporan-penjualan.destroy', $sale->id) }}"
+                                            method="POST" class="inline-block form-delete">
                                             @csrf
                                             @method('DELETE')
+                                            <button type="submit" class="text-[#EC0000] hover:underline">
+                                                Hapus
+                                            </button>
                                         </form>
                                     </div>
                                 </td>
@@ -417,6 +414,8 @@
             animation: scaleIn .12s ease-out;
         }
     </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         const invoiceBaseUrl = @json(url('/admin/pemasaran/laporan-penjualan'));
@@ -635,10 +634,40 @@
             }
         });
 
-        function confirmDelete(id) {
-            if (confirm('Yakin ingin menghapus laporan ini?\nStok barang akan dikembalikan.')) {
-                document.getElementById('delete-form-' + id).submit();
-            }
-        }
+        // function confirmDelete(id) {
+        //     if (confirm('Yakin ingin menghapus laporan ini?\nStok barang akan dikembalikan.')) {
+        //         document.getElementById('delete-form-' + id).submit();
+        //     }
+        // }
+
+        @if (session('success'))
+            Swal.fire({
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonColor: '#53BF6A'
+            });
+        @endif
+
+        document.querySelectorAll('.form-delete').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Anda yakin?',
+                    text: 'Data gudang yang dihapus tidak bisa dikembalikan.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
     </script>
 @endsection
