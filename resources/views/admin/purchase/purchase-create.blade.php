@@ -31,8 +31,151 @@
             border-radius: 0.375rem;
         }
 
+        /* ========================================= */
+        /* 1. STATE KOSONG (BELUM ADA FILE)          */
+        /* ========================================= */
         .filepond--root {
             font-family: inherit;
+            margin-bottom: 0;
+            min-height: 260px;
+            /* Area drop awal saat kosong */
+            transition: all 0.3s ease;
+        }
+
+        .filepond--panel-root {
+            background-color: #ffffff !important;
+            border: 2px dashed #d1d5db !important;
+            border-radius: 1rem !important;
+            transition: all 0.3s ease;
+        }
+
+        .filepond--root:hover .filepond--panel-root {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+        }
+
+        .filepond--drop-label {
+            background-color: transparent !important;
+            cursor: pointer;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 1.5rem !important;
+            height: 100% !important;
+            min-height: 260px;
+            /* Memastikan teks di tengah */
+        }
+
+        .filepond--label-action {
+            text-decoration: none;
+            cursor: pointer;
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+
+        /* ========================================= */
+        /* 2. STATE TERISI (MODE SLIDER HORIZONTAL)  */
+        /* ========================================= */
+
+        /* KUNCI UTAMA: Kunci tinggi container agar JS FilePond tidak membuatnya memanjang! */
+        .filepond--root.has-files {
+            height: 280px !important;
+            min-height: 280px !important;
+        }
+
+        .filepond--root.has-files .filepond--panel-root {
+            transform: none !important;
+            /* BARIS SAKTI: Mematikan paksa regangan ke bawah dari JS FilePond */
+            height: 100% !important;
+        }
+
+        /* Header bar di atas ("+ Tambah Dokumen Lain") */
+        .filepond--root.has-files .filepond--drop-label {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            min-height: 45px !important;
+            height: 45px !important;
+            padding: 0 !important;
+            border-bottom: 1px dashed #d1d5db;
+            background: #f8fafc !important;
+            border-radius: 1rem 1rem 0 0 !important;
+            z-index: 10;
+            opacity: 1 !important;
+            transform: none !important;
+        }
+
+        /* Sembunyikan ikon & teks besar saat terisi */
+        .filepond--root.has-files .fp-icon-large,
+        .filepond--root.has-files .fp-text-large {
+            display: none !important;
+        }
+
+        /* Tampilkan teks mini dan pastikan di tengah bar */
+        .filepond--root.has-files .fp-text-mini {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Wrapper Scroll Horizontal (Mengisi sisa ruang di bawah header bar) */
+        .filepond--root.has-files .filepond--list-scroller {
+            position: absolute !important;
+            top: 45px !important;
+            /* Mulai di bawah header */
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: auto !important;
+            transform: none !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            padding: 15px !important;
+            margin-top: 0 !important;
+        }
+
+        /* Flex row untuk list gambar */
+        .filepond--root.has-files .filepond--list {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 15px;
+            position: static !important;
+            transform: none !important;
+            height: 100% !important;
+        }
+
+        /* Ukuran spesifik tiap kotak file di dalam slider */
+        .filepond--root.has-files .filepond--item {
+            position: static !important;
+            transform: none !important;
+            width: 180px !important;
+            height: calc(100% - 10px) !important;
+            /* Menyesuaikan ruang scroller */
+            flex-shrink: 0;
+            margin: 0 !important;
+        }
+
+        /* Scrollbar Custom Minimalis */
+        .filepond--list-scroller::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 8px;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
         }
     </style>
 @endsection
@@ -190,7 +333,7 @@
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <label class="block text-sm font-bold mb-3 text-gray-800">Invoice Pembelian Barang</label>
 
-            <input x-ref="invoices" type="file" name="invoices[]" multiple
+            <input id="imageInput" x-ref="invoices" type="file" name="invoices[]" multiple
                 accept="image/png,image/jpeg,application/pdf" />
 
             <p class="mt-2 text-xs text-gray-600">
@@ -479,7 +622,8 @@
                 },
 
                 initFilePond() {
-                    const input = this.$refs.invoices;
+                    // Memanggil menggunakan ID sesuai permintaan Anda
+                    const input = document.getElementById('imageInput');
 
                     if (!input || typeof FilePond === 'undefined') return;
                     if (!input.parentNode) return;
@@ -491,23 +635,60 @@
                         FilePondPluginImagePreview
                     );
 
+                    const customIconPlaceholder = `
+                        <div class="flex flex-col items-center justify-center w-full">
+                            <div class="fp-icon-large p-4 bg-blue-50 rounded-full mb-4 transition-transform duration-300 hover:scale-110">
+                                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="fp-text-large text-center">
+                                <p class="text-base font-bold text-gray-700"><span class="filepond--label-action">Klik</span> atau Tarik dokumen ke sini</p>
+                                <p class="text-xs text-gray-500 mt-1 font-medium">PNG, JPG, JPEG, PDF (Bisa multiple, Maks 3MB/file)</p>
+                            </div>
+
+                            <div class="fp-text-mini hidden cursor-pointer hover:underline text-blue-600">
+                                <p class="text-sm font-bold m-0 p-0">+ Tambah Dokumen Lain</p>
+                            </div>
+                        </div>
+                    `;
+
                     this.pond = FilePond.create(input, {
                         required: true,
                         storeAsFile: true,
                         instantUpload: false,
-                        stylePanelLayout: 'compact',
                         allowMultiple: true,
                         maxFiles: 10,
                         credits: false,
                         acceptedFileTypes: ['image/png', 'image/jpeg', 'application/pdf'],
                         maxFileSize: '3MB',
-                        labelIdle: 'Drag & Drop file atau <span class="filepond--label-action">Browse</span>',
+
+                        // Memasukkan custom UI di sini
+                        labelIdle: customIconPlaceholder,
+
                         labelFileTypeNotAllowed: 'Format file tidak didukung',
                         fileValidateTypeLabelExpectedTypes: 'Hanya PNG/JPG/JPEG/PDF',
                         labelMaxFileSizeExceeded: 'Ukuran file terlalu besar',
                         labelMaxFileSize: 'Maksimum 3MB',
+
+                        onupdatefiles: (files) => {
+                            // Mencari elemen bungkus paling luar dari FilePond
+                            const rootElement = document.getElementById('imageInput').closest(
+                                '.filepond--root');
+
+                            if (rootElement) {
+                                if (files.length > 0) {
+                                    // Jika ada file, aktifkan mode slider!
+                                    rootElement.classList.add('has-files');
+                                } else {
+                                    // Jika file kosong/dihapus semua, kembali ke mode normal
+                                    rootElement.classList.remove('has-files');
+                                }
+                            }
+                        }
                     });
                 },
+
             }
         }
     </script>

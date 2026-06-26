@@ -196,7 +196,7 @@
 
                 Swal.fire({
                     title: 'Anda yakin?',
-                    text: 'Data Pengadaan yang dihapus tidak bisa dikembalikan.',
+                    text: 'Data User yang dihapus tidak bisa dikembalikan.',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#dc2626',

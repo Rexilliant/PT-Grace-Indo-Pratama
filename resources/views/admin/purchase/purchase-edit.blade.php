@@ -31,8 +31,137 @@
             border-radius: 0.375rem;
         }
 
+        /* ========================================= */
+        /* 1. STATE KOSONG (BELUM ADA FILE)          */
+        /* ========================================= */
         .filepond--root {
             font-family: inherit;
+            margin-bottom: 0;
+            min-height: 260px;
+            transition: all 0.3s ease;
+        }
+
+        .filepond--panel-root {
+            background-color: #ffffff !important;
+            border: 2px dashed #d1d5db !important;
+            border-radius: 1rem !important;
+            transition: all 0.3s ease;
+        }
+
+        .filepond--root:hover .filepond--panel-root {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+        }
+
+        .filepond--drop-label {
+            background-color: transparent !important;
+            cursor: pointer;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 1.5rem !important;
+            height: 100% !important;
+            min-height: 260px;
+        }
+
+        .filepond--label-action {
+            text-decoration: none;
+            cursor: pointer;
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+        /* ========================================= */
+        /* 2. STATE TERISI (MODE SLIDER HORIZONTAL)  */
+        /* ========================================= */
+        .filepond--root.has-files {
+            height: 280px !important;
+            min-height: 280px !important;
+        }
+
+        .filepond--root.has-files .filepond--panel-root {
+            transform: none !important;
+            /* Mencegah regangan ke bawah */
+            height: 100% !important;
+        }
+
+        .filepond--root.has-files .filepond--drop-label {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            min-height: 45px !important;
+            height: 45px !important;
+            padding: 0 !important;
+            border-bottom: 1px dashed #d1d5db;
+            background: #f8fafc !important;
+            border-radius: 1rem 1rem 0 0 !important;
+            z-index: 10;
+            opacity: 1 !important;
+            transform: none !important;
+        }
+
+        .filepond--root.has-files .fp-icon-large,
+        .filepond--root.has-files .fp-text-large {
+            display: none !important;
+        }
+
+        .filepond--root.has-files .fp-text-mini {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .filepond--root.has-files .filepond--list-scroller {
+            position: absolute !important;
+            top: 45px !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: auto !important;
+            transform: none !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            padding: 15px !important;
+            margin-top: 0 !important;
+        }
+
+        .filepond--root.has-files .filepond--list {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 15px;
+            position: static !important;
+            transform: none !important;
+            height: 100% !important;
+        }
+
+        .filepond--root.has-files .filepond--item {
+            position: static !important;
+            transform: none !important;
+            width: 180px !important;
+            height: calc(100% - 10px) !important;
+            flex-shrink: 0;
+            margin: 0 !important;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 8px;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
         }
     </style>
 @endsection
@@ -589,6 +718,25 @@
 
             input.dataset.pondInited = '1';
 
+            // HTML Template untuk Ikon dan Teks
+            const customIconPlaceholder = `
+                <div class="flex flex-col items-center justify-center w-full">
+                    <div class="fp-icon-large p-4 bg-blue-50 rounded-full mb-4 transition-transform duration-300 hover:scale-110">
+                        <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="fp-text-large text-center">
+                        <p class="text-base font-bold text-gray-700"><span class="filepond--label-action">Klik</span> atau Tarik dokumen ke sini</p>
+                        <p class="text-xs text-gray-500 mt-1 font-medium">PNG, JPG, JPEG, PDF (Bisa multiple, Maks 3MB/file)</p>
+                    </div>
+
+                    <div class="fp-text-mini hidden cursor-pointer hover:underline text-blue-600">
+                        <p class="text-sm font-bold m-0 p-0">+ Tambah Dokumen Lain</p>
+                    </div>
+                </div>
+            `;
+
             FilePond.create(input, {
                 storeAsFile: true,
                 instantUpload: false,
@@ -597,11 +745,27 @@
                 credits: false,
                 acceptedFileTypes: ['image/png', 'image/jpeg', 'application/pdf'],
                 maxFileSize: '3MB',
-                labelIdle: 'Drag & Drop file atau <span class="filepond--label-action">Browse</span>',
+
+                // Gunakan template desain yang baru
+                labelIdle: customIconPlaceholder,
+
                 labelFileTypeNotAllowed: 'Format file tidak didukung',
                 fileValidateTypeLabelExpectedTypes: 'Hanya PNG/JPG/JPEG/PDF',
                 labelMaxFileSizeExceeded: 'Ukuran file terlalu besar',
                 labelMaxFileSize: 'Maksimum 3MB',
+
+                // Event listener untuk mentrigger mode slider horizontal
+                onupdatefiles: (files) => {
+                    const rootElement = document.getElementById('invoicesPond').closest(
+                        '.filepond--root');
+                    if (rootElement) {
+                        if (files.length > 0) {
+                            rootElement.classList.add('has-files');
+                        } else {
+                            rootElement.classList.remove('has-files');
+                        }
+                    }
+                }
             });
         });
     </script>
