@@ -5,6 +5,75 @@
 @section('menu-executive', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-executive-produk-variant', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
+@section('addCss')
+    {{-- CSS Wajib FilePond --}}
+    <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
+    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
+
+    <style>
+        .filepond--root {
+            font-family: inherit;
+            margin-bottom: 0;
+            min-height: 250px !important;
+        }
+
+        .filepond--drop-label {
+            background-color: transparent !important;
+            cursor: pointer;
+            min-height: 250px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 1.5rem !important;
+        }
+
+        .filepond--drop-label>div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .filepond--panel-root {
+            background-color: #ffffff !important;
+            border: 2px dashed #d1d5db !important;
+            border-radius: 1rem !important;
+            transition: all 0.3s ease;
+        }
+
+        .filepond--root:hover .filepond--panel-root {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+        }
+
+        .filepond--label-action {
+            text-decoration: none;
+            cursor: pointer;
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+        /* Animasi Modal */
+        @keyframes scaleIn {
+            from {
+                transform: scale(.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-scale-in {
+            animation: scaleIn .15s ease-out forwards;
+        }
+    </style>
+@endsection
+
 @section('content')
     @php
         $canEditProduct = auth()->user()->can('edit produk varian');
@@ -43,8 +112,7 @@
             {{-- Relasi Produk --}}
             <div class="mb-4">
                 <label class="mb-2 block text-sm font-bold">Pilih Produk</label>
-                <select name="product_id"
-                    @if ($isReadOnly) disabled @endif
+                <select name="product_id" @if ($isReadOnly) disabled @endif
                     class="{{ $isReadOnly ? $readonlyClass : $inputClass }} @error('product_id') border-red-500 focus:border-red-600 @enderror">
                     <option value="" disabled {{ old('product_id', $variant->product_id) ? '' : 'selected' }}>
                         Pilih Produk
@@ -71,8 +139,7 @@
                 <div>
                     <label class="mb-2 block text-sm font-bold">SKU</label>
                     <input name="sku" type="text" value="{{ old('sku', $variant->sku) }}"
-                        placeholder="Contoh: BHOS-001"
-                        @if ($isReadOnly) readonly @endif
+                        placeholder="Contoh: BHOS-001" @if ($isReadOnly) readonly @endif
                         class="{{ $isReadOnly ? $readonlyClass : $inputClass }} @error('sku') border-red-500 focus:border-red-600 @enderror">
                     @error('sku')
                         <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
@@ -83,8 +150,7 @@
                 <div>
                     <label class="mb-2 block text-sm font-bold">Nama Produk</label>
                     <input name="name" type="text" value="{{ old('name', $variant->name) }}"
-                        placeholder="Contoh: BHOS Ekstra"
-                        @if ($isReadOnly) readonly @endif
+                        placeholder="Contoh: BHOS Ekstra" @if ($isReadOnly) readonly @endif
                         class="{{ $isReadOnly ? $readonlyClass : $inputClass }} @error('name') border-red-500 focus:border-red-600 @enderror">
                     @error('name')
                         <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
@@ -109,8 +175,7 @@
                 <div>
                     <label class="mb-2 block text-sm font-bold">Satuan</label>
                     <input name="unit" type="text" value="{{ old('unit', $variant->unit) }}"
-                        placeholder="Contoh: Kg/Liter"
-                        @if ($isReadOnly) readonly @endif
+                        placeholder="Contoh: Kg/Liter" @if ($isReadOnly) readonly @endif
                         class="{{ $isReadOnly ? $readonlyClass : $inputClass }} @error('unit') border-red-500 focus:border-red-600 @enderror">
                     @error('unit')
                         <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
@@ -121,8 +186,7 @@
                 <div>
                     <label class="mb-2 block text-sm font-bold">Harga</label>
                     <input name="price" type="number" min="0" value="{{ old('price', $variant->price) }}"
-                        placeholder="Contoh: 125000"
-                        @if ($isReadOnly) readonly @endif
+                        placeholder="Contoh: 125000" @if ($isReadOnly) readonly @endif
                         class="{{ $isReadOnly ? $readonlyClass : $inputClass }} @error('price') border-red-500 focus:border-red-600 @enderror">
                     <p class="mt-1 text-xs font-semibold text-gray-600">Masukkan angka tanpa titik/koma.</p>
                     @error('price')
@@ -133,8 +197,7 @@
                 {{-- Status --}}
                 <div class="sm:col-span-2 lg:col-span-1">
                     <label class="mb-2 block text-sm font-bold">Status</label>
-                    <select name="status"
-                        @if ($isReadOnly) disabled @endif
+                    <select name="status" @if ($isReadOnly) disabled @endif
                         class="{{ $isReadOnly ? $readonlyClass : $inputClass }} @error('status') border-red-500 focus:border-red-600 @enderror">
                         <option value="" disabled {{ old('status', $variant->status) ? '' : 'selected' }}>
                             Pilih Status
@@ -167,8 +230,10 @@
                 </label>
 
                 @if ($isReadOnly)
-                    <div class="flex min-h-[250px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-white p-4">
-                        <img src="{{ $displayImage }}" class="max-h-[180px] w-auto rounded-lg object-contain shadow-sm" alt="Preview">
+                    <div
+                        class="flex min-h-[250px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-white p-4">
+                        <img src="{{ $displayImage }}" class="max-h-[180px] w-auto rounded-lg object-contain shadow-sm"
+                            alt="Preview">
                         <div class="mt-4 flex flex-col items-center">
                             <span
                                 class="mb-1 rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-700">
@@ -177,48 +242,42 @@
                         </div>
                     </div>
                 @else
-                    <label for="image" id="dropzone"
-                        class="relative mt-1 flex min-h-[250px] w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed p-4 transition-all duration-300 group
-                        @error('image') border-red-400 bg-red-50 @else border-gray-300 bg-white hover:border-blue-500 hover:bg-blue-50/50 @enderror">
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-3 mt-1">
 
-                        <input id="image" name="image" type="file" class="sr-only" accept="image/*">
-
-                        {{-- Placeholder --}}
-                        <div id="uploadPlaceholder"
-                            class="flex flex-col items-center justify-center space-y-4 py-8 {{ $hasImage ? 'hidden' : '' }}">
-                            <div class="rounded-full bg-blue-50 p-4 transition-transform duration-300 group-hover:scale-110">
-                                <svg class="h-10 w-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                    </path>
-                                </svg>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-base font-bold text-gray-700">Klik di mana saja untuk upload gambar baru</p>
-                                <p class="mt-1 text-xs font-medium italic text-gray-500">Biarkan kosong jika tidak ingin
-                                    mengubah gambar.</p>
-                            </div>
-                        </div>
-
-                        {{-- Preview --}}
-                        <div id="previewContainer"
-                            class="absolute inset-0 flex flex-col items-center justify-center bg-white p-2 animate-scale-in {{ $hasImage ? '' : 'hidden' }}">
-                            <div class="relative flex h-full w-full flex-col items-center justify-center">
-                                <img id="imagePreview" src="{{ $displayImage }}"
-                                    class="max-h-[180px] w-auto rounded-lg object-contain shadow-sm" alt="Preview">
-
-                                <div class="mt-4 flex flex-col items-center">
-                                    <span id="imageStatusBadge"
-                                        class="mb-1 rounded-full bg-gray-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-700">
-                                        Gambar Saat Ini
-                                    </span>
-                                    <p class="text-xs font-bold text-gray-400 transition-colors group-hover:text-blue-600">
-                                        Klik lagi untuk mengganti gambar
-                                    </p>
+                        {{-- Box Kiri: Menampilkan Gambar yang Sudah Ada / Fallback Logo --}}
+                        <div
+                            class="flex min-h-[250px] flex-col items-center justify-center rounded-xl border border-gray-300 bg-white p-4 shadow-sm">
+                            <span class="mb-2 text-xs font-bold uppercase tracking-wider text-gray-400">Gambar Saat
+                                Ini</span>
+                            @if ($hasImage)
+                                <img src="{{ $displayImage }}" alt="Foto Varian"
+                                    class="max-h-[160px] w-auto rounded-lg border border-gray-200 p-1 object-contain shadow-sm">
+                            @else
+                                <div class="flex flex-col items-center text-sm text-gray-400">
+                                    <img src="{{ $displayImage }}" alt="Default Logo"
+                                        class="mb-2 max-h-[100px] w-auto object-contain opacity-50">
+                                    <span>Menggunakan Default</span>
                                 </div>
-                            </div>
+                            @endif
                         </div>
-                    </label>
+
+                        {{-- Box Kanan: FilePond --}}
+                        <div class="flex flex-col justify-center md:col-span-2">
+                            <input type="file" name="image" id="imageInput"
+                                accept="image/png, image/jpeg, image/jpg">
+                            @error('image')
+                                <div class="mt-3 flex items-center font-bold text-red-600">
+                                    <svg class="mr-1.5 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
+                                    <p class="text-[11px] uppercase tracking-wider">{{ $message }}</p>
+                                </div>
+                            @enderror
+                        </div>
+
+                    </div>
                 @endif
 
                 @error('image')
@@ -276,25 +335,14 @@
             </div>
         </div>
     </div>
+@endsection
 
-    <style>
-        @keyframes scaleIn {
-            from {
-                transform: scale(.95);
-                opacity: 0;
-            }
+@section('addJs')
 
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .animate-scale-in {
-            animation: scaleIn .15s ease-out forwards;
-        }
-    </style>
-
+    <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
     <script>
         const modal = document.getElementById('cancelModal');
 
@@ -317,79 +365,40 @@
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            const imageInput = document.getElementById('image');
-            const imagePreview = document.getElementById('imagePreview');
-            const previewContainer = document.getElementById('previewContainer');
-            const placeholder = document.getElementById('uploadPlaceholder');
-            const dropzone = document.getElementById('dropzone');
-            const statusBadge = document.getElementById('imageStatusBadge');
+            const inputElement = document.querySelector('#imageInput');
 
-            if (!imageInput || !dropzone) return;
+            if (inputElement && !inputElement.classList.contains('filepond--input')) {
+                FilePond.registerPlugin(
+                    FilePondPluginFileValidateType,
+                    FilePondPluginFileValidateSize,
+                    FilePondPluginImagePreview
+                );
 
-            const defaultImageSrc = "{{ $displayImage }}";
-            const hasInitialImage = {{ $hasImage ? 'true' : 'false' }};
+                const customIconPlaceholder = `
+                <div class="flex flex-col items-center justify-center space-y-4">
+                    <div class="p-4 bg-blue-50 rounded-full transition-transform duration-300 hover:scale-110">
+                        <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0l-4 4m4-4v12"></path>
+                        </svg>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-base font-bold text-gray-700"><span class="filepond--label-action">Klik</span> atau Tarik gambar baru ke sini</p>
+                        <p class="text-xs text-gray-500 mt-1 font-medium">Kosongkan jika tidak ingin mengubah foto (Maksimum 3MB)</p>
+                    </div>
+                </div>
+                `;
 
-            function handleFile(file) {
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        imagePreview.src = e.target.result;
-                        placeholder.classList.add('hidden');
-                        previewContainer.classList.remove('hidden');
-
-                        if (statusBadge) {
-                            statusBadge.textContent = "Gambar Baru Terpilih";
-                            statusBadge.className =
-                                "px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-widest rounded-full mb-1";
-                        }
-                    }
-                    reader.readAsDataURL(file);
-                }
+                FilePond.create(inputElement, {
+                    storeAsFile: true,
+                    acceptedFileTypes: ['image/png', 'image/jpeg', 'image/jpg'],
+                    maxFileSize: '3MB',
+                    labelIdle: customIconPlaceholder,
+                    labelFileTypeNotAllowed: 'Format file tidak didukung',
+                    fileValidateTypeLabelExpectedTypes: 'Hanya PNG/JPG/JPEG',
+                    labelMaxFileSizeExceeded: 'Ukuran file terlalu besar',
+                    labelMaxFileSize: 'Maksimum 3MB',
+                });
             }
-
-            imageInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-
-                if (!file) {
-                    if (hasInitialImage) {
-                        imagePreview.src = defaultImageSrc;
-                        previewContainer.classList.remove('hidden');
-                        placeholder.classList.add('hidden');
-                        if (statusBadge) {
-                            statusBadge.textContent = "Gambar Saat Ini";
-                            statusBadge.className =
-                                "px-3 py-1 bg-gray-100 text-gray-700 text-[10px] font-bold uppercase tracking-widest rounded-full mb-1";
-                        }
-                    } else {
-                        imagePreview.src = '';
-                        previewContainer.classList.add('hidden');
-                        placeholder.classList.remove('hidden');
-                    }
-                    return;
-                }
-
-                handleFile(file);
-            });
-
-            ['dragenter', 'dragover'].forEach(name => {
-                dropzone.addEventListener(name, (e) => {
-                    e.preventDefault();
-                    dropzone.classList.add('border-blue-500', 'bg-blue-50/50');
-                });
-            });
-
-            ['dragleave', 'drop'].forEach(name => {
-                dropzone.addEventListener(name, (e) => {
-                    e.preventDefault();
-                    dropzone.classList.remove('border-blue-500', 'bg-blue-50/50');
-                });
-            });
-
-            dropzone.addEventListener('drop', (e) => {
-                const file = e.dataTransfer.files[0];
-                imageInput.files = e.dataTransfer.files;
-                handleFile(file);
-            });
         });
     </script>
 @endsection

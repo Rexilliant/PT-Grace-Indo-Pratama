@@ -5,7 +5,83 @@
 @section('menu-executive', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-executive-produk', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
+
+@section('addCss')
+    {{-- CSS Wajib FilePond --}}
+    <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
+    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
+
+    <style>
+        /* 1. Mengatur bungkus utama FilePond */
+        .filepond--root {
+            font-family: inherit;
+            margin-bottom: 0;
+            min-height: 250px !important;
+        }
+
+        /* 2. INI KUNCI PERBAIKANNYA: Mengatur area teks & ikon agar tinggi & letaknya di tengah */
+        .filepond--drop-label {
+            background-color: transparent !important;
+            cursor: pointer;
+            min-height: 250px !important;
+            /* Memaksa kotak menjadi tinggi 250px */
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        /* 3. Memastikan elemen di dalam label rapi secara vertikal */
+        .filepond--drop-label>div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 !important;
+        }
+
+        /* 4. Mengatur panel kotak putus-putus */
+        .filepond--panel-root {
+            background-color: #ffffff !important;
+            border: 2px dashed #d1d5db !important;
+            border-radius: 1rem !important;
+            transition: all 0.3s ease;
+        }
+
+        /* 5. Efek Hover (Berubah biru saat kursor mendekat) */
+        .filepond--root:hover .filepond--panel-root {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+        }
+
+        /* 6. Warna untuk teks "Klik" */
+        .filepond--label-action {
+            text-decoration: none;
+            cursor: pointer;
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+        /* 7. Animasi Modal Batal (Bawaan kode Anda) */
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.97);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-scale-in {
+            animation: scaleIn 0.2s ease-out forwards;
+        }
+    </style>
+@endsection
+
 @section('content')
+
     {{-- breadcrumb --}}
     <section class="mb-5">
         <div class="text-xl font-semibold text-gray-700">
@@ -70,60 +146,15 @@
                 </div>
 
                 <div class="sm:col-span-2 lg:col-span-3">
-                    <label class="block text-sm font-bold mb-2 text-gray-800">Gambar Produk <span
-                            class="text-red-500">*</span></label>
-
-                    <label for="image" id="dropzone"
-                        class="relative group cursor-pointer mt-1 flex flex-col items-center justify-center min-h-[250px] w-full p-4 border-2 border-dashed rounded-2xl transition-all duration-300 overflow-hidden
-        @error('image') border-red-400 bg-red-50 @else border-gray-300 bg-white hover:border-blue-500 hover:bg-blue-50/50 @enderror">
-
-                        <input id="image" name="image" type="file" class="sr-only" accept="image/*" required>
-
-                        {{-- Tampilan Sebelum Upload (Placeholder) --}}
-                        <div id="uploadPlaceholder" class="flex flex-col items-center justify-center space-y-4 py-8">
-                            <div
-                                class="p-4 bg-blue-50 rounded-full group-hover:scale-110 transition-transform duration-300">
-                                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                    </path>
-                                </svg>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-base font-bold text-gray-700">Klik di mana saja untuk upload</p>
-                                <p class="text-xs text-gray-500 mt-1 font-medium italic">PNG, JPG, WEBP (Maksimum 2MB)</p>
-                            </div>
-                        </div>
-
-                        {{-- Tampilan Setelah Upload (Preview Kelas Dunia) --}}
-                        <div id="previewContainer"
-                            class="hidden absolute inset-0 flex flex-col items-center justify-center bg-white p-2 animate-scale-in">
-                            <div class="relative w-full h-full flex flex-col items-center justify-center">
-                                {{-- Gambarnya dibatasi tingginya agar tetap proporsional --}}
-                                <img id="imagePreview" src=""
-                                    class="max-h-[180px] w-auto object-contain rounded-lg shadow-sm" alt="Preview">
-
-                                {{-- Overlay Info Saat Hover --}}
-                                <div class="mt-4 flex flex-col items-center">
-                                    <span
-                                        class="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-widest rounded-full mb-1">Terpilih</span>
-                                    <p class="text-xs font-bold text-gray-400 group-hover:text-blue-600 transition-colors">
-                                        Klik lagi untuk mengganti gambar</p>
-                                </div>
-                            </div>
-                        </div>
+                    <label class="block text-sm font-bold mb-2 text-gray-800">
+                        Gambar Produk <span class="text-red-500">*</span>
                     </label>
 
+                    {{-- FilePond akan merender dirinya sendiri menggantikan input ini --}}
+                    <input type="file" name="image" id="imageInput" accept="image/png, image/jpeg, image/jpg" required>
+
                     @error('image')
-                        <div class="flex items-center mt-3 text-red-600 font-bold">
-                            <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                            <p class="text-[11px] uppercase tracking-wider">{{ $message }}</p>
-                        </div>
+                        <p class="mt-2 text-xs font-semibold text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
@@ -168,24 +199,15 @@
             </div>
         </div>
     </div>
+@endsection
 
-    <style>
-        @keyframes scaleIn {
-            from {
-                transform: scale(0.97);
-                opacity: 0;
-            }
+@section('addJs')
 
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .animate-scale-in {
-            animation: scaleIn 0.2s ease-out forwards;
-        }
-    </style>
+    <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         const modal = document.getElementById('cancelModal');
@@ -201,47 +223,38 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            const imageInput = document.getElementById('image');
-            const imagePreview = document.getElementById('imagePreview');
-            const previewContainer = document.getElementById('previewContainer');
-            const placeholder = document.getElementById('uploadPlaceholder');
-            const dropzone = document.getElementById('dropzone');
+            // Registrasi Plugin
+            FilePond.registerPlugin(
+                FilePondPluginFileValidateType,
+                FilePondPluginFileValidateSize,
+                FilePondPluginImagePreview
+            );
 
-            function handleFile(file) {
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        imagePreview.src = e.target.result;
-                        placeholder.classList.add('hidden');
-                        previewContainer.classList.remove('hidden');
-                    }
-                    reader.readAsDataURL(file);
-                }
-            }
+            const inputElement = document.querySelector('#imageInput');
 
-            imageInput.addEventListener('change', function(e) {
-                handleFile(e.target.files[0]);
-            });
-
-            // UX Drag & Drop
-            ['dragenter', 'dragover'].forEach(name => {
-                dropzone.addEventListener(name, (e) => {
-                    e.preventDefault();
-                    dropzone.classList.add('border-blue-500', 'bg-blue-50/50');
-                });
-            });
-
-            ['dragleave', 'drop'].forEach(name => {
-                dropzone.addEventListener(name, (e) => {
-                    e.preventDefault();
-                    dropzone.classList.remove('border-blue-500', 'bg-blue-50/50');
-                });
-            });
-
-            dropzone.addEventListener('drop', (e) => {
-                const file = e.dataTransfer.files[0];
-                imageInput.files = e.dataTransfer.files;
-                handleFile(file);
+            // Konfigurasi FilePond
+            FilePond.create(inputElement, {
+                storeAsFile: true,
+                acceptedFileTypes: ['image/png', 'image/jpeg', 'image/jpg'],
+                maxFileSize: '2MB',
+                labelIdle: `
+            <div class="flex flex-col items-center justify-center space-y-4 py-8">
+                <div class="p-4 bg-blue-50 rounded-full">
+                    <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <div class="text-center">
+                    <p class="text-base font-bold text-gray-700"><span class="filepond--label-action">Klik</span> atau Tarik file ke sini</p>
+                    <p class="text-xs text-gray-500 mt-1 font-medium">PNG, JPG, JPEG (Maksimum 2MB)</p>
+                </div>
+            </div>
+        `,
+                // Pesan error dalam bahasa Indonesia
+                labelFileTypeNotAllowed: 'Format file tidak didukung',
+                fileValidateTypeLabelExpectedTypes: 'Hanya PNG/JPG/JPEG',
+                labelMaxFileSizeExceeded: 'Ukuran file terlalu besar',
+                labelMaxFileSize: 'Maksimum 2MB',
             });
         });
     </script>
