@@ -99,9 +99,6 @@ class ProductController extends Controller
     public function editExecutive($id)
     {
         $product = Product::findOrFail($id);
-
-        // pastikan view ini sesuai file kamu:
-        // resources/views/admin/edit-executive-produk.blade.php
         return view('admin.ex_product.edit-executive-produk', compact('product'));
     }
 
@@ -167,8 +164,8 @@ class ProductController extends Controller
 
     public function destroyExecutive($id)
     {
-        $product = Product::withTrashed()->findOrFail($id); // aman kalau sudah sempat soft-deleted
-        $product->forceDelete(); // HAPUS PERMANEN dari database
+        $product = Product::withTrashed()->findOrFail($id);
+        $product->forceDelete();
 
         return redirect()
             ->route('admin.executive-produk')

@@ -55,7 +55,6 @@
             font-weight: 700;
         }
 
-        /* Animasi Modal */
         @keyframes scaleIn {
             from {
                 transform: scale(0.97);
@@ -173,10 +172,7 @@
                             @endif
                         </div>
                     @else
-                        {{-- Tampilan Edit (Grid: Kiri Gambar Saat Ini, Kanan FilePond) --}}
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                            {{-- Box Menampilkan Gambar yang Sudah Ada --}}
                             <div
                                 class="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-gray-300 shadow-sm min-h-[250px]">
                                 <span class="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Gambar Saat
@@ -197,7 +193,6 @@
                                 @endif
                             </div>
 
-                            {{-- Box Tempat Upload Baru Menggunakan FilePond --}}
                             <div class="md:col-span-2 flex flex-col justify-center">
                                 <input type="file" name="image" id="imageInput"
                                     accept="image/png, image/jpeg, image/jpg">
@@ -255,7 +250,6 @@
     <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
 
     <script>
-        // Modal Logic
         const modal = document.getElementById('cancelModal');
 
         function openCancelModal() {
@@ -269,7 +263,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // FilePond Initialization
             const inputElement = document.querySelector('#imageInput');
 
             if (inputElement && !inputElement.classList.contains('filepond--input')) {

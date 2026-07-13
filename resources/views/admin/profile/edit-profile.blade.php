@@ -118,7 +118,7 @@
                         class="{{ $inputClass }}" />
                 </div>
 
-                
+
             </div>
         </section>
 
@@ -262,7 +262,9 @@
         </div>
 
     </form>
+@endsection
 
+@section('addJs')
     @if (!$isReadOnly)
         <script>
             const bindFileName = (fileId, textId) => {
@@ -279,7 +281,7 @@
             bindFileName('ktp_2', 'ktp_2_name');
         </script>
     @endif
-
+    
     <script>
         const modal = document.getElementById('cancelModal');
 
@@ -293,5 +295,4 @@
             modal.classList.remove('flex');
         }
     </script>
-
 @endsection

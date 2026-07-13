@@ -44,6 +44,7 @@
             document.body.classList.remove('overflow-hidden');
         }
     }" @keydown.escape.window="if (open) closeDetail()">
+    
         <section class="mb-5">
             <div class="mb-4 text-xl font-semibold text-gray-700">
                 <span>Gudang</span>
@@ -123,6 +124,7 @@
                 </div>
             </form>
         </section>
+        
         {{-- @if (session('success'))
             <div class="mb-4 rounded-lg border border-green-300 bg-green-50 p-4 text-sm text-green-700">
                 {{ session('success') }}

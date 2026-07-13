@@ -5,12 +5,10 @@
 @section('menu-pemasaran-laporan-penjualan', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('addCss')
-    {{-- CSS Wajib FilePond --}}
     <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
     <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
 
     <style>
-        /* Styling FilePond */
         .filepond--root {
             font-family: inherit;
             margin-bottom: 0;
@@ -118,7 +116,7 @@
                     </select>
                 </div>
 
-                {{-- Contoh pada Nama Pembeli --}}
+                {{-- Nama Pembeli --}}
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Nama Pembeli</label>
                     <input type="text" name="customer_name" value="{{ old('customer_name') }}"
@@ -129,7 +127,7 @@
                     @enderror
                 </div>
 
-                {{-- Contoh pada Kontak Pembeli --}}
+                {{-- Kontak Pembeli --}}
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Kontak Pembeli</label>
                     <input type="text" name="customer_contact" value="{{ old('customer_contact') }}"
@@ -243,31 +241,9 @@
         </section>
 
         {{-- INVOICE --}}
-        {{-- <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-            <label for="invoice" class="block text-sm font-bold mb-3 text-gray-800">Bukti Pembayaran</label>
-
-            <div id="dropzone"
-                class="relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-400 bg-gray-100 px-6 py-8 text-center min-h-[220px]">
-                <input id="invoice" name="invoice" type="file" accept=".png,.jpg,.jpeg,.pdf"
-                    class="absolute inset-0 h-full w-full cursor-pointer opacity-0 z-10" />
-
-                <div id="dropzoneContent" class="flex flex-col items-center gap-3 w-full pointer-events-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-700" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
-                            d="M3 15a4 4 0 004 4h10a4 4 0 004-4m-4-4l-4-4m0 0L9 11m4-4v12" />
-                    </svg>
-                    <div class="text-sm text-gray-800">
-                        <span class="font-bold">Click to upload</span> or drag and drop
-                    </div>
-                    <div class="text-xs text-gray-600">PNG, JPG, JPEG, or PDF (MAX 3 Mb)</div>
-                </div>
-            </div>
-        </section> --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <label class="block text-sm font-bold mb-3 text-gray-800">Bukti Pembayaran</label>
 
-            {{-- Input FilePond menggantikan dropzone lama --}}
             <input type="file" name="invoice" id="invoicePond"
                 accept="image/png, image/jpeg, image/jpg, application/pdf">
 
@@ -683,7 +659,7 @@
 
             let dp = parseNumber(downPayment?.value || 0);
 
-            // PROFESIONAL VALIDATION: Jika DP 0 saat status terhutang, beri tanda visual
+            // Jika DP 0 saat status terhutang, beri tanda visual
             if (dp <= 0) {
                 downPayment.classList.add('border-red-500', 'bg-red-50');
             } else {
@@ -927,7 +903,6 @@
             });
         }
 
-        // Di dalam DOMContentLoaded
         const invoiceElement = document.querySelector('#invoicePond');
         if (invoiceElement) {
             FilePond.registerPlugin(
@@ -966,13 +941,11 @@
             const dpAmount = parseNumber(dpRaw);
 
             if (status === 'Terhutang' && dpAmount <= 0) {
-                e.preventDefault(); // STOP FORM DARI TERKIRIM
+                e.preventDefault(); 
 
-                // Beri peringatan visual
                 downPayment.classList.add('border-red-600', 'ring-2', 'ring-red-200');
                 downPayment.focus();
 
-                // Tampilkan alert profesional
                 alert('Gagal Simpan: Jika status Terhutang, Down Payment tidak boleh 0.');
             }
         });

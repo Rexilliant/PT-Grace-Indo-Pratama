@@ -13,18 +13,9 @@
             <span class="mx-1 text-gray-400">›</span>
             <span class="text-blue-600">Produk Varian</span>
         </div>
-
-        {{-- flash message --}}
-        {{-- @if (session('success'))
-            <div class="mt-3 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
-                {{ session('success') }}
-            </div>
-        @endif --}}
     </section>
 
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
-
-        {{-- TOP BAR --}}
         {{-- FILTER --}}
         <form method="GET" action="{{ route('admin.executive-produk-variant') }}" class="mb-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end">
@@ -180,7 +171,6 @@
                 </table>
             </div>
 
-            {{-- Pagination (pakai style custom kamu) --}}
             @if ($variants->hasPages())
                 {{ $variants->links('vendor.pagination.pagination') }}
             @endif

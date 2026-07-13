@@ -5,14 +5,10 @@
 @section('menu-pengadaan', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('addCss')
-    {{-- jQuery --}}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    {{-- Select2 CSS --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-    {{-- Select2 JS --}}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <style>
         .select2-container .select2-selection--single {
             height: 42px;
@@ -33,6 +29,7 @@
     </style>
 
 @endsection
+
 @section('content')
 
     {{-- breadcrumb --}}
@@ -114,14 +111,10 @@
 
             {{-- ITEMS CONTAINER --}}
             <div id="itemsContainer" class="space-y-4">
-
-                {{-- ITEM #0 (default) --}}
                 <section class="item-row border border-gray-200 rounded-lg p-4">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-2">Bahan Baku</label>
-
                             <select name="items[0][raw_material_id]"
                                 class="rawMaterialSelect w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900">
                                 <option value="">-- Pilih Bahan --</option>
@@ -148,7 +141,6 @@
                                 Hapus
                             </button>
                         </div>
-
                     </div>
                 </section>
 

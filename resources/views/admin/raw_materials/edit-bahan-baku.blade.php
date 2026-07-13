@@ -113,6 +113,9 @@
         </div>
     </div>
 
+@endsection
+
+@section('addJs')
     <script>
         const modal = document.getElementById('cancelModal');
 
@@ -126,5 +129,4 @@
             modal.classList.remove('flex');
         }
     </script>
-
 @endsection

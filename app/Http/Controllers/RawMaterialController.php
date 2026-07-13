@@ -120,18 +120,11 @@ class RawMaterialController extends Controller
         return view('admin.raw_materials_inventory.gudang-stok-bahan-baku', compact('stocks', 'warehouses'));
     }
 
-    /**
-     * FORM TAMBAH
-     */
     public function create()
     {
         return view('admin.raw_materials.add-bahan-baku');
     }
 
-    /**
-     * SIMPAN (4 input)
-     * + bikin stok default di raw_material_stocks
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -163,9 +156,6 @@ class RawMaterialController extends Controller
             ->with('success', 'Bahan baku berhasil ditambahkan!');
     }
 
-    /**
-     * FORM EDIT (master barang aja)
-     */
     public function edit($id)
     {
         $material = RawMaterial::with('stock')->findOrFail($id);
@@ -173,9 +163,6 @@ class RawMaterialController extends Controller
         return view('admin.raw_materials.edit-bahan-baku', compact('material'));
     }
 
-    /**
-     * UPDATE (master barang aja)
-     */
     public function update(Request $request, $id)
     {
         $request->validate([

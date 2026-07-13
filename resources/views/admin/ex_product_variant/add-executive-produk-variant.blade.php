@@ -10,7 +10,6 @@
     <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
 
     <style>
-        /* Styling FilePond */
         .filepond--root {
             font-family: inherit;
             margin-bottom: 0;
@@ -55,7 +54,6 @@
             font-weight: 700;
         }
 
-        /* Animasi Modal */
         @keyframes scaleIn {
             from {
                 transform: scale(.95);
@@ -92,8 +90,6 @@
 
         {{-- FORM CARD --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
-
-            {{-- pilih produk (relasi product_id) --}}
             <div class="mb-4">
                 <label class="block text-sm font-bold mb-2">Pilih Produk</label>
                 <select name="product_id"
@@ -224,7 +220,7 @@
         </div>
     </form>
 
-    {{-- MODAL BATAL (Tetap menggunakan desain asli variant) --}}
+    {{-- MODAL BATAL --}}
     <div id="cancelModal"
         class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/50 backdrop-blur-sm px-4">
         <div class="bg-white rounded-xl shadow-xl w-full max-w-md animate-scale-in">
@@ -260,7 +256,6 @@
     <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
 
     <script>
-        // Modal Logic
         const modal = document.getElementById('cancelModal');
 
         function openCancelModal() {

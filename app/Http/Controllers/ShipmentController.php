@@ -751,7 +751,7 @@ class ShipmentController extends Controller
 
             DB::transaction(function () use ($shipment) {
 
-                // ✅ simpan siapa yang delete (TAMBAHAN INTI)
+                // simpan siapa yang delete
                 $shipment->deleted_by = auth()->id();
                 $shipment->save();
 

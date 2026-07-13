@@ -65,7 +65,6 @@
         $canEditEmployee = auth()->user()->can('edit karyawan');
         $canReadEmployee = auth()->user()->can('baca karyawan');
 
-        // jika hanya punya baca karyawan atau tidak punya edit, maka lock form
         $isReadOnly = !$canEditEmployee;
 
         $inputClass = $isReadOnly

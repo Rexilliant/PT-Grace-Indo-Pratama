@@ -25,11 +25,7 @@ class ShipmentReceiptItem extends Model
         'deleted_at' => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
+    //  Relationships
 
     public function shipmentReceipt()
     {

@@ -102,9 +102,6 @@
             <section class="bg-gray-200/80 {{ $sectionClass }}">
                 <div class="mb-4">
                     <h3 class="text-base font-bold text-gray-800">Bahan Baku</h3>
-                    {{-- <p class="mt-1 text-sm text-gray-600">
-                        Pilih bahan baku satu per satu agar form lebih rapi dan mudah diatur.
-                    </p> --}}
                 </div>
 
                 <template x-if="!selectedWarehouse">
@@ -259,7 +256,9 @@
             </div>
         </div>
     </div>
+@endsection
 
+@section('addJs')
     <script>
         function productionForm() {
             return {

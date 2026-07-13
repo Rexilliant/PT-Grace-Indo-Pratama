@@ -289,7 +289,9 @@
             </div>
         </div>
     </div>
+@endsection
 
+@section('addJs')
     <script>
         function productionEditForm(config) {
             return {

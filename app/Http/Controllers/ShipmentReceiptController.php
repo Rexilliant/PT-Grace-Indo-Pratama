@@ -261,7 +261,7 @@ class ShipmentReceiptController extends Controller
             'shipment.warehouse',
             'receivedBy',
             'items.shipmentItem.productStock.productVariant',
-            'media', // Tambahkan ini untuk memanggil file gambar
+            'media',
         ])->findOrFail($id);
 
         return view('admin.shipment-receipts.print-shipment-receipt', compact('shipmentReceipt'));
@@ -288,7 +288,7 @@ class ShipmentReceiptController extends Controller
             'items.*.shipment_item_id' => 'required|exists:shipment_items,id',
             'items.*.qty_received' => 'required|integer|min:0',
 
-            // ✅ TAMBAHAN (UPLOAD)
+            // TAMBAHAN (UPLOAD)
             'damage_proofs' => 'nullable|array',
             'damage_proofs.*' => 'file|mimes:jpg,jpeg,png,pdf|max:3072',
         ], [
@@ -340,7 +340,7 @@ class ShipmentReceiptController extends Controller
                 ]);
             }
 
-            // ✅ TAMBAHAN (UPLOAD FILE)
+            // TAMBAHAN (UPLOAD FILE)
             if ($request->hasFile('damage_proofs')) {
                 foreach ($request->file('damage_proofs') as $file) {
                     if (!$file->isValid()) {
@@ -492,6 +492,7 @@ class ShipmentReceiptController extends Controller
             | Saat status berubah menjadi approved, masukkan stok ke gudang tujuan
             | dan catat pergerakan stok sebagai type = in.
             */
+
             if ($newStatus === 'disetujui') {
                 $shipmentReceipt->approved_by_id = Auth::id();
                 $shipmentReceipt->approved_at = now();
@@ -556,11 +557,7 @@ class ShipmentReceiptController extends Controller
                 }
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | REJECTED
-            |--------------------------------------------------------------------------
-            */
+            // REJECTED
             if ($newStatus === 'ditolak') {
                 $shipmentReceipt->rejected_by_id = Auth::id();
                 $shipmentReceipt->rejected_at = now();
@@ -570,11 +567,7 @@ class ShipmentReceiptController extends Controller
 
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | RECEIVED
-            |--------------------------------------------------------------------------
-            */
+            // RECEIVED
             if ($newStatus === 'diterima') {
                 $shipmentReceipt->approved_by_id = null;
                 $shipmentReceipt->approved_at = null;

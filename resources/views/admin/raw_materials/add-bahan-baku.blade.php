@@ -167,7 +167,10 @@
             </div>
         </section>
     </template>
+    
+@endsection
 
+@section('addJs')
     <script>
         const modal = document.getElementById('cancelModal');
 
@@ -211,4 +214,4 @@
             bindRemoveRowEvent(row);
         });
     </script>
-@endsection
+@section()

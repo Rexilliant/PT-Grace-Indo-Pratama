@@ -30,10 +30,6 @@
         .select2-dropdown {
             border-radius: 0.375rem;
         }
-
-        /* ========================================= */
-        /* 1. STATE KOSONG (BELUM ADA FILE)          */
-        /* ========================================= */
         .filepond--root {
             font-family: inherit;
             margin-bottom: 0;
@@ -70,10 +66,6 @@
             color: #3b82f6;
             font-weight: 700;
         }
-
-        /* ========================================= */
-        /* 2. STATE TERISI (MODE SLIDER HORIZONTAL)  */
-        /* ========================================= */
         .filepond--root.has-files {
             height: 280px !important;
             min-height: 280px !important;
@@ -81,7 +73,6 @@
 
         .filepond--root.has-files .filepond--panel-root {
             transform: none !important;
-            /* Mencegah regangan ke bawah */
             height: 100% !important;
         }
 
@@ -718,7 +709,6 @@
 
             input.dataset.pondInited = '1';
 
-            // HTML Template untuk Ikon dan Teks
             const customIconPlaceholder = `
                 <div class="flex flex-col items-center justify-center w-full">
                     <div class="fp-icon-large p-4 bg-blue-50 rounded-full mb-4 transition-transform duration-300 hover:scale-110">
@@ -746,7 +736,6 @@
                 acceptedFileTypes: ['image/png', 'image/jpeg', 'application/pdf'],
                 maxFileSize: '3MB',
 
-                // Gunakan template desain yang baru
                 labelIdle: customIconPlaceholder,
 
                 labelFileTypeNotAllowed: 'Format file tidak didukung',
@@ -754,7 +743,6 @@
                 labelMaxFileSizeExceeded: 'Ukuran file terlalu besar',
                 labelMaxFileSize: 'Maksimum 3MB',
 
-                // Event listener untuk mentrigger mode slider horizontal
                 onupdatefiles: (files) => {
                     const rootElement = document.getElementById('invoicesPond').closest(
                         '.filepond--root');

@@ -192,6 +192,7 @@
                                                 </button>
                                             </form>
                                         @endif --}}
+                                        
                                         @can('hapus karyawan')
                                             <form action="{{ route('delete.employee', $employee->id) }}" method="POST"
                                                 class="inline-block form-delete">

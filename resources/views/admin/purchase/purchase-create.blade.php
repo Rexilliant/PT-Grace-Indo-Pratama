@@ -31,9 +31,6 @@
             border-radius: 0.375rem;
         }
 
-        /* ========================================= */
-        /* 1. STATE KOSONG (BELUM ADA FILE)          */
-        /* ========================================= */
         .filepond--root {
             font-family: inherit;
             margin-bottom: 0;
@@ -63,7 +60,6 @@
             padding: 1.5rem !important;
             height: 100% !important;
             min-height: 260px;
-            /* Memastikan teks di tengah */
         }
 
         .filepond--label-action {
@@ -73,12 +69,6 @@
             font-weight: 700;
         }
 
-
-        /* ========================================= */
-        /* 2. STATE TERISI (MODE SLIDER HORIZONTAL)  */
-        /* ========================================= */
-
-        /* KUNCI UTAMA: Kunci tinggi container agar JS FilePond tidak membuatnya memanjang! */
         .filepond--root.has-files {
             height: 280px !important;
             min-height: 280px !important;
@@ -86,11 +76,9 @@
 
         .filepond--root.has-files .filepond--panel-root {
             transform: none !important;
-            /* BARIS SAKTI: Mematikan paksa regangan ke bawah dari JS FilePond */
             height: 100% !important;
         }
 
-        /* Header bar di atas ("+ Tambah Dokumen Lain") */
         .filepond--root.has-files .filepond--drop-label {
             position: absolute !important;
             top: 0 !important;
@@ -107,13 +95,11 @@
             transform: none !important;
         }
 
-        /* Sembunyikan ikon & teks besar saat terisi */
         .filepond--root.has-files .fp-icon-large,
         .filepond--root.has-files .fp-text-large {
             display: none !important;
         }
 
-        /* Tampilkan teks mini dan pastikan di tengah bar */
         .filepond--root.has-files .fp-text-mini {
             display: flex !important;
             align-items: center;
@@ -122,7 +108,6 @@
             height: 100%;
         }
 
-        /* Wrapper Scroll Horizontal (Mengisi sisa ruang di bawah header bar) */
         .filepond--root.has-files .filepond--list-scroller {
             position: absolute !important;
             top: 45px !important;
@@ -138,7 +123,6 @@
             margin-top: 0 !important;
         }
 
-        /* Flex row untuk list gambar */
         .filepond--root.has-files .filepond--list {
             display: flex !important;
             flex-direction: row !important;
@@ -148,7 +132,6 @@
             height: 100% !important;
         }
 
-        /* Ukuran spesifik tiap kotak file di dalam slider */
         .filepond--root.has-files .filepond--item {
             position: static !important;
             transform: none !important;
@@ -159,7 +142,6 @@
             margin: 0 !important;
         }
 
-        /* Scrollbar Custom Minimalis */
         .filepond--list-scroller::-webkit-scrollbar {
             height: 8px;
         }
@@ -622,7 +604,6 @@
                 },
 
                 initFilePond() {
-                    // Memanggil menggunakan ID sesuai permintaan Anda
                     const input = document.getElementById('imageInput');
 
                     if (!input || typeof FilePond === 'undefined') return;
@@ -672,16 +653,13 @@
                         labelMaxFileSize: 'Maksimum 3MB',
 
                         onupdatefiles: (files) => {
-                            // Mencari elemen bungkus paling luar dari FilePond
                             const rootElement = document.getElementById('imageInput').closest(
                                 '.filepond--root');
 
                             if (rootElement) {
                                 if (files.length > 0) {
-                                    // Jika ada file, aktifkan mode slider!
                                     rootElement.classList.add('has-files');
                                 } else {
-                                    // Jika file kosong/dihapus semua, kembali ke mode normal
                                     rootElement.classList.remove('has-files');
                                 }
                             }

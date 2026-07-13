@@ -48,12 +48,7 @@ class Shipment extends Model implements HasMedia
         'received_at' => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
+    //  Relationships
     public function personResponsible()
     {
         return $this->belongsTo(User::class, 'person_responsible_id');

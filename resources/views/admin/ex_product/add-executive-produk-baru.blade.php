@@ -1,36 +1,30 @@
 @extends('admin.layout.master')
 
-{{-- sidebar active --}}
 @section('open-executive', 'open')
 @section('menu-executive', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-executive-produk', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 
 @section('addCss')
-    {{-- CSS Wajib FilePond --}}
     <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
     <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
 
     <style>
-        /* 1. Mengatur bungkus utama FilePond */
         .filepond--root {
             font-family: inherit;
             margin-bottom: 0;
             min-height: 250px !important;
         }
 
-        /* 2. INI KUNCI PERBAIKANNYA: Mengatur area teks & ikon agar tinggi & letaknya di tengah */
         .filepond--drop-label {
             background-color: transparent !important;
             cursor: pointer;
             min-height: 250px !important;
-            /* Memaksa kotak menjadi tinggi 250px */
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
         }
 
-        /* 3. Memastikan elemen di dalam label rapi secara vertikal */
         .filepond--drop-label>div {
             display: flex;
             flex-direction: column;
@@ -39,7 +33,6 @@
             margin: 0 !important;
         }
 
-        /* 4. Mengatur panel kotak putus-putus */
         .filepond--panel-root {
             background-color: #ffffff !important;
             border: 2px dashed #d1d5db !important;
@@ -47,13 +40,11 @@
             transition: all 0.3s ease;
         }
 
-        /* 5. Efek Hover (Berubah biru saat kursor mendekat) */
         .filepond--root:hover .filepond--panel-root {
             border-color: #3b82f6 !important;
             background-color: #eff6ff !important;
         }
 
-        /* 6. Warna untuk teks "Klik" */
         .filepond--label-action {
             text-decoration: none;
             cursor: pointer;
@@ -61,7 +52,6 @@
             font-weight: 700;
         }
 
-        /* 7. Animasi Modal Batal (Bawaan kode Anda) */
         @keyframes scaleIn {
             from {
                 transform: scale(0.97);
@@ -150,7 +140,6 @@
                         Gambar Produk <span class="text-red-500">*</span>
                     </label>
 
-                    {{-- FilePond akan merender dirinya sendiri menggantikan input ini --}}
                     <input type="file" name="image" id="imageInput" accept="image/png, image/jpeg, image/jpg" required>
 
                     @error('image')
@@ -250,7 +239,6 @@
                 </div>
             </div>
         `,
-                // Pesan error dalam bahasa Indonesia
                 labelFileTypeNotAllowed: 'Format file tidak didukung',
                 fileValidateTypeLabelExpectedTypes: 'Hanya PNG/JPG/JPEG',
                 labelMaxFileSizeExceeded: 'Ukuran file terlalu besar',

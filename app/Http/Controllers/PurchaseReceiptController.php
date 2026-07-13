@@ -230,9 +230,6 @@ class PurchaseReceiptController extends Controller
             'invoices.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'], // 3MB
         ]);
 
-        // Cek apakah items berisi raw_material_id dan quantity_received
-        // dd($validated['items']);
-
         $rawIds = collect($validated['items'])->pluck('raw_material_id')->unique()->values();
         $count = RawMaterial::whereIn('id', $rawIds)->count();
         if ($count !== $rawIds->count()) {
@@ -244,7 +241,7 @@ class PurchaseReceiptController extends Controller
             $receipt = DB::transaction(function () use ($request, $validated) {
                 $userId = auth()->id();
 
-                // Receipt number (silakan sesuaikan format)
+                // Receipt number 
                 $receiptNumber = 'RCPT-'.now()->format('Ymd').'-'.strtoupper(Str::random(6));
                 $procurement = Procurement::findOrFail($validated['procurement_id']);
                 $warehouse_id = $procurement->warehouse_id;
@@ -330,7 +327,7 @@ class PurchaseReceiptController extends Controller
     public function addMedia(Request $request, $id)
     {
         $request->validate([
-            'invoices' => ['required'], // jangan paksa array
+            'invoices' => ['required'], 
             'invoices.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'],
         ]);
         try {
@@ -371,8 +368,6 @@ class PurchaseReceiptController extends Controller
 
     public function edit($id)
     {
-        // Hapus atau gunakan untuk debugging lainnya, seperti menampilkan ID yang diterima
-        // dd($id);
         $warehouses = Warehouse::all();
 
         $receipt = PurchaseReceipt::with([
@@ -388,7 +383,6 @@ class PurchaseReceiptController extends Controller
             ->orWhere('id', $receipt->procurement_id)
             ->get();
 
-        // filter collection invoices saja (tidak query lagi)
         $invoices = $receipt->media
             ->where('collection_name', 'invoices')
             ->values();

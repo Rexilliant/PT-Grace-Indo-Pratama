@@ -27,7 +27,6 @@ class Employee extends Model implements HasMedia
         'warehouse_id',
     ];
 
-    // relasi ke user
     public function user()
     {
         return $this->hasOne(User::class);
@@ -38,7 +37,6 @@ class Employee extends Model implements HasMedia
     }
     public function registerMediaCollections(): void
     {
-        // hanya 1 file, upload baru akan replace yang lama
         $this->addMediaCollection('profile_images')
             ->singleFile();
     }

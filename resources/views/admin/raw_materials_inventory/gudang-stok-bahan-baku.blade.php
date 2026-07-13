@@ -55,7 +55,7 @@
                         @endforeach
                     </select>
                 </div>
-                {{-- Per Page --}}
+
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
                         Tampilkan
@@ -118,10 +118,8 @@
                 </table>
             </div>
 
-            {{-- footer / pagination (mobile + ipad aman) --}}
+            {{-- footer / pagination --}}
             {{ $stocks->links('vendor.pagination.pagination') }}
-
-
 
         </div>
     </section>

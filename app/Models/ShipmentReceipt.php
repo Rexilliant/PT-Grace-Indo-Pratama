@@ -36,22 +36,13 @@ class ShipmentReceipt extends Model implements HasMedia
         'deleted_at' => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | MEDIA COLLECTION
-    |--------------------------------------------------------------------------
-    */
+    //  MEDIA COLLECTION
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('damage_proofs');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
+    // Relationships
     public function shipment()
     {
         return $this->belongsTo(Shipment::class);

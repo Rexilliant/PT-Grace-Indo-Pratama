@@ -6,7 +6,6 @@
 @section('menu-executive-produk-variant', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('addCss')
-    {{-- CSS Wajib FilePond --}}
     <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
     <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
 
@@ -55,7 +54,6 @@
             font-weight: 700;
         }
 
-        /* Animasi Modal */
         @keyframes scaleIn {
             from {
                 transform: scale(.95);
@@ -243,8 +241,6 @@
                     </div>
                 @else
                     <div class="grid grid-cols-1 gap-6 md:grid-cols-3 mt-1">
-
-                        {{-- Box Kiri: Menampilkan Gambar yang Sudah Ada / Fallback Logo --}}
                         <div
                             class="flex min-h-[250px] flex-col items-center justify-center rounded-xl border border-gray-300 bg-white p-4 shadow-sm">
                             <span class="mb-2 text-xs font-bold uppercase tracking-wider text-gray-400">Gambar Saat
@@ -261,7 +257,6 @@
                             @endif
                         </div>
 
-                        {{-- Box Kanan: FilePond --}}
                         <div class="flex flex-col justify-center md:col-span-2">
                             <input type="file" name="image" id="imageInput"
                                 accept="image/png, image/jpeg, image/jpg">
@@ -276,7 +271,6 @@
                                 </div>
                             @enderror
                         </div>
-
                     </div>
                 @endif
 
