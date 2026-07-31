@@ -416,7 +416,7 @@
 
                 Swal.fire({
                     title: 'Anda yakin?',
-                    text: 'Data gudang yang dihapus tidak bisa dikembalikan.',
+                    text: 'Data Laporan Produksi yang dihapus tidak bisa dikembalikan.',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#dc2626',

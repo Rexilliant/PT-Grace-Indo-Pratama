@@ -167,7 +167,7 @@
             </div>
         </section>
     </template>
-    
+
 @endsection
 
 @section('addJs')
@@ -214,4 +214,4 @@
             bindRemoveRowEvent(row);
         });
     </script>
-@section()
+@endsection

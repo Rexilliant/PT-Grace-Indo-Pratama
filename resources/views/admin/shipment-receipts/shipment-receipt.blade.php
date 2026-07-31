@@ -247,7 +247,7 @@
 
                 Swal.fire({
                     title: 'Anda yakin?',
-                    text: 'Data Shipment Receipt yang dihapus tidak bisa dikembalikan.',
+                    text: 'Data Penerimaan Pengiriman yang dihapus tidak bisa dikembalikan.',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#dc2626',
