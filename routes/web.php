@@ -191,6 +191,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::post('/create', 'store')->middleware(['auth', 'permission:tambah role'])->name('admin.store-role');
         Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit role'])->name('edit.role');
         Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit role'])->name('update.role');
+        Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus role'])->name('delete.role');
     });
     Route::controller(PermissionController::class)->prefix('permissions')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca izin'])->name('permissions');

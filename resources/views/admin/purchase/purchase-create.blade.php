@@ -159,6 +159,10 @@
         .filepond--list-scroller::-webkit-scrollbar-thumb:hover {
             background: #64748b;
         }
+
+        .select2-container.select2-error .select2-selection--single {
+            border-color: #ef4444 !important;
+        }
     </style>
 @endsection
 
@@ -287,7 +291,8 @@
                         <select :id="`material_${item.key}`" x-ref="materialSelects" x-bind:data-key="item.key"
                             x-model="item.raw_material_id" x-init="item.raw_material_id = item.raw_material_id || ''"
                             :name="`items[${index}][raw_material_id]`"
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900">
+                            :class="fieldError(`items.${index}.raw_material_id`) ? 'border-red-500' : 'border-gray-400'"
+                            class="w-full rounded-md border bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900">
                             <option value="">-- Pilih Barang --</option>
                             @foreach ($rawMaterials as $rm)
                                 <option value="{{ $rm->id }}">{{ $rm->name }}</option>
@@ -303,7 +308,8 @@
                         <label class="block text-sm font-bold mb-2">Jumlah Barang Masuk</label>
                         <input :name="`items[${index}][quantity_received]`" x-model="item.quantity_received" type="number"
                             placeholder="Contoh: 150" min="1"
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
+                            :class="fieldError(`items.${index}.quantity_received`) ? 'border-red-500' : 'border-gray-400'"
+                            class="w-full rounded-md border bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
                         <p class="mt-1 text-xs text-red-600" x-show="fieldError(`items.${index}.quantity_received`)"
                             x-text="fieldError(`items.${index}.quantity_received`)"></p>
                     </div>
@@ -555,10 +561,8 @@
 
                 initMaterialSelects() {
                     if (!this.hasSelect2()) return;
-
                     const refs = this.$refs.materialSelects;
                     if (!refs) return;
-
                     const els = Array.isArray(refs) ? refs : [refs];
 
                     els.forEach((el) => {
@@ -569,23 +573,24 @@
                             placeholder: '-- Pilih Barang --',
                             allowClear: true
                         });
-
                         el.dataset.inited = '1';
 
                         const key = el.dataset.key;
-                        const idxInit = this.items.findIndex(x => x.key === key);
+                        const idx = this.items.findIndex(x => x.key === key);
 
-                        if (idxInit !== -1 && this.items[idxInit].raw_material_id) {
-                            $(el).val(String(this.items[idxInit].raw_material_id)).trigger('change.select2');
+                        // toggle error class saat init
+                        if (idx !== -1 && this.fieldError(`items.${idx}.raw_material_id`)) {
+                            $(el).next('.select2-container').addClass('select2-error');
+                        }
+
+                        if (idx !== -1 && this.items[idx].raw_material_id) {
+                            $(el).val(String(this.items[idx].raw_material_id)).trigger('change.select2');
                         }
 
                         $(el).on('change', () => {
                             const val = $(el).val() || '';
-                            const idx = this.items.findIndex(x => x.key === key);
-
-                            if (idx !== -1) {
-                                this.items[idx].raw_material_id = val ? parseInt(val, 10) : '';
-                            }
+                            const i = this.items.findIndex(x => x.key === key);
+                            if (i !== -1) this.items[i].raw_material_id = val ? parseInt(val, 10) : '';
                         });
                     });
                 },

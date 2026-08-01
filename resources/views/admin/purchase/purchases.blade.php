@@ -116,6 +116,7 @@
                     <thead class="bg-[#5aba6f]/70 text-gray-900">
                         <tr>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Tanggal Masuk</th>
+                            <th scope="col" class="px-6 py-4 font-extrabold text-left">Id Pengadaan</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Nama Penerima</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Gudang</th>
                             <th scope="col" class="px-6 py-4 font-extrabold text-left">Aksi</th>
@@ -131,6 +132,7 @@
 
                             <tr class="hover:bg-gray-300">
                                 <td class="px-6 py-4 font-semibold">{{ $receipt->received_at->format('d/m/Y') }}</td>
+                                <td class="px-6 py-4 font-semibold">{{ $receipt->procurement_id }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $receipt->receivedBy->name }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $receipt->warehouse->name }}</td>
                                 <td class="px-6 py-3">

@@ -218,17 +218,30 @@ class PurchaseReceiptController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request->all()); // Menampilkan semua data yang diterima
-        $validated = $request->validate([
-            'procurement_id' => ['required', 'integer', 'exists:procurements,id'],
-            'received_at' => ['required', 'date'],
-            'total_price' => ['nullable', 'integer', 'min:0'],
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.raw_material_id' => ['required', 'integer', 'exists:raw_materials,id'],
-            'items.*.quantity_received' => ['required', 'integer', 'min:1'],
-            'invoices' => ['required', 'array'],
-            'invoices.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'], // 3MB
-        ]);
+        $validated = $request->validate(
+            [
+                'procurement_id' => ['required', 'integer', 'exists:procurements,id'],
+                'received_at' => ['required', 'date'],
+                'total_price' => ['required', 'integer', 'min:0'],
+                'items' => ['required', 'array', 'min:1'],
+                'items.*.raw_material_id' => ['required', 'integer', 'exists:raw_materials,id'],
+                'items.*.quantity_received' => ['required', 'integer', 'min:1'],
+                'invoices' => ['required', 'array'],
+                'invoices.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'],
+            ],
+            [
+                'items.required' => 'Minimal harus ada 1 item barang.',
+                'items.min' => 'Minimal harus ada 1 item barang.',
+
+                'items.*.raw_material_id.required' => 'Silakan pilih barang.',
+                'items.*.raw_material_id.integer' => 'Barang tidak valid.',
+                'items.*.raw_material_id.exists' => 'Barang tidak valid.',
+
+                'items.*.quantity_received.required' => 'Jumlah barang masuk wajib diisi.',
+                'items.*.quantity_received.integer' => 'Jumlah harus berupa angka.',
+                'items.*.quantity_received.min' => 'Jumlah minimal 1.',
+            ],
+        );
 
         $rawIds = collect($validated['items'])->pluck('raw_material_id')->unique()->values();
         $count = RawMaterial::whereIn('id', $rawIds)->count();
@@ -241,7 +254,7 @@ class PurchaseReceiptController extends Controller
             $receipt = DB::transaction(function () use ($request, $validated) {
                 $userId = auth()->id();
 
-                // Receipt number 
+                // Receipt number
                 $receiptNumber = 'RCPT-'.now()->format('Ymd').'-'.strtoupper(Str::random(6));
                 $procurement = Procurement::findOrFail($validated['procurement_id']);
                 $warehouse_id = $procurement->warehouse_id;
@@ -327,7 +340,7 @@ class PurchaseReceiptController extends Controller
     public function addMedia(Request $request, $id)
     {
         $request->validate([
-            'invoices' => ['required'], 
+            'invoices' => ['required'],
             'invoices.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'],
         ]);
         try {

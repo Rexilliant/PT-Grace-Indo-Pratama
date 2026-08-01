@@ -122,7 +122,7 @@
                                             |
                                         @endcan
 
-                                        <form action="#" method="POST" class="inline-block form-delete">
+                                        <form action="{{ route('delete.role', ['id' => $role->id]) }}" method="POST" class="inline-block form-delete">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600 hover:underline">

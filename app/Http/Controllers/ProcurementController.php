@@ -8,6 +8,7 @@ use App\Models\RawMaterial;
 use App\Models\Warehouse;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -19,18 +20,12 @@ class ProcurementController extends Controller
     public function export(Request $request)
     {
         $q = Procurement::query()
-            ->with([
-                'userRequest',
-                'warehouse',
-                'procurement_items.raw_material.stock',
-                'userApproved',
-                'userRejected',
-            ])
+            ->with(['userRequest', 'warehouse', 'procurement_items.raw_material.stock', 'userApproved', 'userRejected'])
             ->orderBy('created_at', 'desc');
 
         if ($request->filled('name')) {
             $q->whereHas('userRequest', function ($query) use ($request) {
-                $query->where('name', 'like', '%'.$request->name.'%');
+                $query->where('name', 'like', '%' . $request->name . '%');
             });
         }
 
@@ -62,29 +57,23 @@ class ProcurementController extends Controller
 
                 $rows->push([
                     'ID Pengadaan' => $p->id,
-                    'Tanggal Pemesanan' => $p->purchase_at
-                        ? Carbon::parse($p->purchase_at)->format('d/m/Y')
-                        : '-',
+                    'Tanggal Pemesanan' => $p->purchase_at ? Carbon::parse($p->purchase_at)->format('d/m/Y') : '-',
                     'Nama Pemesan' => $p->userRequest->name ?? '-',
                     'Gudang' => $p->warehouse->name ?? '-',
                     'Status' => $p->status ?? '-',
                     'Catatan' => $p->note ?? '-',
                     'Alasan Penolakan' => $p->reason ?? '-',
 
-                    'Kode Raw Material' => $rawMaterial->code ?? 'RM-'.($rawMaterial->id ?? '-'),
+                    'Kode Raw Material' => $rawMaterial->code ?? 'RM-' . ($rawMaterial->id ?? '-'),
                     'Nama Raw Material' => $rawMaterial->name ?? '-',
                     'Stok' => $rawMaterial->stock->stock ?? 0,
                     'Jumlah Diminta' => $item->quantity_requested ?? 0,
                     'Satuan' => $rawMaterial->unit ?? '-',
 
                     'Approved By' => $p->userApproved->name ?? '-',
-                    'Approved At' => $p->approved_at
-                        ? Carbon::parse($p->approved_at)->format('d/m/Y H:i')
-                        : '-',
+                    'Approved At' => $p->approved_at ? Carbon::parse($p->approved_at)->format('d/m/Y H:i') : '-',
                     'Rejected By' => $p->userRejected->name ?? '-',
-                    'Rejected At' => $p->rejected_at
-                        ? Carbon::parse($p->rejected_at)->format('d/m/Y H:i')
-                        : '-',
+                    'Rejected At' => $p->rejected_at ? Carbon::parse($p->rejected_at)->format('d/m/Y H:i') : '-',
                 ]);
 
                 $currentRow++;
@@ -100,8 +89,7 @@ class ProcurementController extends Controller
             }
         });
 
-        $export = new class($rows, $mergeRanges) implements FromCollection, WithEvents, WithHeadings
-        {
+        $export = new class ($rows, $mergeRanges) implements FromCollection, WithEvents, WithHeadings {
             public function __construct(private $rows, private $mergeRanges) {}
 
             public function collection()
@@ -111,24 +99,7 @@ class ProcurementController extends Controller
 
             public function headings(): array
             {
-                return [
-                    'ID Pengadaan',
-                    'Tanggal Pemesanan',
-                    'Nama Pemesan',
-                    'Gudang',
-                    'Status',
-                    'Catatan',
-                    'Alasan Penolakan',
-                    'Kode Raw Material',
-                    'Nama Raw Material',
-                    'Stok',
-                    'Jumlah Diminta',
-                    'Satuan',
-                    'Approved By',
-                    'Approved At',
-                    'Rejected By',
-                    'Rejected At',
-                ];
+                return ['ID Pengadaan', 'Tanggal Pemesanan', 'Nama Pemesan', 'Gudang', 'Status', 'Catatan', 'Alasan Penolakan', 'Kode Raw Material', 'Nama Raw Material', 'Stok', 'Jumlah Diminta', 'Satuan', 'Approved By', 'Approved At', 'Rejected By', 'Rejected At'];
             }
 
             public function registerEvents(): array
@@ -137,9 +108,7 @@ class ProcurementController extends Controller
                     AfterSheet::class => function (AfterSheet $event) {
                         foreach ($this->mergeRanges as $range) {
                             foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'M', 'N', 'O', 'P'] as $column) {
-                                $event->sheet->mergeCells(
-                                    $column.$range['start'].':'.$column.$range['end']
-                                );
+                                $event->sheet->mergeCells($column . $range['start'] . ':' . $column . $range['end']);
                             }
                         }
                     },
@@ -147,7 +116,7 @@ class ProcurementController extends Controller
             }
         };
 
-        return Excel::download($export, 'procurements_'.now()->format('Ymd_His').'.xlsx');
+        return Excel::download($export, 'procurements_' . now()->format('Ymd_His') . '.xlsx');
     }
 
     public function index(Request $request)
@@ -165,7 +134,7 @@ class ProcurementController extends Controller
 
         if ($request->filled('name')) {
             $q->whereHas('userRequest', function ($query) use ($request) {
-                $query->where('name', 'like', '%'.$request->name.'%');
+                $query->where('name', 'like', '%' . $request->name . '%');
             });
         }
 
@@ -174,7 +143,7 @@ class ProcurementController extends Controller
         }
 
         // Filter warehouse_id dari request hanya berlaku kalau user tidak punya gudang
-        if (! $warehouseId && $request->filled('warehouse_id')) {
+        if (!$warehouseId && $request->filled('warehouse_id')) {
             $q->where('warehouse_id', $request->warehouse_id);
         }
 
@@ -186,7 +155,7 @@ class ProcurementController extends Controller
             $q->whereDate('purchase_at', '<=', $request->date_to);
         }
 
-        $perPage = (int) ($request->get('per_page', 10));
+        $perPage = (int) $request->get('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
 
         $procurements = $q->paginate($perPage)->withQueryString();
@@ -198,30 +167,15 @@ class ProcurementController extends Controller
             $warehouses = Warehouse::all();
         }
 
-        $statuses = Procurement::query()
-            ->select('status')
-            ->whereNotNull('status')
-            ->distinct()
-            ->orderBy('status')
-            ->pluck('status');
+        $statuses = Procurement::query()->select('status')->whereNotNull('status')->distinct()->orderBy('status')->pluck('status');
 
-        return view('admin.procurement.procurements', compact(
-            'procurements',
-            'warehouses',
-            'statuses'
-        ));
+        return view('admin.procurement.procurements', compact('procurements', 'warehouses', 'statuses'));
     }
 
     public function print($id)
     {
         try {
-            $procurement = Procurement::with([
-                'procurement_items.raw_material',
-                'userRequest',
-                'warehouse',
-                'userApproved',
-                'userRejected',
-            ])->findOrFail($id);
+            $procurement = Procurement::with(['procurement_items.raw_material', 'userRequest', 'warehouse', 'userApproved', 'userRejected'])->findOrFail($id);
 
             return view('admin.procurement.print-procurement', compact('procurement'));
         } catch (\Throwable $th) {
@@ -233,26 +187,42 @@ class ProcurementController extends Controller
 
     public function create()
     {
+        $user = Auth::user();
 
-        $warehouses = Warehouse::where('type', 'produksi')->get();
-        $rawMaterials = RawMaterial::select('id', 'code', 'name', 'unit')
-            ->orderBy('name')
+        $warehouseId = optional($user->employee)->warehouse_id;
+
+        $warehouses = Warehouse::where('type', 'produksi')
+            ->when($warehouseId, function ($query) use ($warehouseId) {
+                $query->where('id', $warehouseId);
+            })
             ->get();
+        $rawMaterials = RawMaterial::select('id', 'code', 'name', 'unit')->orderBy('name')->get();
 
         return view('admin.procurement.create-procurement', compact('warehouses', 'rawMaterials'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'warehouse_id' => 'required|exists:warehouses,id',
-            'note' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.raw_material_id' => 'required|exists:raw_materials,id',
-            'items.*.quantity_requested' => 'required|integer|min:1',
-            'purchase_at' => 'required|date',
-        ]);
+        $validated = $request->validate(
+            [
+                'warehouse_id' => 'required|exists:warehouses,id',
+                'note' => 'nullable|string',
+                'purchase_at' => 'required|date',
 
+                'items' => 'required|array|min:1',
+
+                'items.*.raw_material_id' => 'required|exists:raw_materials,id',
+                'items.*.quantity_requested' => 'required|integer|min:1',
+            ],
+            [
+                'items.*.raw_material_id.required' => 'Silakan pilih bahan baku.',
+                'items.*.raw_material_id.exists' => 'Bahan baku tidak valid.',
+
+                'items.*.quantity_requested.required' => 'Jumlah pesanan wajib diisi.',
+                'items.*.quantity_requested.integer' => 'Jumlah harus berupa angka.',
+                'items.*.quantity_requested.min' => 'Jumlah minimal 1.',
+            ],
+        );
         try {
             $procurement = Procurement::create([
                 'request_by' => auth()->user()->id,
@@ -280,10 +250,8 @@ class ProcurementController extends Controller
 
     public function edit(Request $request, $id)
     {
-
         $warehouses = Warehouse::where('type', 'produksi')->get();
-        $procurement = Procurement::with('procurement_items.raw_material')
-            ->findOrFail($id);
+        $procurement = Procurement::with('procurement_items.raw_material')->findOrFail($id);
 
         return view('admin.procurement.edit-procurement', compact('warehouses', 'procurement'));
     }
@@ -336,15 +304,11 @@ class ProcurementController extends Controller
 
             $procurement->delete();
 
-            return redirect()
-                ->route('procurements')
-                ->with('success', 'Data Pengadaan berhasil dihapus');
+            return redirect()->route('procurements')->with('success', 'Data Pengadaan berhasil dihapus');
         } catch (\Throwable $th) {
             save_log_error($th);
 
-            return redirect()
-                ->route('procurements')
-                ->with('error', 'Terjadi kesalahan saat menghapus data pengadaan');
+            return redirect()->route('procurements')->with('error', 'Terjadi kesalahan saat menghapus data pengadaan');
         }
     }
 }

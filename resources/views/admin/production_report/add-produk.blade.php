@@ -102,6 +102,9 @@
             <section class="bg-gray-200/80 {{ $sectionClass }}">
                 <div class="mb-4">
                     <h3 class="text-base font-bold text-gray-800">Bahan Baku</h3>
+                    @error('items')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <template x-if="!selectedWarehouse">
@@ -187,6 +190,9 @@
                                             <input type="number" min="0" :name="`items[${index}][quantity_use]`"
                                                 x-model="item.quantity_use" class="{{ $inputClass }}"
                                                 placeholder="Masukkan jumlah">
+                                            <p class="mt-1 text-xs text-red-600"
+                                                x-show="fieldError(`items.${index}.quantity_use`)"
+                                                x-text="fieldError(`items.${index}.quantity_use`)"></p>
                                         </div>
 
                                         <div class="flex items-end">
@@ -263,12 +269,18 @@
         function productionForm() {
             return {
                 selectedWarehouse: @json(old('warehouse_id') ?? ''),
+                errors: @json($errors->toArray()),
                 materials: [],
                 selectedItems: [],
                 selectedMaterialId: '',
                 loading: false,
                 errorMessage: '',
                 cancelModal: false,
+                fieldError(key) { // <-- tambahkan ini
+                    const e = this.errors?.[key];
+                    if (!e) return '';
+                    return Array.isArray(e) ? e[0] : e;
+                },
 
                 init() {
                     const oldItems = @json(old('items', []));

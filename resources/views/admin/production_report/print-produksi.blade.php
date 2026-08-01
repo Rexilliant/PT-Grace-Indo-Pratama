@@ -55,7 +55,7 @@
             }
         }
     </style>
-@section()
+@endsection
 
 @section('content')
     <div class="p-4 sm:p-8 bg-white min-h-screen" id="printableArea">

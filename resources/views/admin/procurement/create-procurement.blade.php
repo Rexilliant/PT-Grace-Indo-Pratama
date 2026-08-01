@@ -111,39 +111,53 @@
 
             {{-- ITEMS CONTAINER --}}
             <div id="itemsContainer" class="space-y-4">
-                <section class="item-row border border-gray-200 rounded-lg p-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-2">Bahan Baku</label>
-                            <select name="items[0][raw_material_id]"
-                                class="rawMaterialSelect w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900">
-                                <option value="">-- Pilih Bahan --</option>
-                                @foreach ($rawMaterials as $rm)
-                                    <option value="{{ $rm->id }}">
-                                        {{ $rm->code ?? 'RM-' . $rm->id }} - {{ $rm->name }} / {{ $rm->unit }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                @php
+                    $oldItems = old('items', [['raw_material_id' => null, 'quantity_requested' => null]]);
+                @endphp
 
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-2">
-                                Jumlah Pesanan <span class="text-red-500">*</span>
-                            </label>
-                            <input type="number" min="1" placeholder="Masukkan jumlah"
-                                name="items[0][quantity_requested]"
-                                class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
-                        </div>
+                @foreach ($oldItems as $i => $item)
+                    <section class="item-row border border-gray-200 rounded-lg p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-2">Bahan Baku</label>
+                                <select name="items[{{ $i }}][raw_material_id]"
+                                    class="rawMaterialSelect w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900">
+                                    <option value="">-- Pilih Bahan --</option>
+                                    @foreach ($rawMaterials as $rm)
+                                        <option value="{{ $rm->id }}"
+                                            {{ isset($item['raw_material_id']) && $item['raw_material_id'] == $rm->id ? 'selected' : '' }}>
+                                            {{ $rm->code ?? 'RM-' . $rm->id }} - {{ $rm->name }} /
+                                            {{ $rm->unit }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error("items.$i.raw_material_id")
+                                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                        <div class="flex gap-3 items-end">
-                            <button type="button"
-                                class="btnRemoveItem inline-flex w-full items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700">
-                                Hapus
-                            </button>
-                        </div>
-                    </div>
-                </section>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-2">
+                                    Jumlah Pesanan <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" min="1" placeholder="Masukkan jumlah"
+                                    name="items[{{ $i }}][quantity_requested]"
+                                    value="{{ $item['quantity_requested'] ?? '' }}"
+                                    class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
+                                @error("items.$i.quantity_requested")
+                                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
 
+                            <div class="flex gap-3 items-end">
+                                <button type="button"
+                                    class="btnRemoveItem inline-flex w-full items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700">
+                                    Hapus
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                @endforeach
             </div>
 
             {{-- TEMPLATE (hidden) --}}
@@ -252,7 +266,9 @@
             });
 
             // init select2 untuk item pertama (yang sudah ada)
-            initSelect2For($('.rawMaterialSelect').first());
+            $('.rawMaterialSelect').each(function() {
+                initSelect2For($(this));
+            });
 
             // ADD ITEM
             $('#btnAddItem').on('click', function() {
@@ -283,7 +299,12 @@
 
                 // minimal 1 item harus ada
                 if ($('#itemsContainer .item-row').length === 0) {
-                    $('#btnAddItem').trigger('click');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Minimal satu item harus ada'
+                    });
+
+                    return;
                 }
 
                 // reindex agar name items[x] rapih
