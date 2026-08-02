@@ -170,6 +170,15 @@ class PurchaseReceiptController extends Controller
     {
         $q = PurchaseReceipt::query()->with('receivedBy')
             ->orderBy('created_at', 'desc');
+        $warehouseId = auth()->user()->employee?->warehouse_id;
+// Jika user punya warehouse_id, procurement hanya gudang itu
+        if ($warehouseId) {
+            $q->where('warehouse_id', $warehouseId);
+        }
+        // Filter warehouse_id dari request hanya berlaku kalau user tidak punya gudang
+        if (!$warehouseId && $request->filled('warehouse_id')) {
+            $q->where('warehouse_id', $request->warehouse_id);
+        }
         // FILTER TANGGAL (purchase_at)
         if ($request->filled('date_from')) {
             $q->whereDate('created_at', '>=', $request->date_from);
@@ -187,7 +196,12 @@ class PurchaseReceiptController extends Controller
         $perPage = (int) ($request->get('per_page', 10));
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
         $receipts = $q->paginate($perPage)->withQueryString();
-        $warehouses = Warehouse::all();
+        // Jika user punya warehouse_id, dropdown gudang hanya gudang itu
+        if ($warehouseId) {
+            $warehouses = Warehouse::where('id', $warehouseId)->get();
+        } else {
+            $warehouses = Warehouse::all();
+        }
 
         return view('admin.purchase.purchases', compact('receipts', 'warehouses'));
     }

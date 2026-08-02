@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\ActivityHistoryController;
 use App\Http\Controllers\LogErrorController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PermissionController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\ProductVariantController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseReceiptController;
 use App\Http\Controllers\RawMaterialController;
 use App\Http\Controllers\RoleController;
@@ -18,6 +20,7 @@ use App\Http\Controllers\ShipmentReceiptController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
+
 
 Route::get('/phpinfo', function () {
     phpinfo();
@@ -30,9 +33,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         return view('admin.profile.profile');
     })->name('admin.profile');
 
-    Route::get('/edit-profile', function () {
-        return view('admin.profile.edit-profile');
-    })->name('admin.profile.edit-profile');
+    Route::get('/edit-profile', [ProfileController::class, 'edit'])->name('admin.profile.edit-profile');
 
 
     Route::get('/executive-pengadaan-barang', function () {
@@ -240,6 +241,11 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     });
     Route::controller(LogErrorController::class)->prefix('log-errors')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca log error'])->name('log-errors');
+    });
+
+    Route::controller(ActivityHistoryController::class)->prefix('activity-history')->group(function () {
+        Route::get('/', 'index')->middleware(['auth', 'permission:baca history aktivitas'])->name('activity-history');
+        Route::get('/{id}', 'show')->middleware(['auth', 'permission:baca history aktivitas'])->name('activity-history.show');
     });
 
    

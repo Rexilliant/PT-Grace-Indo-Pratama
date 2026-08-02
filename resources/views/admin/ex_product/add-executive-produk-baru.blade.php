@@ -128,7 +128,7 @@
                 {{-- Deskripsi --}}
                 <div class="sm:col-span-2 lg:col-span-3">
                     <label class="block text-sm font-bold mb-2">Deskripsi Produk</label>
-                    <textarea name="description" id="description" rows="5" placeholder="Tuliskan deskripsi produk..."
+                    <textarea name="description" rows="5" placeholder="Tuliskan deskripsi produk..."
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0 @error('description') border-red-500 @enderror">{{ old('description') }}</textarea>
                     @error('description')
                         <p class="mt-1 text-xs font-semibold text-red-600">{{ $message }}</p>
@@ -247,7 +247,7 @@
         });
     </script>
 
-    <!-- TinyMCE Local -->
+    {{-- <!-- TinyMCE Local -->
     <script src="{{ asset('vendor/tinymce/tinymce.min.js') }}" referrerpolicy="origin"></script>
     <script>
         tinymce.init({
@@ -260,5 +260,5 @@
             branding: false,
             license_key: 'gpl'
         });
-    </script>
+    </script> --}}
 @endsection

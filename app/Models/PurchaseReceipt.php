@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Support\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class PurchaseReceipt extends Model implements HasMedia
 {
-    use InteractsWithMedia, SoftDeletes;
+    use InteractsWithMedia, SoftDeletes, LogsActivity;
 
     protected $fillable = [
         'receipt_number',
@@ -64,5 +66,13 @@ class PurchaseReceipt extends Model implements HasMedia
                 $purchaseReceipt->saveQuietly();
             }
         });
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges();
     }
 }

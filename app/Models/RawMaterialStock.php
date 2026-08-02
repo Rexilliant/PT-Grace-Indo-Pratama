@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Models\RawMaterial;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Support\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
 class RawMaterialStock extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, LogsActivity;
 
     protected $table = 'raw_material_stocks';
 
@@ -25,5 +27,13 @@ class RawMaterialStock extends Model
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class, 'warehouse_id');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges();
     }
 }

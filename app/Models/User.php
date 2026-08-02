@@ -11,12 +11,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
+use Spatie\Activitylog\Support\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, HasRoles, Notifiable, SoftDeletes;
+    use HasFactory, HasRoles, Notifiable, SoftDeletes, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -86,5 +88,13 @@ class User extends Authenticatable
     public function deletedWarehouses()
     {
         return $this->hasMany(Warehouse::class, 'deleted_by');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'email', 'employee_id'])
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges();
     }
 }

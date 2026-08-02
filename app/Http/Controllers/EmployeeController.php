@@ -219,8 +219,11 @@ class EmployeeController extends Controller
     {
         try {
             $employee = Employee::findOrFail($id);
+            $user = User::where('email', $employee->email)->first();
+            if($user){
+                $user->delete();
+            }
             $employee->delete();
-
             return redirect()->route('employees')->with('success', 'Data karyawan berhasil dihapus.');
         } catch (\Throwable $th) {
             save_log_error($th);

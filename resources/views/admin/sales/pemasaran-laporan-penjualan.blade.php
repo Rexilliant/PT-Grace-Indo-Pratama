@@ -133,6 +133,7 @@
                 <table class="w-full text-sm text-left text-gray-900">
                     <thead class="bg-[#5aba6f]/70 text-gray-900">
                         <tr class="[&>th]:border-b [&>th]:border-gray-500">
+                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Sale Id</th>
                             <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Laporan</th>
                             <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Penjualan</th>
                             <th scope="col" class="px-6 py-3 font-extrabold text-left">Penanggung Jawab</th>
@@ -188,6 +189,10 @@
                             @endphp
 
                             <tr class="hover:bg-gray-300">
+                                <td class="px-6 py-4 font-semibold">
+                                    {{ $sale->id }}
+                                </td>
+
                                 <td class="px-6 py-4 font-semibold">
                                     {{ $sale->created_at->format('d/m/Y') }}
                                 </td>

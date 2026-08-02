@@ -127,13 +127,16 @@ class ProductionController extends Controller
             ->with(['personResponsible', 'productStock.productVariant.product', 'materials.rawMaterial', 'warehouse', 'deletedBy'])
             ->latest();
         $warehouseId = auth()->user()->employee?->warehouse_id;
-
+        // Jika user punya warehouse_id, procurement hanya gudang itu
+        if ($warehouseId) {
+            $q->where('warehouse_id', $warehouseId);
+        }
+        // Filter warehouse_id dari request hanya berlaku kalau user tidak punya gudang
+        if (!$warehouseId && $request->filled('warehouse_id')) {
+            $q->where('warehouse_id', $request->warehouse_id);
+        }
         if ($request->filled('id')) {
             $q->where('id', 'like', '%' . $request->id . '%');
-        }
-
-        if ($request->filled('warehouse_id')) {
-            $q->where('warehouse_id', $request->warehouse_id);
         }
 
         if ($request->filled('date_from')) {

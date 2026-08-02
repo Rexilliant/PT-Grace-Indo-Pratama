@@ -7,10 +7,12 @@ use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Support\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
 class RawMaterialStockMovement extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, LogsActivity;
 
     protected $fillable = [
         'warehouse_id',
@@ -35,5 +37,13 @@ class RawMaterialStockMovement extends Model
     public function warehouse()
     {
         return $this->belongsTo(Warehouse::class, 'warehouse_id');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges();
     }
 }
