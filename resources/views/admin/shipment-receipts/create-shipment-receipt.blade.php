@@ -389,7 +389,7 @@
         </section>
 
         <div class="flex items-center justify-end gap-4 pt-2">
-            <a href="{{ route('admin.gudang-permintaan-pengiriman') }}"
+            <a href="{{ route('shipment-receipts') }}"
                 class="{{ $actionBtnClass }} bg-red-600 hover:bg-red-700">
                 Batal
             </a>
