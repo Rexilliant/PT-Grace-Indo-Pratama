@@ -124,6 +124,7 @@ class PermissionSeeder extends Seeder
 
             // Lainnya
             'baca log error',
+            'baca history aktivitas',
         ];
 
         foreach ($permissions as $permission) {

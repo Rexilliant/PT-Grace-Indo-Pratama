@@ -6,10 +6,12 @@ use App\Models\ShipmentItem;
 use App\Models\ShipmentReceipt;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Support\LogOptions;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
 class ShipmentReceiptItem extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, LogsActivity;
 
     protected $table = 'shipment_receipt_items';
 
@@ -25,11 +27,7 @@ class ShipmentReceiptItem extends Model
         'deleted_at' => 'datetime',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
+    //  Relationships
 
     public function shipmentReceipt()
     {
@@ -39,5 +37,13 @@ class ShipmentReceiptItem extends Model
     public function shipmentItem()
     {
         return $this->belongsTo(ShipmentItem::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontLogEmptyChanges();
     }
 }

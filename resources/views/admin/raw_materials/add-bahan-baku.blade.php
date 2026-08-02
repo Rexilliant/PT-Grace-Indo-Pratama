@@ -168,6 +168,9 @@
         </section>
     </template>
 
+@endsection
+
+@section('addJs')
     <script>
         const modal = document.getElementById('cancelModal');
 

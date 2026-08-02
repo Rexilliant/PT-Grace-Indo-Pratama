@@ -25,7 +25,6 @@
         }
 
         @media print {
-
             html,
             body {
                 background: white !important;

@@ -135,6 +135,9 @@
                     <p class="mt-1 text-sm text-gray-600">
                         Tambahkan hanya bahan baku yang dipakai agar form edit tetap ringkas.
                     </p>
+                    @error('items')
+                        <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <template x-if="!selectedWarehouse">
@@ -220,6 +223,9 @@
                                             <input type="number" min="0" :name="`items[${index}][quantity_use]`"
                                                 x-model="item.quantity_use" class="{{ $inputClass }}"
                                                 placeholder="Masukkan jumlah">
+                                            <p class="mt-1 text-xs text-red-600"
+                                                x-show="fieldError(`items.${index}.quantity_use`)"
+                                                x-text="fieldError(`items.${index}.quantity_use`)"></p>
                                         </div>
 
                                         <div class="flex items-end">
@@ -289,19 +295,27 @@
             </div>
         </div>
     </div>
+@endsection
 
+@section('addJs')
     <script>
         function productionEditForm(config) {
             return {
                 selectedWarehouse: config.selectedWarehouse || '',
                 initialSelectedItems: config.initialSelectedItems || [],
                 materialsUrl: config.materialsUrl || '',
+                errors: @json($errors->toArray()),
                 materials: [],
                 selectedItems: [],
                 selectedMaterialId: '',
                 loading: false,
                 errorMessage: '',
                 cancelModal: false,
+                fieldError(key) { // tambahkan
+                    const e = this.errors?.[key];
+                    if (!e) return '';
+                    return Array.isArray(e) ? e[0] : e;
+                },
 
                 init() {
                     if (this.selectedWarehouse) {

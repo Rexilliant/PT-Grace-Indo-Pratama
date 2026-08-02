@@ -134,12 +134,12 @@
                                 <td class="px-6 py-4 font-medium">
                                     {{ $shipmentReceipt->shipment->shipment_code ?? '-' }}
                                 </td>
-                                <td class="px-6 py-4">
-                                    {{ $shipmentReceipt->created_at?->format('d M Y') ?? '-' }}
-                                </td>
                                 {{-- <td class="px-6 py-4">
-                                    {{ $shipmentReceipt->received_at?->format('d M Y H:i') ?? '-' }}
+                                    {{ $shipmentReceipt->created_at?->format('d M Y') ?? '-' }}
                                 </td> --}}
+                                <td class="px-6 py-4">
+                                    {{ $shipmentReceipt->received_at?->format('d M Y') ?? '-' }}
+                                </td>
                                 <td class="px-6 py-4">
                                     {{ $shipmentReceipt->receivedBy->name ?? '-' }}
                                 </td>
@@ -247,7 +247,7 @@
 
                 Swal.fire({
                     title: 'Anda yakin?',
-                    text: 'Data Shipment Receipt yang dihapus tidak bisa dikembalikan.',
+                    text: 'Data Penerimaan Pengiriman yang dihapus tidak bisa dikembalikan.',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#dc2626',

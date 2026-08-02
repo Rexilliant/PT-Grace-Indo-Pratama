@@ -17,7 +17,7 @@
         </div>
     </section>
 
-    {{-- top bar: search + back --}}
+    {{-- search + back --}}
     <section class="mb-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
             {{-- Search --}}

@@ -18,7 +18,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center gap-6">
             <div class="shrink-0">
                 <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                    <img src="{{ asset('assets/img/profile.png') }}" alt="Profile Picture"
+                    <img src="{{ auth()->user()->employee?->getFirstMediaUrl('profile_images') ?: asset('assets/img/profile.png') }}" alt="Profile Picture"
                         class="w-full h-full object-cover">
                 </div>
             </div>
@@ -47,12 +47,16 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
                 <div class="text-xs font-bold text-gray-700">Nama Lengkap</div>
-                <div class="text-sm font-semibold text-gray-900">{{ auth()->user()->employee?->name ?? auth()->user()->name  }}</div>
+                <div class="text-sm font-semibold text-gray-900">
+                    {{ auth()->user()->employee?->name ?? auth()->user()->name }}</div>
             </div>
             <div>
                 <div class="text-xs font-bold text-gray-700">Tanggal Lahir</div>
                 <div class="text-sm font-semibold text-gray-900">
-                    {{ auth()->user()->employee?->birth_date ?? 'No Birth Date' }}</div>
+                    {{ auth()->user()->employee?->birthday
+                        ? \Carbon\Carbon::parse(auth()->user()->employee->birthday)->translatedFormat('d F Y')
+                        : 'No Birth Date' }}
+                </div>
             </div>
 
             <div>
@@ -68,7 +72,12 @@
 
             <div>
                 <div class="text-xs font-bold text-gray-700">User Role</div>
-                <div class="text-sm font-semibold text-gray-900">{{ auth()->user()->roles->first()?->name  ?? 'No Role' }}
+                <div class="text-sm font-semibold text-gray-900">{{ auth()->user()->roles->first()?->name ?? 'No Role' }}
+                </div>
+            </div>
+            <div>
+                <div class="text-xs font-bold text-gray-700">Warehouse</div>
+                <div class="text-sm font-semibold text-gray-900">{{ auth()->user()->employee->warehouse->name ?? 'No Warehouse' }}
                 </div>
             </div>
         </div>

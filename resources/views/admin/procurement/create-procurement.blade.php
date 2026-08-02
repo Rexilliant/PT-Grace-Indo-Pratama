@@ -5,14 +5,10 @@
 @section('menu-pengadaan', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('addCss')
-    {{-- jQuery --}}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    {{-- Select2 CSS --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-    {{-- Select2 JS --}}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <style>
         .select2-container .select2-selection--single {
             height: 42px;
@@ -33,6 +29,7 @@
     </style>
 
 @endsection
+
 @section('content')
 
     {{-- breadcrumb --}}
@@ -114,44 +111,53 @@
 
             {{-- ITEMS CONTAINER --}}
             <div id="itemsContainer" class="space-y-4">
+                @php
+                    $oldItems = old('items', [['raw_material_id' => null, 'quantity_requested' => null]]);
+                @endphp
 
-                {{-- ITEM #0 (default) --}}
-                <section class="item-row border border-gray-200 rounded-lg p-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                @foreach ($oldItems as $i => $item)
+                    <section class="item-row border border-gray-200 rounded-lg p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-2">Bahan Baku</label>
+                                <select name="items[{{ $i }}][raw_material_id]"
+                                    class="rawMaterialSelect w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900">
+                                    <option value="">-- Pilih Bahan --</option>
+                                    @foreach ($rawMaterials as $rm)
+                                        <option value="{{ $rm->id }}"
+                                            {{ isset($item['raw_material_id']) && $item['raw_material_id'] == $rm->id ? 'selected' : '' }}>
+                                            {{ $rm->code ?? 'RM-' . $rm->id }} - {{ $rm->name }} /
+                                            {{ $rm->unit }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error("items.$i.raw_material_id")
+                                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-2">Bahan Baku</label>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-2">
+                                    Jumlah Pesanan <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" min="1" placeholder="Masukkan jumlah"
+                                    name="items[{{ $i }}][quantity_requested]"
+                                    value="{{ $item['quantity_requested'] ?? '' }}"
+                                    class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
+                                @error("items.$i.quantity_requested")
+                                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                            <select name="items[0][raw_material_id]"
-                                class="rawMaterialSelect w-full rounded-md border border-gray-400 px-3 py-2.5 text-sm font-semibold text-gray-900">
-                                <option value="">-- Pilih Bahan --</option>
-                                @foreach ($rawMaterials as $rm)
-                                    <option value="{{ $rm->id }}">
-                                        {{ $rm->code ?? 'RM-' . $rm->id }} - {{ $rm->name }} / {{ $rm->unit }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div class="flex gap-3 items-end">
+                                <button type="button"
+                                    class="btnRemoveItem inline-flex w-full items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700">
+                                    Hapus
+                                </button>
+                            </div>
                         </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-2">
-                                Jumlah Pesanan <span class="text-red-500">*</span>
-                            </label>
-                            <input type="number" min="1" placeholder="Masukkan jumlah"
-                                name="items[0][quantity_requested]"
-                                class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-0 focus:border-gray-500" />
-                        </div>
-
-                        <div class="flex gap-3 items-end">
-                            <button type="button"
-                                class="btnRemoveItem inline-flex w-full items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700">
-                                Hapus
-                            </button>
-                        </div>
-
-                    </div>
-                </section>
-
+                    </section>
+                @endforeach
             </div>
 
             {{-- TEMPLATE (hidden) --}}
@@ -260,7 +266,9 @@
             });
 
             // init select2 untuk item pertama (yang sudah ada)
-            initSelect2For($('.rawMaterialSelect').first());
+            $('.rawMaterialSelect').each(function() {
+                initSelect2For($(this));
+            });
 
             // ADD ITEM
             $('#btnAddItem').on('click', function() {
@@ -291,7 +299,12 @@
 
                 // minimal 1 item harus ada
                 if ($('#itemsContainer .item-row').length === 0) {
-                    $('#btnAddItem').trigger('click');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Minimal satu item harus ada'
+                    });
+
+                    return;
                 }
 
                 // reindex agar name items[x] rapih

@@ -8,13 +8,13 @@
 
     {{-- breadcrumb --}}
     <section class="mb-5">
-        {{-- breadcrumb --}}
         <div class="mb-4 text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Executive</span>
             <span class="mx-1 text-gray-400">›</span>
             <a href="#" class="text-blue-600 hover:underline">Produk Stok</a>
         </div>
     </section>
+
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         {{-- top bar --}}
         <form method="GET" class="mb-4">
@@ -78,6 +78,7 @@
             </div>
         </form>
     </section>
+
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         <div class="mb-5 flex items-center gap-5">
             <a href="{{ route('product-stocks.export', request()->query()) }}"
@@ -129,7 +130,7 @@
                 </table>
             </div>
 
-            {{-- footer / pagination (mobile + ipad aman) --}}
+            {{-- footer / pagination--}}
             <div
                 class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between
                        bg-gray-200 px-3 sm:px-4 md:px-5 py-3 sm:py-4 border-t border-gray-400">

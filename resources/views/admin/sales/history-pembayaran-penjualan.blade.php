@@ -119,7 +119,6 @@
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
         {{-- left column --}}
         <div class="xl:col-span-8 space-y-6">
-
             {{-- detail transaksi --}}
             <section class="rounded-2xl border border-gray-200 bg-white shadow-sm">
                 <div class="border-b border-gray-200 px-6 py-4">
@@ -370,7 +369,6 @@
 
         {{-- right column --}}
         <div class="xl:col-span-4 space-y-6">
-
             {{-- payment progress --}}
             <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 class="text-lg font-bold text-gray-900">Progress Pembayaran</h2>
@@ -447,19 +445,6 @@
                     </div>
                 </div>
             </section>
-
-            {{-- invoice --}}
-            {{-- <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                <h2 class="text-lg font-bold text-gray-900">Invoice Pembayaran</h2>
-                <p class="mt-1 text-sm text-gray-500">Dokumen yang terlampir pada transaksi ini</p>
-
-                <div class="mt-5">
-                    <a href="{{ route('admin.pemasaran-laporan-penjualan.invoice', $sale->id) }}"
-                        class="inline-flex w-full items-center justify-center rounded-xl bg-[#2D2ACD] px-4 py-3 text-sm font-bold text-white hover:bg-blue-800 transition-colors">
-                        Cetak Invoice
-                    </a>
-                </div>
-            </section> --}}
 
             {{-- invoice & bst --}}
             <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

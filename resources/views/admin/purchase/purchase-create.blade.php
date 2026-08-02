@@ -33,6 +33,135 @@
 
         .filepond--root {
             font-family: inherit;
+            margin-bottom: 0;
+            min-height: 260px;
+            /* Area drop awal saat kosong */
+            transition: all 0.3s ease;
+        }
+
+        .filepond--panel-root {
+            background-color: #ffffff !important;
+            border: 2px dashed #d1d5db !important;
+            border-radius: 1rem !important;
+            transition: all 0.3s ease;
+        }
+
+        .filepond--root:hover .filepond--panel-root {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+        }
+
+        .filepond--drop-label {
+            background-color: transparent !important;
+            cursor: pointer;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 1.5rem !important;
+            height: 100% !important;
+            min-height: 260px;
+        }
+
+        .filepond--label-action {
+            text-decoration: none;
+            cursor: pointer;
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+        .filepond--root.has-files {
+            height: 280px !important;
+            min-height: 280px !important;
+        }
+
+        .filepond--root.has-files .filepond--panel-root {
+            transform: none !important;
+            height: 100% !important;
+        }
+
+        .filepond--root.has-files .filepond--drop-label {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            min-height: 45px !important;
+            height: 45px !important;
+            padding: 0 !important;
+            border-bottom: 1px dashed #d1d5db;
+            background: #f8fafc !important;
+            border-radius: 1rem 1rem 0 0 !important;
+            z-index: 10;
+            opacity: 1 !important;
+            transform: none !important;
+        }
+
+        .filepond--root.has-files .fp-icon-large,
+        .filepond--root.has-files .fp-text-large {
+            display: none !important;
+        }
+
+        .filepond--root.has-files .fp-text-mini {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .filepond--root.has-files .filepond--list-scroller {
+            position: absolute !important;
+            top: 45px !important;
+            /* Mulai di bawah header */
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: auto !important;
+            transform: none !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            padding: 15px !important;
+            margin-top: 0 !important;
+        }
+
+        .filepond--root.has-files .filepond--list {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 15px;
+            position: static !important;
+            transform: none !important;
+            height: 100% !important;
+        }
+
+        .filepond--root.has-files .filepond--item {
+            position: static !important;
+            transform: none !important;
+            width: 180px !important;
+            height: calc(100% - 10px) !important;
+            /* Menyesuaikan ruang scroller */
+            flex-shrink: 0;
+            margin: 0 !important;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 8px;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .select2-container.select2-error .select2-selection--single {
+            border-color: #ef4444 !important;
         }
     </style>
 @endsection
@@ -162,7 +291,8 @@
                         <select :id="`material_${item.key}`" x-ref="materialSelects" x-bind:data-key="item.key"
                             x-model="item.raw_material_id" x-init="item.raw_material_id = item.raw_material_id || ''"
                             :name="`items[${index}][raw_material_id]`"
-                            class="w-full rounded-md border border-gray-400 bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900">
+                            :class="fieldError(`items.${index}.raw_material_id`) ? 'border-red-500' : 'border-gray-400'"
+                            class="w-full rounded-md border bg-gray-100 px-3 py-2.5 text-sm font-semibold text-gray-900">
                             <option value="">-- Pilih Barang --</option>
                             @foreach ($rawMaterials as $rm)
                                 <option value="{{ $rm->id }}">{{ $rm->name }}</option>
@@ -178,7 +308,8 @@
                         <label class="block text-sm font-bold mb-2">Jumlah Barang Masuk</label>
                         <input :name="`items[${index}][quantity_received]`" x-model="item.quantity_received" type="number"
                             placeholder="Contoh: 150" min="1"
-                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
+                            :class="fieldError(`items.${index}.quantity_received`) ? 'border-red-500' : 'border-gray-400'"
+                            class="w-full rounded-md border bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
                         <p class="mt-1 text-xs text-red-600" x-show="fieldError(`items.${index}.quantity_received`)"
                             x-text="fieldError(`items.${index}.quantity_received`)"></p>
                     </div>
@@ -190,7 +321,7 @@
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <label class="block text-sm font-bold mb-3 text-gray-800">Invoice Pembelian Barang</label>
 
-            <input x-ref="invoices" type="file" name="invoices[]" multiple
+            <input id="imageInput" x-ref="invoices" type="file" name="invoices[]" multiple
                 accept="image/png,image/jpeg,application/pdf" />
 
             <p class="mt-2 text-xs text-gray-600">
@@ -430,10 +561,8 @@
 
                 initMaterialSelects() {
                     if (!this.hasSelect2()) return;
-
                     const refs = this.$refs.materialSelects;
                     if (!refs) return;
-
                     const els = Array.isArray(refs) ? refs : [refs];
 
                     els.forEach((el) => {
@@ -444,23 +573,24 @@
                             placeholder: '-- Pilih Barang --',
                             allowClear: true
                         });
-
                         el.dataset.inited = '1';
 
                         const key = el.dataset.key;
-                        const idxInit = this.items.findIndex(x => x.key === key);
+                        const idx = this.items.findIndex(x => x.key === key);
 
-                        if (idxInit !== -1 && this.items[idxInit].raw_material_id) {
-                            $(el).val(String(this.items[idxInit].raw_material_id)).trigger('change.select2');
+                        // toggle error class saat init
+                        if (idx !== -1 && this.fieldError(`items.${idx}.raw_material_id`)) {
+                            $(el).next('.select2-container').addClass('select2-error');
+                        }
+
+                        if (idx !== -1 && this.items[idx].raw_material_id) {
+                            $(el).val(String(this.items[idx].raw_material_id)).trigger('change.select2');
                         }
 
                         $(el).on('change', () => {
                             const val = $(el).val() || '';
-                            const idx = this.items.findIndex(x => x.key === key);
-
-                            if (idx !== -1) {
-                                this.items[idx].raw_material_id = val ? parseInt(val, 10) : '';
-                            }
+                            const i = this.items.findIndex(x => x.key === key);
+                            if (i !== -1) this.items[i].raw_material_id = val ? parseInt(val, 10) : '';
                         });
                     });
                 },
@@ -479,7 +609,7 @@
                 },
 
                 initFilePond() {
-                    const input = this.$refs.invoices;
+                    const input = document.getElementById('imageInput');
 
                     if (!input || typeof FilePond === 'undefined') return;
                     if (!input.parentNode) return;
@@ -491,23 +621,57 @@
                         FilePondPluginImagePreview
                     );
 
+                    const customIconPlaceholder = `
+                        <div class="flex flex-col items-center justify-center w-full">
+                            <div class="fp-icon-large p-4 bg-blue-50 rounded-full mb-4 transition-transform duration-300 hover:scale-110">
+                                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="fp-text-large text-center">
+                                <p class="text-base font-bold text-gray-700"><span class="filepond--label-action">Klik</span> atau Tarik dokumen ke sini</p>
+                                <p class="text-xs text-gray-500 mt-1 font-medium">PNG, JPG, JPEG, PDF (Bisa multiple, Maks 3MB/file)</p>
+                            </div>
+
+                            <div class="fp-text-mini hidden cursor-pointer hover:underline text-blue-600">
+                                <p class="text-sm font-bold m-0 p-0">+ Tambah Dokumen Lain</p>
+                            </div>
+                        </div>
+                    `;
+
                     this.pond = FilePond.create(input, {
                         required: true,
                         storeAsFile: true,
                         instantUpload: false,
-                        stylePanelLayout: 'compact',
                         allowMultiple: true,
                         maxFiles: 10,
                         credits: false,
                         acceptedFileTypes: ['image/png', 'image/jpeg', 'application/pdf'],
                         maxFileSize: '3MB',
-                        labelIdle: 'Drag & Drop file atau <span class="filepond--label-action">Browse</span>',
+
+                        // Memasukkan custom UI di sini
+                        labelIdle: customIconPlaceholder,
+
                         labelFileTypeNotAllowed: 'Format file tidak didukung',
                         fileValidateTypeLabelExpectedTypes: 'Hanya PNG/JPG/JPEG/PDF',
                         labelMaxFileSizeExceeded: 'Ukuran file terlalu besar',
                         labelMaxFileSize: 'Maksimum 3MB',
+
+                        onupdatefiles: (files) => {
+                            const rootElement = document.getElementById('imageInput').closest(
+                                '.filepond--root');
+
+                            if (rootElement) {
+                                if (files.length > 0) {
+                                    rootElement.classList.add('has-files');
+                                } else {
+                                    rootElement.classList.remove('has-files');
+                                }
+                            }
+                        }
                     });
                 },
+
             }
         }
     </script>

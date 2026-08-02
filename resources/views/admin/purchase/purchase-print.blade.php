@@ -4,10 +4,39 @@
 @section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-gudang-barang-masuk', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
+@section('addCss')
+    <style>
+        @media print {
+            body {
+                background: white !important;
+            }
+
+            {{-- Sembunyikan elemen layout admin agar tidak ikut tercetak --}} nav,
+            .sidebar,
+            .navbar,
+            .footer,
+            .print\:hidden {
+                display: none !important;
+            }
+
+            #printableArea {
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+                min-height: auto !important;
+            }
+
+            @page {
+                margin: 1.5cm;
+                size: A4;
+            }
+        }
+    </style>
+@endsection
 
 @section('content')
     <div class="p-4 sm:p-8 bg-white min-h-screen" id="printableArea">
-        {{-- Tombol Navigasi - Modern & Sleek --}}
+        {{-- Tombol Navigasi --}}
         <div class="mb-8 flex flex-wrap items-center justify-between gap-4 print:hidden">
             <div class="flex items-center gap-3">
                 <a href="{{ route('purchase-receipts') }}"
@@ -140,32 +169,4 @@
                 terbaik.</p>
         </div>
     </div>
-
-    <style>
-        @media print {
-            body {
-                background: white !important;
-            }
-
-            {{-- Sembunyikan elemen layout admin agar tidak ikut tercetak --}} nav,
-            .sidebar,
-            .navbar,
-            .footer,
-            .print\:hidden {
-                display: none !important;
-            }
-
-            #printableArea {
-                padding: 0 !important;
-                margin: 0 !important;
-                border: none !important;
-                min-height: auto !important;
-            }
-
-            @page {
-                margin: 1.5cm;
-                size: A4;
-            }
-        }
-    </style>
 @endsection

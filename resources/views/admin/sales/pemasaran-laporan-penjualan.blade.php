@@ -5,6 +5,26 @@
 @section('menu-pemasaran', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-pemasaran-laporan-penjualan', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
+@section('addCss')
+    <style>
+        @keyframes scaleIn {
+            from {
+                transform: scale(.985);
+                opacity: .6;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-scale-in {
+            animation: scaleIn .12s ease-out;
+        }
+    </style>
+@endsection
+
 @section('content')
     {{-- breadcrumb --}}
     <section class="mb-5">
@@ -14,6 +34,7 @@
             <a href="#" class="text-blue-600 hover:underline">Laporan Penjualan</a>
         </div>
     </section>
+
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         {{-- top bar --}}
         <form method="GET" class="mb-4">
@@ -81,6 +102,7 @@
             </div>
         </form>
     </section>
+
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         {{-- top bar --}}
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-3">
@@ -111,6 +133,7 @@
                 <table class="w-full text-sm text-left text-gray-900">
                     <thead class="bg-[#5aba6f]/70 text-gray-900">
                         <tr class="[&>th]:border-b [&>th]:border-gray-500">
+                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Sale Id</th>
                             <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Laporan</th>
                             <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Penjualan</th>
                             <th scope="col" class="px-6 py-3 font-extrabold text-left">Penanggung Jawab</th>
@@ -167,6 +190,10 @@
 
                             <tr class="hover:bg-gray-300">
                                 <td class="px-6 py-4 font-semibold">
+                                    {{ $sale->id }}
+                                </td>
+
+                                <td class="px-6 py-4 font-semibold">
                                     {{ $sale->created_at->format('d/m/Y') }}
                                 </td>
 
@@ -195,16 +222,13 @@
                                             Sunting
                                         </a>
 
-                                        <a href="#" class="text-[#EC0000] hover:underline"
-                                            onclick="event.preventDefault(); confirmDelete({{ $sale->id }})">
-                                            Hapus
-                                        </a>
-
-                                        <form id="delete-form-{{ $sale->id }}"
-                                            action="{{ route('admin.pemasaran-laporan-penjualan.destroy', $sale->id) }}"
-                                            method="POST" class="hidden">
+                                        <form action="{{ route('admin.pemasaran-laporan-penjualan.destroy', $sale->id) }}"
+                                            method="POST" class="inline-block form-delete">
                                             @csrf
                                             @method('DELETE')
+                                            <button type="submit" class="text-[#EC0000] hover:underline">
+                                                Hapus
+                                            </button>
                                         </form>
                                     </div>
                                 </td>
@@ -236,9 +260,6 @@
         </div>
     </section>
 
-    {{-- ========================= --}}
-    {{-- DETAIL MODAL (VIEW) --}}
-    {{-- ========================= --}}
     <div id="detailModal"
         class="fixed inset-0 z-[9999] hidden bg-black/50 backdrop-blur-sm items-center justify-center p-2 sm:p-4">
         <div
@@ -251,7 +272,6 @@
                     Laporan Penjualan Nomor: <span id="dm_no" class="font-extrabold">-</span>
                 </div>
 
-                {{-- close pakai SVG X --}}
                 <button type="button" onclick="closeDetailModal()"
                     class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-600 hover:bg-red-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 24 24"
@@ -374,9 +394,6 @@
         </div>
     </div>
 
-    {{-- ========================= --}}
-    {{-- INVOICE MODAL --}}
-    {{-- ========================= --}}
     <div id="invoiceModal"
         class="fixed inset-0 z-[10000] hidden bg-black/60 backdrop-blur-sm items-center justify-center p-2 sm:p-4">
         <div
@@ -400,32 +417,16 @@
         </div>
     </div>
 
-    <style>
-        @keyframes scaleIn {
-            from {
-                transform: scale(.985);
-                opacity: .6;
-            }
+@endsection
 
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .animate-scale-in {
-            animation: scaleIn .12s ease-out;
-        }
-    </style>
+@section('addJs')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         const invoiceBaseUrl = @json(url('/admin/pemasaran/laporan-penjualan'));
     </script>
 
     <script>
-        // =========================
-        // MODAL ELEMENTS
-        // =========================
         const detailModal = document.getElementById('detailModal');
         const invoiceModal = document.getElementById('invoiceModal');
 
@@ -519,9 +520,6 @@
             });
         }
 
-        // =========================
-        // OPEN / CLOSE (GLOBAL)
-        // =========================
         window.openDetailModal = function(detail, status) {
             if (!detailModal) return;
 
@@ -591,9 +589,7 @@
             invoiceModal.classList.remove('flex');
         }
 
-        // =========================
         // CETAK INVOICE
-        // =========================
         window.printInvoice = function() {
             if (!currentDetail || !currentDetail.invoice_img) return;
 
@@ -617,9 +613,7 @@
             w.document.close();
         }
 
-        // =========================
         // BACKDROP + ESC
-        // =========================
         detailModal?.addEventListener('click', (e) => {
             if (e.target === detailModal) window.closeDetailModal();
         });
@@ -635,10 +629,40 @@
             }
         });
 
-        function confirmDelete(id) {
-            if (confirm('Yakin ingin menghapus laporan ini?\nStok barang akan dikembalikan.')) {
-                document.getElementById('delete-form-' + id).submit();
-            }
-        }
+        // function confirmDelete(id) {
+        //     if (confirm('Yakin ingin menghapus laporan ini?\nStok barang akan dikembalikan.')) {
+        //         document.getElementById('delete-form-' + id).submit();
+        //     }
+        // }
+
+        @if (session('success'))
+            Swal.fire({
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonColor: '#53BF6A'
+            });
+        @endif
+
+        document.querySelectorAll('.form-delete').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Anda yakin?',
+                    text: 'Data Penjualan yang dihapus tidak bisa dikembalikan.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, hapus',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
     </script>
 @endsection

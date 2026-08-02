@@ -4,22 +4,20 @@
 @section('open-gudang', 'open')
 @section('menu-gudang', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-pengadaan', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
-@section('content')
 
+@section('content')
     {{-- breadcrumb --}}
     <section class="mb-5">
-        {{-- breadcrumb --}}
         <div class="mb-4 text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Executive</span>
             <span class="mx-1 text-gray-400">›</span>
             <a href="#" class="text-blue-600 hover:underline">Pengadaan Barang</a>
         </div>
     </section>
+
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
-        {{-- top bar --}}
         <form method="GET" class="mb-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end">
-
                 {{-- Search --}}
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">
@@ -127,6 +125,7 @@
                 </a>
             @endcan
         </div>
+
         {{-- table --}}
         <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm">
 
@@ -190,7 +189,7 @@
                 </table>
             </div>
 
-            {{-- footer / pagination (mobile + ipad aman) --}}
+            {{-- footer / pagination --}}
             <div
                 class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between
                        bg-gray-200 px-3 sm:px-4 md:px-5 py-3 sm:py-4 border-t border-gray-400">
@@ -210,6 +209,7 @@
         </div>
     </section>
 @endsection
+
 @section('addJs')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 

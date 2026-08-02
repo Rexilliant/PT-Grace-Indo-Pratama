@@ -4,10 +4,43 @@
 @section('menu-pemasaran', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-pemasaran-permintaan-pengiriman', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
+@section('addCss')
+
+    <style>
+        @media print {
+            body {
+                background: white !important;
+                margin: 0;
+                padding: 0;
+            }
+
+            .print\:hidden {
+                display: none !important;
+            }
+
+            #printableArea {
+                padding: 0 !important;
+                border: none !important;
+                min-height: auto !important;
+                width: 100% !important;
+            }
+
+            @page {
+                size: auto;
+                margin: 10mm;
+            }
+
+            .page-break-inside-avoid {
+                break-inside: avoid;
+            }
+        }
+    </style>
+@endsection
+
 @section('content')
     <div class="p-4 sm:p-8 bg-white min-h-screen" id="printableArea">
 
-        {{-- Tombol Navigasi - Modern & Sleek --}}
+        {{-- Tombol Navigasi --}}
         <div class="mb-8 flex flex-wrap items-center justify-between gap-4 print:hidden">
             <div class="flex items-center gap-3">
                 <a href="{{ route('shipments') }}"
@@ -175,33 +208,4 @@
         </div>
     </div>
 
-    <style>
-        @media print {
-            body {
-                background: white !important;
-                margin: 0;
-                padding: 0;
-            }
-
-            .print\:hidden {
-                display: none !important;
-            }
-
-            #printableArea {
-                padding: 0 !important;
-                border: none !important;
-                min-height: auto !important;
-                width: 100% !important;
-            }
-
-            @page {
-                size: auto;
-                margin: 10mm;
-            }
-
-            .page-break-inside-avoid {
-                break-inside: avoid;
-            }
-        }
-    </style>
 @endsection

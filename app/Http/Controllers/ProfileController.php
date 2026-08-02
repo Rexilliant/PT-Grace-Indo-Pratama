@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Employee;
+use App\Models\Warehouse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
@@ -16,9 +20,16 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
+        $response = Http::get('http://api.geonames.org/countryInfoJSON', [
+            'username' => 'hier',
         ]);
+        $countries = $response->json('geonames');
+        $user = Auth::user();
+        $employee = Employee::find($user->employee_id);
+        $profileImage = $employee->getFirstMediaUrl('profile_images') ?: null;
+        $warehouses = Warehouse::all();
+
+        return view('admin.profile.edit-profile', compact('countries', 'employee', 'profileImage', 'warehouses'));
     }
 
     /**

@@ -4,6 +4,26 @@
 @section('menu-executive', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-executive-produk', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
+@section('addCss')
+    <style>
+        @keyframes scaleIn {
+            from {
+                transform: scale(.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-scale-in {
+            animation: scaleIn .15s ease-out;
+        }
+    </style>
+@endsection
+
 @section('content')
     <section class="mb-5">
         {{-- breadcrumb --}}
@@ -12,13 +32,6 @@
             <span class="mx-1 text-gray-400">›</span>
             <a href="#" class="text-blue-600 hover:underline">Produk</a>
         </div>
-
-        {{-- flash message --}}
-        @if (session('success'))
-            <div class="mb-3 rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
-                {{ session('success') }}
-            </div>
-        @endif
     </section>
 
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
@@ -162,7 +175,6 @@
                 </table>
             </div>
 
-            {{-- Pagination (pakai style custom kamu) --}}
             @if ($products->hasPages())
                 {{ $products->links('vendor.pagination.pagination') }}
             @endif
@@ -205,24 +217,10 @@
             </div>
         </div>
     </div>
+@endsection
 
-    <style>
-        @keyframes scaleIn {
-            from {
-                transform: scale(.95);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .animate-scale-in {
-            animation: scaleIn .15s ease-out;
-        }
-    </style>
+@section('addJs')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         const deleteModal = document.getElementById('deleteModal');
@@ -253,6 +251,15 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && deleteModal.classList.contains('flex')) closeDeleteModal();
         });
-    </script>
 
+        // Notif Sukses (Simpan/Update/Hapus)
+        @if (session('success'))
+            Swal.fire({
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonColor: '#53BF6A'
+            });
+        @endif
+    </script>
 @endsection

@@ -45,20 +45,6 @@
         $canEditShipmentStatus = auth()->user()->can('edit status pengiriman produk');
         $canSendShipmentOnly = auth()->user()->can('kirim pengiriman produk');
 
-        /**
-         * RULE:
-         * - Detail hanya boleh diedit saat status Menunggu + punya permission edit pengiriman produk
-         * - Status Menunggu:
-         *      - yg punya edit status => bisa ke Disetujui / Ditolak
-         * - Status Disetujui:
-         *      - yg punya edit status ATAU kirim pengiriman produk => bisa ke Dikirim
-         * - Status Ditolak:
-         *      - lock total, tidak bisa balik ke Menunggu
-         * - Status Dikirim:
-         *      - lock total, tidak bisa diubah apa pun lagi
-         * - Status Selesai:
-         *      - lock total
-         */
         $isDetailEditable = $status === 'Menunggu' && $canEditShipment;
 
         $statusOptions = [$status];

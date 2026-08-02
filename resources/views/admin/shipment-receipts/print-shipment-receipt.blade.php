@@ -4,6 +4,65 @@
 @section('menu-pemasaran', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 @section('menu-pemasaran-penerimaan-pengiriman-produk', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
+@section('addCss')
+    <style>
+        @media print {
+            @page {
+                margin: 1.5cm;
+                size: A4;
+            }
+
+            body {
+                background: white !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            .print\:hidden {
+                display: none !important;
+            }
+
+            #printableArea {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+
+            .print\:break-before-page {
+                page-break-before: always !important;
+            }
+
+            .break-inside-avoid {
+                page-break-inside: avoid !important;
+            }
+
+            /* Warna Force */
+            .bg-gray-800 {
+                background-color: #1f2937 !important;
+            }
+
+            .bg-gray-50 {
+                background-color: #f9fafb !important;
+            }
+
+            .bg-green-50\/30 {
+                background-color: rgba(240, 253, 244, 0.3) !important;
+            }
+
+            .text-white {
+                color: white !important;
+            }
+
+            .text-[#2E7E3F] {
+                color: #2e7e3f !important;
+            }
+
+            .border-[#2E7E3F] {
+                border-color: #2e7e3f !important;
+            }
+        }
+    </style>
+@endsection
+
 @section('content')
     <div class="p-4 sm:p-8 bg-white min-h-screen" id="printableArea">
         {{-- Tombol Navigasi --}}
@@ -192,60 +251,4 @@
         </div>
     </div>
 
-    <style>
-        @media print {
-            @page {
-                margin: 1.5cm;
-                size: A4;
-            }
-
-            body {
-                background: white !important;
-                -webkit-print-color-adjust: exact !important;
-            }
-
-            .print\:hidden {
-                display: none !important;
-            }
-
-            #printableArea {
-                padding: 0 !important;
-                margin: 0 !important;
-                width: 100% !important;
-            }
-
-            .print\:break-before-page {
-                page-break-before: always !important;
-            }
-
-            .break-inside-avoid {
-                page-break-inside: avoid !important;
-            }
-
-            /* Warna Force */
-            .bg-gray-800 {
-                background-color: #1f2937 !important;
-            }
-
-            .bg-gray-50 {
-                background-color: #f9fafb !important;
-            }
-
-            .bg-green-50\/30 {
-                background-color: rgba(240, 253, 244, 0.3) !important;
-            }
-
-            .text-white {
-                color: white !important;
-            }
-
-            .text-[#2E7E3F] {
-                color: #2e7e3f !important;
-            }
-
-            .border-[#2E7E3F] {
-                border-color: #2e7e3f !important;
-            }
-        }
-    </style>
 @endsection

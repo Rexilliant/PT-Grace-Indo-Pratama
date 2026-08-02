@@ -5,6 +5,152 @@
 @section('menu-pemasaran-penerimaan-pengiriman-produk', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 
+@section('addCss')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
+    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
+
+    <style>
+        .filepond--root {
+            font-family: inherit;
+            margin-bottom: 0;
+            min-height: 260px;
+            transition: all 0.3s ease;
+        }
+
+        .filepond--panel-root {
+            background-color: #ffffff !important;
+            border: 2px dashed #d1d5db !important;
+            border-radius: 1rem !important;
+            transition: all 0.3s ease;
+        }
+
+        .filepond--root:hover .filepond--panel-root {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+        }
+
+        .filepond--drop-label {
+            background-color: transparent !important;
+            cursor: pointer;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 1.5rem !important;
+            height: 100% !important;
+            min-height: 260px;
+        }
+
+        .filepond--label-action {
+            text-decoration: none;
+            cursor: pointer;
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+        .filepond--root.has-files {
+            height: 280px !important;
+            min-height: 280px !important;
+        }
+
+        .filepond--root.has-files .filepond--panel-root {
+            transform: none !important;
+            height: 100% !important;
+        }
+
+        .filepond--root.has-files .filepond--drop-label {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            min-height: 45px !important;
+            height: 45px !important;
+            padding: 0 !important;
+            border-bottom: 1px dashed #d1d5db;
+            background: #f8fafc !important;
+            border-radius: 1rem 1rem 0 0 !important;
+            z-index: 10;
+            opacity: 1 !important;
+            transform: none !important;
+        }
+
+        .filepond--root.has-files .fp-icon-large,
+        .filepond--root.has-files .fp-text-large {
+            display: none !important;
+        }
+
+        .filepond--root.has-files .fp-text-mini {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .filepond--root.has-files .filepond--list-scroller {
+            position: absolute !important;
+            top: 45px !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: auto !important;
+            transform: none !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            padding: 15px !important;
+            margin-top: 0 !important;
+        }
+
+        .filepond--root.has-files .filepond--list {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 15px;
+            position: static !important;
+            transform: none !important;
+            height: 100% !important;
+        }
+
+        .filepond--root.has-files .filepond--item {
+            position: static !important;
+            transform: none !important;
+            width: 180px !important;
+            height: calc(100% - 10px) !important;
+            flex-shrink: 0;
+            margin: 0 !important;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 8px;
+        }
+
+        .filepond--list-scroller::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        @media (min-width: 50em) {
+            .filepond--item {
+                width: calc(33.33% - 0.5em);
+            }
+        }
+
+        @media (min-width: 64em) {
+            .filepond--item {
+                width: calc(25% - 0.5em);
+            }
+        }
+    </style>
+@endsection
+
 @section('content')
     @php
         $sectionClass = 'rounded-xl border border-gray-300 bg-gray-200/80 p-5 shadow';
@@ -231,67 +377,8 @@
                 Bukti Kerusakan (Opsional)
             </div>
 
-            <div class="relative w-full overflow-hidden rounded-xl border-2 border-dashed transition-all duration-200 ease-in-out"
-                :class="dragging ? 'border-[#2D2ACD] bg-blue-50' :
-                    'border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400'"
-                @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false"
-                @drop.prevent="handleDrop($event)">
-
-                <input type="file" name="damage_proofs[]" multiple accept="image/png,image/jpeg,application/pdf"
-                    id="file-upload" class="absolute inset-0 z-50 h-full w-full cursor-pointer opacity-0"
-                    @change="handleFileSelect($event)">
-
-                <div class="flex flex-col items-center justify-center p-8 text-center">
-                    <svg class="mb-3 h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
-                        </path>
-                    </svg>
-                    <p class="mb-1 text-sm text-gray-600">
-                        <span class="font-bold text-[#2D2ACD]">Klik untuk unggah</span> atau seret dan lepas file ke sini
-                    </p>
-                    <p class="text-xs text-gray-500">Mendukung PNG, JPG, JPEG, PDF (Maks. 3MB)</p>
-                </div>
-            </div>
-
-            <template x-if="files.length > 0">
-                <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                    <template x-for="(file, index) in files" :key="index">
-                        <div
-                            class="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md">
-
-                            <div class="relative flex h-24 w-full items-center justify-center bg-gray-100">
-                                <template x-if="file.isImage">
-                                    <img :src="file.preview" alt="preview" class="h-full w-full object-cover">
-                                </template>
-                                <template x-if="!file.isImage">
-                                    <svg class="h-8 w-8 text-red-500" fill="currentColor" viewBox="0 0 20 20"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path fill-rule="evenodd"
-                                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-                                            clip-rule="evenodd"></path>
-                                    </svg>
-                                </template>
-                            </div>
-
-                            <div class="p-2">
-                                <p class="truncate text-[10px] font-bold text-gray-700" x-text="file.name"></p>
-                                <p class="text-[9px] text-gray-500" x-text="file.sizeFormatted"></p>
-                            </div>
-
-                            <button type="button" @click.prevent="removeFile(index)"
-                                class="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white opacity-0 shadow transition-opacity duration-200 group-hover:opacity-100 hover:bg-red-600">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </template>
-                </div>
-            </template>
+            <input type="file" name="damage_proofs[]" id="damageProofsPond" multiple
+                accept="image/png, image/jpeg, image/jpg, application/pdf">
 
             @error('damage_proofs')
                 <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
@@ -302,7 +389,7 @@
         </section>
 
         <div class="flex items-center justify-end gap-4 pt-2">
-            <a href="{{ route('admin.gudang-permintaan-pengiriman') }}"
+            <a href="{{ route('shipment-receipts') }}"
                 class="{{ $actionBtnClass }} bg-red-600 hover:bg-red-700">
                 Batal
             </a>
@@ -315,11 +402,13 @@
 @endsection
 
 @section('addJs')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
 
     <script>
         function shipmentReceiptForm(config) {
@@ -333,6 +422,7 @@
                 successMessage: config.successMessage || '',
                 errorMessage: config.errorMessage || '',
                 loading: false,
+                pond: null, 
 
                 init() {
                     if (this.successMessage) {
@@ -355,6 +445,7 @@
 
                     this.$nextTick(() => {
                         this.initSelect2();
+                        this.initFilePond(); 
                     });
 
                     if (this.selectedShipmentId && this.items.length === 0) {
@@ -392,11 +483,7 @@
 
                 async handleShipmentChange(shipmentId) {
                     this.items = [];
-
-                    if (!shipmentId) {
-                        return;
-                    }
-
+                    if (!shipmentId) return;
                     await this.fetchShipmentItems(shipmentId);
                 },
 
@@ -425,7 +512,6 @@
                         }));
                     } catch (error) {
                         console.error(error);
-
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',
@@ -442,72 +528,64 @@
                     return this.validationErrors[key]?.[0] || '';
                 },
 
-                // --- STATE UNTUK UPLOAD FILE ---
-                dragging: false,
-                files: [], // Menyimpan data preview
+                initFilePond() {
+                    const input = document.getElementById('damageProofsPond');
 
-                // --- METHOD UNTUK UPLOAD FILE ---
-                handleFileSelect(event) {
-                    this.processFiles(event.target.files);
-                },
+                    if (!input || typeof FilePond === 'undefined') return;
+                    if (!input.parentNode) return;
+                    if (this.pond) return;
 
-                handleDrop(event) {
-                    this.dragging = false;
-                    this.processFiles(event.dataTransfer.files);
-                },
+                    FilePond.registerPlugin(
+                        FilePondPluginFileValidateType,
+                        FilePondPluginFileValidateSize,
+                        FilePondPluginImagePreview
+                    );
 
-                processFiles(newFiles) {
-                    if (!newFiles || newFiles.length === 0) return;
+                    const customIconPlaceholder = `
+                        <div class="flex flex-col items-center justify-center w-full">
+                            <div class="fp-icon-large p-4 bg-blue-50 rounded-full mb-4 transition-transform duration-300 hover:scale-110">
+                                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="fp-text-large text-center">
+                                <p class="text-base font-bold text-gray-700"><span class="filepond--label-action">Klik</span> atau Tarik gambar ke sini</p>
+                                <p class="text-xs text-gray-500 mt-1 font-medium">PNG, JPG, JPEG, PDF (Maks 3MB/file)</p>
+                            </div>
 
-                    // Gunakan DataTransfer untuk merekonstruksi isi <input type="file">
-                    const dt = new DataTransfer();
+                            <div class="fp-text-mini hidden cursor-pointer hover:underline text-blue-600">
+                                <p class="text-sm font-bold m-0 p-0">+ Tambah Gambar Lain</p>
+                            </div>
+                        </div>
+                    `;
 
-                    // Masukkan file lama yang sudah ada di memori
-                    this.files.forEach(f => dt.items.add(f.rawFile));
+                    this.pond = FilePond.create(input, {
+                        storeAsFile: true,
+                        allowMultiple: true,
+                        maxFiles: 5,
+                        credits: false,
+                        acceptedFileTypes: ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'],
+                        maxFileSize: '3MB',
 
-                    // Masukkan file baru
-                    Array.from(newFiles).forEach(file => {
-                        // Validasi simpel batas 3MB (Opsional, agar user tidak kaget saat ditolak server)
-                        if (file.size > 3 * 1024 * 1024) {
-                            Swal.fire({
-                                icon: 'warning',
-                                title: 'File Terlalu Besar',
-                                text: `${file.name} melebihi ukuran maksimal 3MB.`,
-                                confirmButtonColor: '#2D2ACD'
-                            });
-                            return;
+                        labelIdle: customIconPlaceholder,
+                        labelFileTypeNotAllowed: 'Format file tidak didukung',
+                        fileValidateTypeLabelExpectedTypes: 'Hanya PNG/JPG/JPEG/PDF',
+                        labelMaxFileSizeExceeded: 'Ukuran file terlalu besar',
+                        labelMaxFileSize: 'Maksimum 3MB',
+
+                        onupdatefiles: (files) => {
+                            const rootElement = document.getElementById('damageProofsPond').closest(
+                                '.filepond--root');
+                            if (rootElement) {
+                                if (files.length > 0) {
+                                    rootElement.classList.add('has-files');
+                                } else {
+                                    rootElement.classList.remove('has-files');
+                                }
+                            }
                         }
-
-                        dt.items.add(file);
-
-                        const isImage = file.type.startsWith('image/');
-                        this.files.push({
-                            rawFile: file,
-                            name: file.name,
-                            sizeFormatted: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-                            isImage: isImage,
-                            preview: isImage ? URL.createObjectURL(file) : null
-                        });
                     });
-
-                    // Update value asli dari input DOM agar terkirim ke Laravel Controller
-                    document.getElementById('file-upload').files = dt.files;
-                },
-
-                removeFile(index) {
-                    // Bersihkan memori browser dari URL blob
-                    if (this.files[index].preview) {
-                        URL.revokeObjectURL(this.files[index].preview);
-                    }
-
-                    // Hapus dari state Alpine
-                    this.files.splice(index, 1);
-
-                    // Rekonstruksi ulang isi <input type="file">
-                    const dt = new DataTransfer();
-                    this.files.forEach(f => dt.items.add(f.rawFile));
-                    document.getElementById('file-upload').files = dt.files;
-                },
+                }
             }
         }
     </script>

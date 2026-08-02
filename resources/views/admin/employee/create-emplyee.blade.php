@@ -1,4 +1,7 @@
 @extends('admin.layout.master')
+@section('open-executive', 'open')
+@section('menu-executive', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-executive-karyawan', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('addCss')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -75,7 +78,8 @@
         </div>
     </section>
 
-    <section x-data="employeeForm()" x-init="init()" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section x-data="employeeForm()" x-init="init()"
+        class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div class="mb-6">
             <h1 class="text-2xl font-semibold tracking-tight text-slate-900">Tambah Karyawan</h1>
             <p class="mt-1 text-sm text-slate-500">Lengkapi data karyawan di bawah ini.</p>

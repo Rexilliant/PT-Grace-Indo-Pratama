@@ -10,7 +10,6 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Facades\Excel;
 
-
 class RawMaterialController extends Controller
 {
     public function export(Request $request)
@@ -40,8 +39,7 @@ class RawMaterialController extends Controller
         });
 
         $export = new class ($rows) implements FromCollection, WithHeadings {
-            public function __construct(private $rows)
-            {}
+            public function __construct(private $rows) {}
 
             public function collection()
             {
@@ -50,13 +48,7 @@ class RawMaterialController extends Controller
 
             public function headings(): array
             {
-                return [
-                    'Kode Barang',
-                    'Bahan Baku',
-                    'Unit',
-                    'Status',
-                    'Dibuat Pada',
-                ];
+                return ['Kode Barang', 'Bahan Baku', 'Unit', 'Status', 'Dibuat Pada'];
             }
         };
 
@@ -80,24 +72,28 @@ class RawMaterialController extends Controller
         }
 
         // ROWS PER PAGE (dropdown 10/25/50)
-        $perPage = (int) ($request->get('per_page', 10));
+        $perPage = (int) $request->get('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
 
         $materials = $q->paginate($perPage)->withQueryString();
 
-        $statuses = RawMaterial::query()
-            ->select('status')
-            ->whereNotNull('status')
-            ->distinct()
-            ->orderBy('status')
-            ->pluck('status');
+        $statuses = RawMaterial::query()->select('status')->whereNotNull('status')->distinct()->orderBy('status')->pluck('status');
 
         return view('admin.raw_materials.raw_materials', compact('materials', 'statuses'));
     }
 
     public function stockIndex(Request $request)
     {
+        $warehouseId = auth()->user()->employee?->warehouse_id;
         $q = RawMaterialStock::query()->with('rawMaterial');
+        // Jika user punya warehouse_id, procurement hanya gudang itu
+        if ($warehouseId) {
+            $q->where('warehouse_id', $warehouseId);
+        }
+        // Filter warehouse_id dari request hanya berlaku kalau user tidak punya gudang
+        if (!$warehouseId && $request->filled('warehouse_id')) {
+            $q->where('warehouse_id', $request->warehouse_id);
+        }
         if ($request->filled('code')) {
             $q->whereHas('rawMaterial', function ($u) use ($request) {
                 $u->where('code', 'like', "%{$request->code}%");
@@ -112,26 +108,24 @@ class RawMaterialController extends Controller
         if ($request->filled('warehouse_id')) {
             $q->where('warehouse_id', $request->warehouse_id);
         }
-        $perPage = (int) ($request->get('per_page', 10));
+        $perPage = (int) $request->get('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
         $stocks = $q->paginate(5)->withQueryString();
-        $warehouses = Warehouse::all();
+        // Jika user punya warehouse_id, dropdown gudang hanya gudang itu
+        if ($warehouseId) {
+            $warehouses = Warehouse::where('id', $warehouseId)->get();
+        } else {
+            $warehouses = Warehouse::all();
+        }
 
         return view('admin.raw_materials_inventory.gudang-stok-bahan-baku', compact('stocks', 'warehouses'));
     }
 
-    /**
-     * FORM TAMBAH
-     */
     public function create()
     {
         return view('admin.raw_materials.add-bahan-baku');
     }
 
-    /**
-     * SIMPAN (4 input)
-     * + bikin stok default di raw_material_stocks
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -158,14 +152,9 @@ class RawMaterialController extends Controller
             // ]);
         }
 
-        return redirect()
-            ->route('admin.gudang-bahan-baku')
-            ->with('success', 'Bahan baku berhasil ditambahkan!');
+        return redirect()->route('admin.gudang-bahan-baku')->with('success', 'Bahan baku berhasil ditambahkan!');
     }
 
-    /**
-     * FORM EDIT (master barang aja)
-     */
     public function edit($id)
     {
         $material = RawMaterial::with('stock')->findOrFail($id);
@@ -173,13 +162,10 @@ class RawMaterialController extends Controller
         return view('admin.raw_materials.edit-bahan-baku', compact('material'));
     }
 
-    /**
-     * UPDATE (master barang aja)
-     */
     public function update(Request $request, $id)
     {
         $request->validate([
-            'kode_barang' => 'required|unique:raw_materials,code,'.$id,
+            'kode_barang' => 'required|unique:raw_materials,code,' . $id,
             'bahan_baku' => 'required',
             'unit' => 'required',
             'status' => 'required',
@@ -194,9 +180,7 @@ class RawMaterialController extends Controller
             'status' => $request->status,
         ]);
 
-        return redirect()
-            ->route('admin.gudang-bahan-baku')
-            ->with('success', 'Bahan baku berhasil diperbarui!');
+        return redirect()->route('admin.gudang-bahan-baku')->with('success', 'Bahan baku berhasil diperbarui!');
     }
 
     public function destroy($id)
@@ -204,8 +188,6 @@ class RawMaterialController extends Controller
         $material = RawMaterial::findOrFail($id);
         $material->delete();
 
-        return redirect()
-            ->route('admin.gudang-bahan-baku')
-            ->with('success', 'Bahan baku berhasil dihapus!');
+        return redirect()->route('admin.gudang-bahan-baku')->with('success', 'Bahan baku berhasil dihapus!');
     }
 }

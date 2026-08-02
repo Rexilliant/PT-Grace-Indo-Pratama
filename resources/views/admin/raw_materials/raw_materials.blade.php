@@ -9,13 +9,13 @@
 
     {{-- breadcrumb --}}
     <section class="mb-5">
-        {{-- breadcrumb --}}
         <div class="mb-4 text-xl font-semibold text-gray-700">
             <span class="text-gray-700">Gudang</span>
             <span class="mx-1 text-gray-400">›</span>
             <a href="#" class="text-blue-600 hover:underline">Bahan Baku</a>
         </div>
     </section>
+
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         {{-- top bar --}}
         <form method="GET" class="mb-4">
@@ -88,8 +88,6 @@
             ✅ {{ session('success') }}
         </div>
     @endif
-
-
 
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         {{-- top bar --}}
@@ -173,7 +171,6 @@
                         @endforelse
                     </tbody>
 
-
                 </table>
             </div>
             {{ $materials->links('vendor.pagination.pagination') }}
@@ -181,6 +178,7 @@
         </div>
     </section>
 @endsection
+
 @section('addJs')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 

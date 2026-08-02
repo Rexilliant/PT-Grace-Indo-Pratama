@@ -170,6 +170,15 @@ class PurchaseReceiptController extends Controller
     {
         $q = PurchaseReceipt::query()->with('receivedBy')
             ->orderBy('created_at', 'desc');
+        $warehouseId = auth()->user()->employee?->warehouse_id;
+// Jika user punya warehouse_id, procurement hanya gudang itu
+        if ($warehouseId) {
+            $q->where('warehouse_id', $warehouseId);
+        }
+        // Filter warehouse_id dari request hanya berlaku kalau user tidak punya gudang
+        if (!$warehouseId && $request->filled('warehouse_id')) {
+            $q->where('warehouse_id', $request->warehouse_id);
+        }
         // FILTER TANGGAL (purchase_at)
         if ($request->filled('date_from')) {
             $q->whereDate('created_at', '>=', $request->date_from);
@@ -187,7 +196,12 @@ class PurchaseReceiptController extends Controller
         $perPage = (int) ($request->get('per_page', 10));
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
         $receipts = $q->paginate($perPage)->withQueryString();
-        $warehouses = Warehouse::all();
+        // Jika user punya warehouse_id, dropdown gudang hanya gudang itu
+        if ($warehouseId) {
+            $warehouses = Warehouse::where('id', $warehouseId)->get();
+        } else {
+            $warehouses = Warehouse::all();
+        }
 
         return view('admin.purchase.purchases', compact('receipts', 'warehouses'));
     }
@@ -218,20 +232,30 @@ class PurchaseReceiptController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request->all()); // Menampilkan semua data yang diterima
-        $validated = $request->validate([
-            'procurement_id' => ['required', 'integer', 'exists:procurements,id'],
-            'received_at' => ['required', 'date'],
-            'total_price' => ['nullable', 'integer', 'min:0'],
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.raw_material_id' => ['required', 'integer', 'exists:raw_materials,id'],
-            'items.*.quantity_received' => ['required', 'integer', 'min:1'],
-            'invoices' => ['required', 'array'],
-            'invoices.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'], // 3MB
-        ]);
+        $validated = $request->validate(
+            [
+                'procurement_id' => ['required', 'integer', 'exists:procurements,id'],
+                'received_at' => ['required', 'date'],
+                'total_price' => ['required', 'integer', 'min:0'],
+                'items' => ['required', 'array', 'min:1'],
+                'items.*.raw_material_id' => ['required', 'integer', 'exists:raw_materials,id'],
+                'items.*.quantity_received' => ['required', 'integer', 'min:1'],
+                'invoices' => ['required', 'array'],
+                'invoices.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'],
+            ],
+            [
+                'items.required' => 'Minimal harus ada 1 item barang.',
+                'items.min' => 'Minimal harus ada 1 item barang.',
 
-        // Cek apakah items berisi raw_material_id dan quantity_received
-        // dd($validated['items']);
+                'items.*.raw_material_id.required' => 'Silakan pilih barang.',
+                'items.*.raw_material_id.integer' => 'Barang tidak valid.',
+                'items.*.raw_material_id.exists' => 'Barang tidak valid.',
+
+                'items.*.quantity_received.required' => 'Jumlah barang masuk wajib diisi.',
+                'items.*.quantity_received.integer' => 'Jumlah harus berupa angka.',
+                'items.*.quantity_received.min' => 'Jumlah minimal 1.',
+            ],
+        );
 
         $rawIds = collect($validated['items'])->pluck('raw_material_id')->unique()->values();
         $count = RawMaterial::whereIn('id', $rawIds)->count();
@@ -244,7 +268,7 @@ class PurchaseReceiptController extends Controller
             $receipt = DB::transaction(function () use ($request, $validated) {
                 $userId = auth()->id();
 
-                // Receipt number (silakan sesuaikan format)
+                // Receipt number
                 $receiptNumber = 'RCPT-'.now()->format('Ymd').'-'.strtoupper(Str::random(6));
                 $procurement = Procurement::findOrFail($validated['procurement_id']);
                 $warehouse_id = $procurement->warehouse_id;
@@ -330,7 +354,7 @@ class PurchaseReceiptController extends Controller
     public function addMedia(Request $request, $id)
     {
         $request->validate([
-            'invoices' => ['required'], // jangan paksa array
+            'invoices' => ['required'],
             'invoices.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'],
         ]);
         try {
@@ -371,8 +395,6 @@ class PurchaseReceiptController extends Controller
 
     public function edit($id)
     {
-        // Hapus atau gunakan untuk debugging lainnya, seperti menampilkan ID yang diterima
-        // dd($id);
         $warehouses = Warehouse::all();
 
         $receipt = PurchaseReceipt::with([
@@ -388,7 +410,6 @@ class PurchaseReceiptController extends Controller
             ->orWhere('id', $receipt->procurement_id)
             ->get();
 
-        // filter collection invoices saja (tidak query lagi)
         $invoices = $receipt->media
             ->where('collection_name', 'invoices')
             ->values();

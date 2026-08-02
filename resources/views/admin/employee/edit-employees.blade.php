@@ -1,4 +1,7 @@
 @extends('admin.layout.master')
+@section('open-executive', 'open')
+@section('menu-executive', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
+@section('menu-executive-karyawan', 'bg-gradient-to-r from-[#53BF6A] to-[#275931] text-white')
 
 @section('addCss')
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
@@ -62,7 +65,6 @@
         $canEditEmployee = auth()->user()->can('edit karyawan');
         $canReadEmployee = auth()->user()->can('baca karyawan');
 
-        // jika hanya punya baca karyawan atau tidak punya edit, maka lock form
         $isReadOnly = !$canEditEmployee;
 
         $inputClass = $isReadOnly

@@ -85,7 +85,7 @@
 
                 <div>
                     <label class="mb-2 block text-xs font-bold">Tanggal Pemesanan</label>
-                    <input type="date" readonly value="{{ $procurement->created_at->format('Y-m-d') }}"
+                    <input type="date" readonly value="{{ $procurement->purchase_at->format('Y-m-d') }}"
                         class="w-full rounded-md border px-3 py-2.5 text-sm font-semibold {{ $canEditData ? '' : $disabledClass }}">
                 </div>
 
@@ -129,7 +129,7 @@
 
             <div class="mt-5">
                 <label class="mb-2 block text-xs font-bold">Catatan</label>
-                <textarea name="note" rows="3" {{ $canEditData ? '' : 'readonly' }}
+                <textarea name="note" rows="3" {{ $canEditData ? '' : 'readonly' }} {{ $canEditStatusOnly ? 'readonly' : '' }}
                     class="w-full rounded-md border px-3 py-2.5 text-sm font-semibold {{ $canEditData ? '' : $disabledClass }}">{{ old('note', $procurement->note) }}</textarea>
 
                 @error('note')
@@ -148,26 +148,19 @@
                         <input type="hidden" name="items[{{ $index }}][raw_material_id]"
                             value="{{ $item->raw_material_id }}">
 
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div>
                                 <label class="mb-2 block text-xs font-bold">Raw Material</label>
                                 <input type="text" readonly
                                     value="{{ ($item->raw_material->code ?? 'RM-' . $item->raw_material->id) . ' - ' . $item->raw_material->name . ' / ' . $item->raw_material->unit }}"
                                     class="w-full rounded-md border px-3 py-2.5 text-sm font-semibold {{ $disabledClass }}">
                             </div>
-
-                            <div>
-                                <label class="mb-2 block text-xs font-bold">Stok</label>
-                                <input type="number" readonly value="{{ $item->raw_material->stock->stock ?? 0 }}"
-                                    class="w-full rounded-md border px-3 py-2.5 text-sm font-semibold {{ $disabledClass }}">
-                            </div>
-
                             <div>
                                 <label class="mb-2 block text-xs font-bold">Jumlah</label>
                                 <input type="number" name="items[{{ $index }}][quantity_requested]" min="1"
                                     value="{{ old('items.' . $index . '.quantity_requested', $item->quantity_requested) }}"
                                     {{ $canEditData ? '' : 'readonly' }}
-                                    class="w-full rounded-md border px-3 py-2.5 text-sm font-semibold {{$disabledClass }}">
+                                    class="w-full rounded-md border px-3 py-2.5 text-sm font-semibold {{ $disabledClass }}">
 
                                 @error('items.' . $index . '.quantity_requested')
                                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
