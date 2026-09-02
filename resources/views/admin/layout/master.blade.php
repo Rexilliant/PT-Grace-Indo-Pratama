@@ -27,7 +27,7 @@
 
     </section>
 
-    <script>
+    {{-- <script>
         document.addEventListener('DOMContentLoaded', function() {
             document.addEventListener('submit', function(e) {
                 // Only act on forms
@@ -45,6 +45,37 @@
                         btn.classList.add('opacity-50', 'cursor-not-allowed');
                         
                         // Gunakan setTimeout agar form tetap bisa tersubmit (karena jika langsung disabled kadang form tidak terkirim di beberapa browser)
+                        setTimeout(() => {
+                            btn.disabled = true;
+                        }, 10);
+                    });
+                }
+            });
+        });
+    </script> --}}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('submit', function(e) {
+                // Hanya berlaku untuk elemen FORM
+                if (e.target && e.target.tagName === 'FORM') {
+
+                    // LEWATI JIKA FORM ADALAH FORM HAPUS (SweetAlert)
+                    if (e.target.classList.contains('form-delete')) {
+                        return; // Hentikan eksekusi script ini
+                    }
+
+                    // Tampilkan loading overlay untuk form biasa
+                    const overlay = document.getElementById('loading-overlay');
+                    if (overlay) {
+                        overlay.style.display = 'flex';
+                    }
+
+                    // Disable tombol submit agar tidak terjadi double click
+                    const buttons = e.target.querySelectorAll(
+                    'button[type="submit"], input[type="submit"]');
+                    buttons.forEach(btn => {
+                        btn.classList.add('opacity-50', 'cursor-not-allowed');
                         setTimeout(() => {
                             btn.disabled = true;
                         }, 10);
