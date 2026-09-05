@@ -88,7 +88,7 @@
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         {{-- top bar --}}
         <div class="mb-5 flex items-center gap-5">
-            @can('export bahan baku masuk')
+            @canany(['export bahan baku masuk', 'export bahan baku masuk gudang sendiri'])
                 <a href="{{ route('purchase-receipts.export') }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-5 py-2 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
                     <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -98,15 +98,15 @@
                     </svg>
                     Export .xlsx
                 </a>
-            @endcan
+            @endcanany
 
-            @can('tambah bahan baku masuk')
+            @canany(['tambah bahan baku masuk', 'tambah bahan baku masuk gudang sendiri'])
                 <a href="{{ route('create-purchase-receipt') }}"
                     class="inline-flex items-center gap-2 rounded-lg bg-[#2D2ACD] px-6 py-2 text-sm font-semibold text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
                     <span class="text-lg leading-none">+</span>
                     Tambah Baru
                 </a>
-            @endcan
+            @endcanany
         </div>
 
         {{-- table --}}
@@ -126,8 +126,18 @@
                     <tbody class="bg-gray-200 divide-y divide-gray-500">
                         @forelse ($receipts as $receipt)
                             @php
+                                $u = auth()->user();
+                                $uWh = optional($u->employee)->warehouse_id;
 
-                                $canDelete = auth()->user()->can('hapus bahan baku masuk');
+                                $hasFullEdit = $u->can('edit bahan baku masuk');
+                                $hasOwnWarehouseEdit = $u->can('edit bahan baku masuk gudang sendiri') && $uWh && (int) $receipt->warehouse_id === (int) $uWh;
+                                $hasOwnEdit = $u->can('edit bahan baku masuk sendiri') && (int) $receipt->received_by === (int) $u->id;
+                                $canEdit = $hasFullEdit || $hasOwnWarehouseEdit || $hasOwnEdit;
+
+                                $hasFullDelete = $u->can('hapus bahan baku masuk');
+                                $hasOwnWarehouseDelete = $u->can('hapus bahan baku masuk gudang sendiri') && $uWh && (int) $receipt->warehouse_id === (int) $uWh;
+                                $hasOwnDelete = $u->can('hapus bahan baku masuk sendiri') && (int) $receipt->received_by === (int) $u->id;
+                                $canDelete = $hasFullDelete || $hasOwnWarehouseDelete || $hasOwnDelete;
                             @endphp
 
                             <tr class="hover:bg-gray-300">
@@ -137,8 +147,8 @@
                                 <td class="px-6 py-4 font-semibold">{{ $receipt->warehouse->name }}</td>
                                 <td class="px-6 py-3">
                                     <div class="flex items-center justify-start gap-6 font-semibold">
-                                        {{-- SUNGTING --}}
-                                        @canany(['baca bahan baku masuk', 'edit bahan baku masuk'])
+                                        {{-- SUNTING --}}
+                                        @canany(['baca bahan baku masuk', 'baca bahan baku masuk gudang sendiri', 'edit bahan baku masuk', 'edit bahan baku masuk gudang sendiri', 'edit bahan baku masuk sendiri'])
                                             <a href="{{ route('edit-purchase-receipt', $receipt->id) }}"
                                                 class="text-[#2E7E3F] hover:underline">
                                                 Sunting

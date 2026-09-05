@@ -160,11 +160,14 @@
 @section('content')
     @php
         $user = auth()->user();
+        $userWarehouseId = optional($user?->employee)->warehouse_id;
 
-        $canEditReceipt =
-            $user && $user->can('edit bahan baku masuk') && (int) $receipt->received_by === (int) $user->id;
+        $hasFullEdit = $user && $user->can('edit bahan baku masuk');
+        $hasOwnWarehouseEdit = $user && $user->can('edit bahan baku masuk gudang sendiri') && $userWarehouseId && (int) $receipt->warehouse_id === (int) $userWarehouseId;
+        $hasOwnEdit = $user && $user->can('edit bahan baku masuk sendiri') && (int) $receipt->received_by === (int) $user->id;
 
-        $canReadOnly = $user && $user->can('baca bahan baku masuk');
+        $canEditReceipt = $hasFullEdit || $hasOwnWarehouseEdit || $hasOwnEdit;
+        $canReadOnly = $user && ($user->can('baca bahan baku masuk') || $user->can('baca bahan baku masuk gudang sendiri'));
 
         $isDisabled = !$canEditReceipt;
 

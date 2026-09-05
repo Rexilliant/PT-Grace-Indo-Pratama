@@ -44,10 +44,17 @@ class PermissionSeeder extends Seeder
 
             // Bahan Baku Masuk
             'tambah bahan baku masuk',
+            'tambah bahan baku masuk gudang sendiri',
             'edit bahan baku masuk',
+            'edit bahan baku masuk gudang sendiri',
+            'edit bahan baku masuk sendiri',
             'hapus bahan baku masuk',
+            'hapus bahan baku masuk gudang sendiri',
+            'hapus bahan baku masuk sendiri',
             'baca bahan baku masuk',
+            'baca bahan baku masuk gudang sendiri',
             'export bahan baku masuk',
+            'export bahan baku masuk gudang sendiri',
 
             // Produksi
             'tambah produksi',

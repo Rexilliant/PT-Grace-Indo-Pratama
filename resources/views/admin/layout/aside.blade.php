@@ -37,6 +37,7 @@
             'baca gudang',
             'baca pengadaan bahan baku',
             'baca bahan baku masuk',
+            'baca bahan baku masuk gudang sendiri',
             'baca produksi',
             'baca pengiriman
             produk',
@@ -93,12 +94,12 @@
                         </a>
                     @endcan
 
-                    @can('baca bahan baku masuk')
+                    @canany(['baca bahan baku masuk', 'baca bahan baku masuk gudang sendiri'])
                         <a href="{{ route('purchase-receipts') }}"
                             class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-barang-masuk')">
                             Bahan Baku Masuk
                         </a>
-                    @endcan
+                    @endcanany
 
                     @can('baca produksi')
                         <a href="{{ route('admin.gudang-laporan-produksi') }}"
@@ -372,6 +373,7 @@
             'baca gudang',
             'baca pengadaan bahan baku',
             'baca bahan baku masuk',
+            'baca bahan baku masuk gudang sendiri',
             'baca produksi',
             'baca pengiriman
             produk',
@@ -428,12 +430,12 @@
                         </a>
                     @endcan
 
-                    @can('baca bahan baku masuk')
+                    @canany(['baca bahan baku masuk', 'baca bahan baku masuk gudang sendiri'])
                         <a href="{{ route('purchase-receipts') }}"
                             class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-barang-masuk')">
                             Bahan Baku Masuk
                         </a>
-                    @endcan
+                    @endcanany
 
                     @can('baca produksi')
                         <a href="{{ route('admin.gudang-laporan-produksi') }}"

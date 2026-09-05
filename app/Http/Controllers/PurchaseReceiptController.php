@@ -27,6 +27,20 @@ class PurchaseReceiptController extends Controller
     public function getProcurementItems(Procurement $procurement)
     {
         try {
+            $user = auth()->user();
+            $userWarehouseId = optional($user->employee)->warehouse_id;
+
+            $hasFullCreate = $user->can('tambah bahan baku masuk');
+            $hasOwnWarehouseCreate = $user->can('tambah bahan baku masuk gudang sendiri');
+            $isOwnWarehouseOnly = !$hasFullCreate && $hasOwnWarehouseCreate;
+
+            if ($isOwnWarehouseOnly && $userWarehouseId && (int) $procurement->warehouse_id !== (int) $userWarehouseId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki akses ke pengadaan gudang lain.',
+                ], 403);
+            }
+
             $procurement->load([
                 'procurement_items.raw_material',
             ]);
@@ -45,11 +59,19 @@ class PurchaseReceiptController extends Controller
             ]);
         } catch (Throwable $e) {
             save_log_error($e);
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan server.'], 500);
         }
     }
 
     public function export(Request $request)
     {
+        $user = auth()->user();
+        $userWarehouseId = optional($user->employee)->warehouse_id;
+
+        $hasFullExport = $user->can('export bahan baku masuk');
+        $hasOwnWarehouseExport = $user->can('export bahan baku masuk gudang sendiri');
+        $isOwnWarehouseOnly = !$hasFullExport && ($hasOwnWarehouseExport || $userWarehouseId);
+
         $q = PurchaseReceipt::query()
             ->with([
                 'receivedBy',
@@ -59,6 +81,10 @@ class PurchaseReceiptController extends Controller
                 'media',
             ])
             ->orderBy('created_at', 'desc');
+
+        if ($isOwnWarehouseOnly && $userWarehouseId) {
+            $q->where('warehouse_id', $userWarehouseId);
+        }
 
         if ($request->filled('name')) {
             $q->whereHas('receivedBy', function ($u) use ($request) {
@@ -168,17 +194,23 @@ class PurchaseReceiptController extends Controller
 
     public function index(Request $request)
     {
+        $user = auth()->user();
+        $userWarehouseId = optional($user->employee)->warehouse_id;
+
+        $hasFullRead = $user->can('baca bahan baku masuk');
+        $hasOwnWarehouseRead = $user->can('baca bahan baku masuk gudang sendiri');
+
+        $isOwnWarehouseOnly = !$hasFullRead && ($hasOwnWarehouseRead || $userWarehouseId);
+
         $q = PurchaseReceipt::query()->with('receivedBy')
             ->orderBy('created_at', 'desc');
-        $warehouseId = auth()->user()->employee?->warehouse_id;
-// Jika user punya warehouse_id, procurement hanya gudang itu
-        if ($warehouseId) {
-            $q->where('warehouse_id', $warehouseId);
-        }
-        // Filter warehouse_id dari request hanya berlaku kalau user tidak punya gudang
-        if (!$warehouseId && $request->filled('warehouse_id')) {
+
+        if ($isOwnWarehouseOnly && $userWarehouseId) {
+            $q->where('warehouse_id', $userWarehouseId);
+        } elseif (!$userWarehouseId && $request->filled('warehouse_id')) {
             $q->where('warehouse_id', $request->warehouse_id);
         }
+
         // FILTER TANGGAL (purchase_at)
         if ($request->filled('date_from')) {
             $q->whereDate('created_at', '>=', $request->date_from);
@@ -192,13 +224,13 @@ class PurchaseReceiptController extends Controller
                 $u->where('name', 'like', "%{$search}%");
             });
         }
-        // ROWS PER PAGE (dropdown 10/25/50)
+
         $perPage = (int) ($request->get('per_page', 10));
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
         $receipts = $q->paginate($perPage)->withQueryString();
-        // Jika user punya warehouse_id, dropdown gudang hanya gudang itu
-        if ($warehouseId) {
-            $warehouses = Warehouse::where('id', $warehouseId)->get();
+
+        if ($isOwnWarehouseOnly && $userWarehouseId) {
+            $warehouses = Warehouse::where('id', $userWarehouseId)->get();
         } else {
             $warehouses = Warehouse::all();
         }
@@ -208,6 +240,13 @@ class PurchaseReceiptController extends Controller
 
     public function print($id)
     {
+        $user = auth()->user();
+        $userWarehouseId = optional($user->employee)->warehouse_id;
+
+        $hasFullRead = $user->can('baca bahan baku masuk');
+        $hasOwnWarehouseRead = $user->can('baca bahan baku masuk gudang sendiri');
+        $isOwnWarehouseOnly = !$hasFullRead && ($hasOwnWarehouseRead || $userWarehouseId);
+
         $receipt = PurchaseReceipt::with([
             'items.rawMaterial',
             'warehouse',
@@ -215,23 +254,58 @@ class PurchaseReceiptController extends Controller
             'procurement',
         ])->findOrFail($id);
 
+        if ($isOwnWarehouseOnly && $userWarehouseId && (int)$receipt->warehouse_id !== (int)$userWarehouseId) {
+            abort(403, 'Anda tidak memiliki akses ke cetak barang masuk gudang lain.');
+        }
+
         return view('admin.purchase.purchase-print', compact('receipt'));
     }
 
     public function create()
     {
-        $warehouses = Warehouse::all();
+        $user = auth()->user();
+        $userWarehouseId = optional($user->employee)->warehouse_id;
+
+        $hasFullCreate = $user->can('tambah bahan baku masuk');
+        $hasOwnWarehouseCreate = $user->can('tambah bahan baku masuk gudang sendiri');
+
+        if (!$hasFullCreate && !$hasOwnWarehouseCreate) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah bahan baku masuk.');
+        }
+
+        $isOwnWarehouseOnly = !$hasFullCreate && $hasOwnWarehouseCreate;
+
+        $warehouses = Warehouse::when($isOwnWarehouseOnly && $userWarehouseId, function ($query) use ($userWarehouseId) {
+            $query->where('id', $userWarehouseId);
+        })->get();
 
         $rawMaterials = RawMaterial::select('id', 'code', 'name', 'unit')
             ->orderBy('name')
             ->get();
-        $procurements = Procurement::where('status', 'disetujui')->get();
+
+        $procurements = Procurement::where('status', 'disetujui')
+            ->when($isOwnWarehouseOnly && $userWarehouseId, function ($query) use ($userWarehouseId) {
+                $query->where('warehouse_id', $userWarehouseId);
+            })
+            ->get();
 
         return view('admin.purchase.purchase-create', compact('warehouses', 'rawMaterials', 'procurements'));
     }
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        $userWarehouseId = optional($user->employee)->warehouse_id;
+
+        $hasFullCreate = $user->can('tambah bahan baku masuk');
+        $hasOwnWarehouseCreate = $user->can('tambah bahan baku masuk gudang sendiri');
+
+        if (!$hasFullCreate && !$hasOwnWarehouseCreate) {
+            return back()->withInput()->withErrors(['error' => 'Anda tidak memiliki akses untuk menambah bahan baku masuk.']);
+        }
+
+        $isOwnWarehouseOnly = !$hasFullCreate && $hasOwnWarehouseCreate;
+
         $validated = $request->validate(
             [
                 'procurement_id' => ['required', 'integer', 'exists:procurements,id'],
@@ -256,6 +330,14 @@ class PurchaseReceiptController extends Controller
                 'items.*.quantity_received.min' => 'Jumlah minimal 1.',
             ],
         );
+
+        $procurement = Procurement::findOrFail($validated['procurement_id']);
+
+        if ($isOwnWarehouseOnly && $userWarehouseId && (int)$procurement->warehouse_id !== (int)$userWarehouseId) {
+            return back()->withInput()->withErrors([
+                'procurement_id' => 'Anda hanya dapat menambahkan data pengadaan dari gudang Anda sendiri.',
+            ]);
+        }
 
         $rawIds = collect($validated['items'])->pluck('raw_material_id')->unique()->values();
         $count = RawMaterial::whereIn('id', $rawIds)->count();
@@ -360,6 +442,20 @@ class PurchaseReceiptController extends Controller
         try {
             $receipt = PurchaseReceipt::findOrFail($id);
 
+            $user = auth()->user();
+            $userWarehouseId = optional($user->employee)->warehouse_id;
+            $hasFullEdit = $user->can('edit bahan baku masuk');
+            $hasOwnWarehouseEdit = $user->can('edit bahan baku masuk gudang sendiri');
+            $hasOwnEdit = $user->can('edit bahan baku masuk sendiri');
+
+            $canEdit = $hasFullEdit 
+                || ($hasOwnWarehouseEdit && $userWarehouseId && (int)$receipt->warehouse_id === (int)$userWarehouseId)
+                || ($hasOwnEdit && (int)$receipt->received_by === (int)$user->id);
+
+            if (!$canEdit) {
+                return back()->withErrors(['error' => 'Anda tidak memiliki akses untuk menambah invoice pada data barang masuk ini.']);
+            }
+
             if (! $request->hasFile('invoices')) {
                 return back()->withErrors(['invoices' => 'File invoice tidak ditemukan.']);
             }
@@ -395,19 +491,49 @@ class PurchaseReceiptController extends Controller
 
     public function edit($id)
     {
-        $warehouses = Warehouse::all();
+        $user = auth()->user();
+        $userWarehouseId = optional($user->employee)->warehouse_id;
+
+        $hasFullEdit = $user->can('edit bahan baku masuk');
+        $hasOwnWarehouseEdit = $user->can('edit bahan baku masuk gudang sendiri');
+        $hasOwnEdit = $user->can('edit bahan baku masuk sendiri');
+        $hasRead = $user->can('baca bahan baku masuk') || $user->can('baca bahan baku masuk gudang sendiri');
+
+        if (!$hasFullEdit && !$hasOwnWarehouseEdit && !$hasOwnEdit && !$hasRead) {
+            abort(403, 'Anda tidak memiliki akses untuk melihat/mengedit bahan baku masuk.');
+        }
 
         $receipt = PurchaseReceipt::with([
             'items.rawMaterial',
             'media',
+            'procurement',
         ])->findOrFail($id);
+
+        $canEdit = $hasFullEdit 
+            || ($hasOwnWarehouseEdit && $userWarehouseId && (int)$receipt->warehouse_id === (int)$userWarehouseId)
+            || ($hasOwnEdit && (int)$receipt->received_by === (int)$user->id);
+
+        if (!$canEdit && !$hasRead) {
+            return redirect()->route('purchase-receipts')->with('error', 'Anda tidak memiliki akses untuk mengedit data barang masuk ini.');
+        }
+
+        $isOwnWarehouseOnly = !$hasFullEdit && ($hasOwnWarehouseEdit || $userWarehouseId);
+
+        $warehouses = Warehouse::when($isOwnWarehouseOnly && $userWarehouseId, function ($query) use ($userWarehouseId) {
+            $query->where('id', $userWarehouseId);
+        })->get();
 
         $rawMaterials = RawMaterial::select('id', 'code', 'name', 'unit')
             ->orderBy('name')
             ->get();
 
-        $procurements = Procurement::where('status', 'diterima')
-            ->orWhere('id', $receipt->procurement_id)
+        $procurements = Procurement::where(function ($q) use ($receipt) {
+                $q->where('status', 'disetujui')
+                  ->orWhere('id', $receipt->procurement_id);
+            })
+            ->when($isOwnWarehouseOnly && $userWarehouseId, function ($query) use ($userWarehouseId) {
+                $query->where('warehouse_id', $userWarehouseId);
+            })
             ->get();
 
         $invoices = $receipt->media
@@ -425,6 +551,27 @@ class PurchaseReceiptController extends Controller
 
     public function update(Request $request, $id)
     {
+        $user = auth()->user();
+        $userWarehouseId = optional($user->employee)->warehouse_id;
+
+        $hasFullEdit = $user->can('edit bahan baku masuk');
+        $hasOwnWarehouseEdit = $user->can('edit bahan baku masuk gudang sendiri');
+        $hasOwnEdit = $user->can('edit bahan baku masuk sendiri');
+
+        if (!$hasFullEdit && !$hasOwnWarehouseEdit && !$hasOwnEdit) {
+            return back()->withInput()->withErrors(['error' => 'Anda tidak memiliki akses untuk mengedit bahan baku masuk.']);
+        }
+
+        $receipt = PurchaseReceipt::findOrFail($id);
+
+        $canEdit = $hasFullEdit 
+            || ($hasOwnWarehouseEdit && $userWarehouseId && (int)$receipt->warehouse_id === (int)$userWarehouseId)
+            || ($hasOwnEdit && (int)$receipt->received_by === (int)$user->id);
+
+        if (!$canEdit) {
+            return back()->withInput()->withErrors(['error' => 'Anda tidak memiliki akses untuk mengedit data barang masuk ini.']);
+        }
+
         $validated = $request->validate([
             'received_at' => ['required', 'date'],
             'total_price' => ['nullable', 'integer', 'min:0'],
@@ -511,9 +658,28 @@ class PurchaseReceiptController extends Controller
     public function destroy($id)
     {
         try {
-            DB::transaction(function () use ($id) {
-                $receipt = PurchaseReceipt::with(['items'])->findOrFail($id);
+            $user = auth()->user();
+            $userWarehouseId = optional($user->employee)->warehouse_id;
 
+            $hasFullDelete = $user->can('hapus bahan baku masuk');
+            $hasOwnWarehouseDelete = $user->can('hapus bahan baku masuk gudang sendiri');
+            $hasOwnDelete = $user->can('hapus bahan baku masuk sendiri');
+
+            if (!$hasFullDelete && !$hasOwnWarehouseDelete && !$hasOwnDelete) {
+                return back()->withErrors(['error' => 'Anda tidak memiliki akses untuk menghapus bahan baku masuk.']);
+            }
+
+            $receipt = PurchaseReceipt::with(['items'])->findOrFail($id);
+
+            $canDelete = $hasFullDelete 
+                || ($hasOwnWarehouseDelete && $userWarehouseId && (int) $receipt->warehouse_id === (int) $userWarehouseId)
+                || ($hasOwnDelete && (int) $receipt->received_by === (int) $user->id);
+
+            if (!$canDelete) {
+                return back()->withErrors(['error' => 'Anda tidak memiliki akses untuk menghapus data barang masuk ini.']);
+            }
+
+            DB::transaction(function () use ($receipt) {
                 // CEK: jangan sampai stok jadi minus setelah reverse
                 foreach ($receipt->items as $item) {
                     $current = RawMaterialStock::where([
