@@ -152,7 +152,7 @@
                                 <td class="px-6 py-4">{{ $procurement->warehouse->name }}</td>
                                 <td class="px-6 py-4">{{ $procurement->status }}</td>
                                 <td class="px-6 py-4">
-                                    @canany(['edit pengadaan bahan baku', 'baca pengadaan bahan baku'])
+                                    @canany(['edit pengadaan bahan baku', 'baca pengadaan bahan baku', 'edit status pengadaan bahan baku'])
                                         <a href="{{ route('edit-procurement', ['id' => $procurement->id]) }}"
                                             class="text-blue-600 hover:underline">
                                             Sunting
@@ -166,15 +166,17 @@
                                     </a>
 
                                     @can('hapus pengadaan bahan baku')
-                                        <span class="mx-1">|</span>
-                                        <form action="{{ route('delete-procurement', ['id' => $procurement->id]) }}"
-                                            method="POST" class="inline-block form-delete">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:underline">
-                                                Hapus
-                                            </button>
-                                        </form>
+                                        @if ($procurement->canBeDeleted())
+                                            <span class="mx-1">|</span>
+                                            <form action="{{ route('delete-procurement', ['id' => $procurement->id]) }}"
+                                                method="POST" class="inline-block form-delete">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:underline">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        @endif
                                     @endcan
 
 

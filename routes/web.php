@@ -216,9 +216,9 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/create', 'create')->middleware(['auth', 'permission:tambah pengadaan bahan baku'])->name('create-procurement');
         Route::post('/store', 'store')->middleware(['auth', 'permission:tambah pengadaan bahan baku'])->name('store-procurement');
         Route::get('/', 'index')->middleware(['auth', 'permission:baca pengadaan bahan baku'])->name('procurements');
-        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit pengadaan bahan baku|baca pengadaan bahan baku'])->name('edit-procurement');
+        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit pengadaan bahan baku|baca pengadaan bahan baku|edit status pengadaan bahan baku'])->name('edit-procurement');
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus pengadaan bahan baku'])->name('delete-procurement');
-        Route::put('/edit/{id}', 'update')->name('update-procurement');
+        Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit pengadaan bahan baku|edit status pengadaan bahan baku'])->name('update-procurement');
         Route::get('/print/{id}', 'print')->middleware(['auth', 'permission:baca pengadaan bahan baku'])->name('print-procurement');
         Route::get('/export', 'export')->middleware(['auth', 'permission:export pengadaan bahan baku'])->name('procurements.export');
 
