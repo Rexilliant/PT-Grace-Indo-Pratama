@@ -96,7 +96,11 @@
                     <p class="font-semibold border-b border-gray-200 pb-1">{{ $shipment->address ?? '-' }}</p>
                 </div>
                 <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase block">Kontak / Penerima</label>
+                    <label class="text-xs font-bold text-gray-500 uppercase block">Nama Penerima</label>
+                    <p class="font-semibold border-b border-gray-200 pb-1">{{ $shipment->received_name ?? '-' }}</p>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase block">Kontak Penerima</label>
                     <p class="font-semibold border-b border-gray-200 pb-1">{{ $shipment->contact ?? '-' }}</p>
                 </div>
             </div>

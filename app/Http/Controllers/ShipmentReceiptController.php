@@ -27,7 +27,6 @@ class ShipmentReceiptController extends Controller
         $q = ShipmentReceipt::query()
             ->with([
                 'shipment.warehouse',
-                'shipment.receivedBy',
                 'receivedBy',
                 'approvedBy',
                 'rejectedBy',
@@ -90,7 +89,7 @@ class ShipmentReceiptController extends Controller
                     'Jenis Shipment' => $sr->shipment->shipment_type ?? '-',
                     'Armada Pengiriman' => $sr->shipment->shipping_fleet ?? '-',
                     'Kontak' => $sr->shipment->contact ?? '-',
-                    'Penerima Shipment' => $sr->shipment->receivedBy->name ?? '-',
+                    'Penerima Shipment' => $sr->shipment->received_name ?? '-',
                     'Alamat Shipment' => $sr->shipment->address ?? '-',
                     'Catatan Receipt' => $sr->notes ?? '-',
                     'Alasan Penolakan' => $sr->reject_reason ?? '-',
@@ -271,7 +270,6 @@ class ShipmentReceiptController extends Controller
     {
         $shipments = Shipment::with([
             'warehouse',
-            'receivedBy',
         ])->where('status', '=', 'dikirim')->get();
 
         return view('admin.shipment-receipts.create-shipment-receipt', compact('shipments'));
@@ -380,7 +378,6 @@ class ShipmentReceiptController extends Controller
     {
         $shipmentReceipt = ShipmentReceipt::with([
             'shipment.warehouse',
-            'shipment.receivedBy',
             'items.shipmentItem.productStock.productVariant',
         ])->findOrFail($id);
 
@@ -412,6 +409,8 @@ class ShipmentReceiptController extends Controller
             $rules = array_merge($rules, [
                 'received_at' => 'required|date',
                 'notes' => 'nullable|string',
+                'damage_proofs' => 'nullable|array',
+                'damage_proofs.*' => 'file|mimes:jpg,jpeg,png,pdf|max:3072',
                 'items' => 'required|array|min:1',
                 'items.*.shipment_receipt_item_id' => 'required|exists:shipment_receipt_items,id',
                 'items.*.shipment_item_id' => 'required|exists:shipment_items,id',
@@ -427,6 +426,8 @@ class ShipmentReceiptController extends Controller
             'received_at.required' => 'Tanggal diterima wajib diisi.',
             'items.required' => 'Daftar item receipt wajib diisi.',
             'items.min' => 'Minimal harus ada satu item receipt.',
+            'damage_proofs.*.mimes' => 'Bukti kerusakan harus berupa file JPG, JPEG, PNG, atau PDF.',
+            'damage_proofs.*.max' => 'Ukuran file bukti kerusakan maksimal 3MB.',
         ]);
 
         DB::beginTransaction();
@@ -479,6 +480,21 @@ class ShipmentReceiptController extends Controller
                             'qty_received' => $item['qty_received'],
                             'notes' => $item['notes'] ?? null,
                         ]);
+                    }
+                }
+
+                if ($request->hasFile('damage_proofs')) {
+                    foreach ($request->file('damage_proofs') as $file) {
+                        $ext = $file->getClientOriginalExtension();
+                        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                        $sanitized = Str::slug($originalName);
+                        $fileName = $sanitized . '-' . time() . '-' . uniqid() . '.' . $ext;
+
+                        $shipmentReceipt
+                            ->addMedia($file)
+                            ->usingFileName($fileName)
+                            ->usingName($file->getClientOriginalName())
+                            ->toMediaCollection('damage_proofs');
                     }
                 }
             }
