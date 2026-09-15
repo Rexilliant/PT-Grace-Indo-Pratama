@@ -39,7 +39,8 @@ class RawMaterialController extends Controller
         });
 
         $export = new class ($rows) implements FromCollection, WithHeadings {
-            public function __construct(private $rows) {}
+            public function __construct(private $rows)
+            {}
 
             public function collection()
             {
@@ -53,6 +54,63 @@ class RawMaterialController extends Controller
         };
 
         return Excel::download($export, 'bahan_baku_' . now()->format('Ymd_His') . '.xlsx');
+    }
+
+    public function exportStock(Request $request)
+    {
+        $warehouseId = auth()->user()->employee?->warehouse_id;
+        $q = RawMaterialStock::query()->with(['rawMaterial', 'warehouse']);
+
+        // Jika user punya warehouse_id, procurement hanya gudang itu
+        if ($warehouseId) {
+            $q->where('warehouse_id', $warehouseId);
+        }
+
+        // Filter warehouse_id dari request hanya berlaku kalau user tidak punya gudang
+        if (!$warehouseId && $request->filled('warehouse_id')) {
+            $q->where('warehouse_id', $request->warehouse_id);
+        }
+
+        if ($request->filled('code')) {
+            $q->whereHas('rawMaterial', function ($u) use ($request) {
+                $u->where('code', 'like', "%{$request->code}%");
+            });
+        }
+
+        if ($request->filled('name')) {
+            $search = $request->name;
+            $q->whereHas('rawMaterial', function ($u) use ($search) {
+                $u->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        // Mapping data untuk Excel
+        $rows = $q->get()->map(function ($stock) {
+            return [
+                'Kode Barang' => $stock->rawMaterial->code ?? '-',
+                'Bahan Baku' => $stock->rawMaterial->name ?? '-',
+                'Gudang' => $stock->warehouse->name ?? '-',
+                'Jumlah Stok' => $stock->stock,
+            ];
+        });
+
+        // Membuat class export on-the-fly
+        $export = new class ($rows) implements FromCollection, WithHeadings {
+            public function __construct(private $rows)
+            {}
+
+            public function collection()
+            {
+                return $this->rows;
+            }
+
+            public function headings(): array
+            {
+                return ['Kode Barang', 'Bahan Baku', 'Gudang', 'Jumlah Stok'];
+            }
+        };
+
+        return Excel::download($export, 'stok_bahan_baku_' . now()->format('Ymd_His') . '.xlsx');
     }
 
     public function index(Request $request)

@@ -84,6 +84,20 @@
     </section>
 
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-start mb-4">
+            @can('export bahan baku')
+                {{-- Sesuaikan permission jika berbeda --}}
+                <a href="{{ route('admin.gudang-stok-bahan-baku.export', request()->all()) }}"
+                    class="inline-flex items-center gap-2 rounded-lg bg-[#2E7E3F] px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-300">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v6h6M20 20v-6h-6M20 8a8 0 00-14.9-3M4 16a8 8 0 0014.9 3" />
+                    </svg>
+                    Export .xlsx
+                </a>
+            @endcan
+        </div>
         {{-- table --}}
         <div class="overflow-hidden rounded-lg border border-gray-400 shadow-sm">
             <div class="overflow-x-auto">
