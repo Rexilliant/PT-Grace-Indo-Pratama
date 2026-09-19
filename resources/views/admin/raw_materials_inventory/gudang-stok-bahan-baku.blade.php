@@ -103,7 +103,7 @@
                                 <td class="px-6 py-4 font-semibold">{{ $s->rawMaterial->code }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $s->rawMaterial->name }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $s->warehouse->name }}</td>
-                                <td class="px-6 py-4 font-semibold">{{ $s->stock }}</td>
+                                <td class="px-6 py-4 font-semibold">{{ $s->stock }} {{ $s->rawMaterial->unit ?? '' }}</td>
                             </tr>
                         @empty
                             <tr>

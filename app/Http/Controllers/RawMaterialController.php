@@ -105,12 +105,9 @@ class RawMaterialController extends Controller
                 $u->where('name', 'like', "%{$search}%");
             });
         }
-        if ($request->filled('warehouse_id')) {
-            $q->where('warehouse_id', $request->warehouse_id);
-        }
         $perPage = (int) $request->get('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
-        $stocks = $q->paginate(5)->withQueryString();
+        $stocks = $q->paginate($perPage)->withQueryString();
         // Jika user punya warehouse_id, dropdown gudang hanya gudang itu
         if ($warehouseId) {
             $warehouses = Warehouse::where('id', $warehouseId)->get();
