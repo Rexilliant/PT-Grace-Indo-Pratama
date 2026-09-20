@@ -18,11 +18,11 @@ class ProductController extends Controller
         $q = Product::query()->orderBy('created_at', 'desc');
 
         if ($request->filled('code')) {
-            $q->where('code', 'like', '%'.$request->code.'%');
+            $q->where('code', 'like', '%' . $request->code . '%');
         }
 
         if ($request->filled('name')) {
-            $q->where('name', 'like', '%'.$request->name.'%');
+            $q->where('name', 'like', '%' . $request->name . '%');
         }
 
         if ($request->filled('status')) {
@@ -37,9 +37,9 @@ class ProductController extends Controller
             ];
         });
 
-        $export = new class($rows) implements FromCollection, WithHeadings
-        {
-            public function __construct(private $rows) {}
+        $export = new class ($rows) implements FromCollection, WithHeadings {
+            public function __construct(private $rows)
+            {}
 
             public function collection()
             {
@@ -65,34 +65,28 @@ class ProductController extends Controller
     public function storeExecutive(Request $request)
     {
         $validated = $request->validate([
-            'code' => ['required', 'string', 'max:255', 'unique:products,code'],
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'status' => ['required', 'in:aktif,nonaktif'],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'], // Ubah nullable jadi required
+            'products' => ['required', 'array', 'min:1'],
+            'products.*.code' => ['required', 'string', 'max:255', 'unique:products,code'],
+            'products.*.name' => ['required', 'string', 'max:255'],
+            'products.*.status' => ['required', 'in:aktif,nonaktif'],
+        ], [
+            'products.*.code.required' => 'Kode produk wajib diisi.',
+            'products.*.code.unique' => 'Kode produk sudah digunakan.',
+            'products.*.name.required' => 'Nama produk wajib diisi.',
+            'products.*.status.required' => 'Status wajib dipilih.',
         ]);
 
-        $product = Product::create([
-            'code' => $validated['code'],
-            'name' => $validated['name'],
-            'description' => $validated['description'],
-            'status' => $validated['status'],
-        ]);
-
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $extension = $file->getClientOriginalExtension();
-            $fileName = now()->format('Ymd_His').'_'.rand(100, 999).'.'.$extension;
-
-            $product
-                ->addMedia($file)
-                ->usingFileName($fileName)
-                ->toMediaCollection('product_image');
+        foreach ($validated['products'] as $item) {
+            Product::create([
+                'code' => $item['code'],
+                'name' => $item['name'],
+                'status' => $item['status'],
+            ]);
         }
 
         return redirect()
             ->route('admin.executive-produk')
-            ->with('success', 'Produk berhasil ditambahkan.');
+            ->with('success', count($validated['products']) . ' Produk berhasil ditambahkan.');
     }
 
     // EDIT (FORM EDIT) - AMBIL DARI DB
@@ -108,30 +102,16 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         $validated = $request->validate([
-            'code' => ['required', 'string', 'max:255', 'unique:products,code,'.$product->id],
+            'code' => ['required', 'string', 'max:255', 'unique:products,code,' . $product->id],
             'name' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
             'status' => ['required', 'in:aktif,nonaktif'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
         $product->update([
             'code' => $validated['code'],
             'name' => $validated['name'],
-            'description' => $validated['description'],
             'status' => $validated['status'],
         ]);
-
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $extension = $file->getClientOriginalExtension();
-            $fileName = now()->format('Ymd_His').'_'.rand(100, 999).'.'.$extension;
-
-            $product
-                ->addMedia($file)
-                ->usingFileName($fileName)
-                ->toMediaCollection('product_image');
-        }
 
         return redirect()
             ->route('admin.executive-produk')
@@ -143,11 +123,11 @@ class ProductController extends Controller
         $query = Product::query()->latest();
 
         if ($request->filled('code')) {
-            $query->where('code', 'like', '%'.$request->code.'%');
+            $query->where('code', 'like', '%' . $request->code . '%');
         }
 
         if ($request->filled('name')) {
-            $query->where('name', 'like', '%'.$request->name.'%');
+            $query->where('name', 'like', '%' . $request->name . '%');
         }
 
         if ($request->filled('status')) {
@@ -180,13 +160,13 @@ class ProductController extends Controller
 
         if ($request->filled('sku')) {
             $query->whereHas('productVariant', function ($q) use ($request) {
-                $q->where('sku', 'like', '%'.$request->sku.'%');
+                $q->where('sku', 'like', '%' . $request->sku . '%');
             });
         }
 
         if ($request->filled('name_product')) {
             $query->whereHas('productVariant', function ($q) use ($request) {
-                $q->where('name', 'like', '%'.$request->name_product.'%');
+                $q->where('name', 'like', '%' . $request->name_product . '%');
             });
         }
         if ($request->filled('warehouse_id')) {
@@ -209,13 +189,13 @@ class ProductController extends Controller
 
         if ($request->filled('sku')) {
             $query->whereHas('productVariant', function ($q) use ($request) {
-                $q->where('sku', 'like', '%'.$request->sku.'%');
+                $q->where('sku', 'like', '%' . $request->sku . '%');
             });
         }
 
         if ($request->filled('name_product')) {
             $query->whereHas('productVariant', function ($q) use ($request) {
-                $q->where('name', 'like', '%'.$request->name_product.'%');
+                $q->where('name', 'like', '%' . $request->name_product . '%');
             });
         }
         if ($request->filled('warehouse_id')) {
@@ -231,9 +211,9 @@ class ProductController extends Controller
             ];
         });
 
-        $export = new class($rows) implements FromCollection, WithHeadings
-        {
-            public function __construct(private $rows) {}
+        $export = new class ($rows) implements FromCollection, WithHeadings {
+            public function __construct(private $rows)
+            {}
 
             public function collection()
             {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\Warehouse;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,19 +16,19 @@ class EmployeeController extends Controller
     {
         $q = Employee::query();
         if ($request->filled('nip')) {
-            $q->where('nip', 'like', '%'.$request->nip.'%');
+            $q->where('nip', 'like', '%' . $request->nip . '%');
         }
         if ($request->filled('name')) {
-            $q->where('name', 'like', '%'.$request->name.'%');
+            $q->where('name', 'like', '%' . $request->name . '%');
         }
         if ($request->filled('email')) {
-            $q->where('email', 'like', '%'.$request->email.'%');
+            $q->where('email', 'like', '%' . $request->email . '%');
         }
         if ($request->filled('phone')) {
-            $q->where('phone', 'like', '%'.$request->phone.'%');
+            $q->where('phone', 'like', '%' . $request->phone . '%');
         }
         if ($request->filled('position')) {
-            $q->where('position', 'like', '%'.$request->position.'%');
+            $q->where('position', 'like', '%' . $request->position . '%');
         }
         $perPage = (int) ($request->get('per_page', 10));
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
@@ -80,7 +81,7 @@ class EmployeeController extends Controller
             $year = date('Y');
 
             // ambil nip terakhir di tahun ini
-            $lastEmployee = Employee::where('nip', 'like', $year.'%')
+            $lastEmployee = Employee::where('nip', 'like', $year . '%')
                 ->orderBy('nip', 'desc')
                 ->lockForUpdate() // <-- penting untuk mencegah duplicate saat bersamaan
                 ->first();
@@ -92,7 +93,7 @@ class EmployeeController extends Controller
                 $nextNumber = $lastSequence + 1;
             }
 
-            return $year.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+            return $year . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
         });
     }
 
@@ -136,7 +137,7 @@ class EmployeeController extends Controller
 
                 $employee
                     ->addMediaFromRequest('profile_image')->usingFileName(
-                        $nip.'.'.$request->file('profile_image')->getClientOriginalExtension()
+                        $nip . '.' . $request->file('profile_image')->getClientOriginalExtension()
                     )
                     ->toMediaCollection('profile_images');
             }
@@ -164,15 +165,15 @@ class EmployeeController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (! $request->hasFile('profile_image')) {
+        if (!$request->hasFile('profile_image')) {
             $request->request->remove('profile_image');
         }
         $request->validate([
             'name' => 'required|string|max:255',
             'birthday' => 'required|date',
-            'email' => 'required|email|unique:employees,email,'.$id,
+            'email' => 'required|email|unique:employees,email,' . $id,
             'position' => 'string|max:255',
-            'phone' => 'required|string|max:20|unique:employees,phone,'.$id,
+            'phone' => 'required|string|max:20|unique:employees,phone,' . $id,
             'country' => 'required|string',
             'province' => 'required|string',
             'city' => 'required|string',
@@ -203,7 +204,7 @@ class EmployeeController extends Controller
 
                 $employee
                     ->addMediaFromRequest('profile_image')->usingFileName(
-                        $employee->nip.'.'.$request->file('profile_image')->getClientOriginalExtension()
+                        $employee->nip . '.' . $request->file('profile_image')->getClientOriginalExtension()
                     )
                     ->toMediaCollection('profile_images');
             }
@@ -215,15 +216,39 @@ class EmployeeController extends Controller
         }
     }
 
+    //  
+    // {
+    //     try {
+    //         $employee = Employee::findOrFail($id);
+    //         $user = User::where('email', $employee->email)->first();
+    //         if ($user) {
+    //             $user->delete();
+    //         }
+    //         $employee->delete();
+    //         return redirect()->route('employees')->with('success', 'Data karyawan berhasil dihapus.');
+    //     } catch (\Throwable $th) {
+    //         save_log_error($th);
+
+    //         return back()->with('error', 'Gagal menghapus data karyawan. Silakan coba lagi.');
+    //     }
+    // }
+
     public function destroy($id)
     {
         try {
             $employee = Employee::findOrFail($id);
+
+            // Cek apakah akun User dengan email karyawan ini masih ada/aktif
             $user = User::where('email', $employee->email)->first();
-            if($user){
-                $user->delete();
+
+            // Jika akun User masih ada (belum dihapus), batalkan hapus karyawan
+            if ($user) {
+                return back()->with('error', 'Tidak dapat menghapus karyawan! Akun user untuk karyawan ini masih aktif. Silakan hapus akun user-nya terlebih dahulu.');
             }
+
+            // Jika akun User sudah tidak ada / sudah dihapus, hapus data employee
             $employee->delete();
+
             return redirect()->route('employees')->with('success', 'Data karyawan berhasil dihapus.');
         } catch (\Throwable $th) {
             save_log_error($th);

@@ -154,7 +154,9 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::controller(RawMaterialController::class)->prefix('raw-materials')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca bahan baku'])->name('admin.gudang-bahan-baku');
         Route::get('/create', 'create')->middleware(['auth', 'permission:tambah bahan baku'])->name('admin.add-bahan-baku');
+        Route::get('/check-code', 'checkCode')->name('admin.raw-materials.check-code');
         Route::get('/stock', 'stockIndex')->middleware(['auth', 'permission:baca stok bahan baku'])->name('admin.gudang-stok-bahan-baku');
+        Route::get('/stock/export', 'exportStock')->middleware(['auth', 'permission:export bahan baku'])->name('admin.gudang-stok-bahan-baku.export');
         Route::post('/store', 'store')->middleware(['auth', 'permission:tambah bahan baku'])->name('admin.add-bahan-baku.store');
         Route::get('/{id}/edit', 'edit')->middleware(['auth', 'permission:edit bahan baku|baca bahan baku'])->name('admin.gudang-bahan-baku.edit');
         Route::put('/{id}', 'update')->middleware(['auth', 'permission:edit bahan baku'])->name('admin.gudang-bahan-baku.update');
@@ -255,7 +257,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/{id}', 'show')->middleware(['auth', 'permission:baca history aktivitas'])->name('activity-history.show');
     });
 
-   
+
     Route::controller(ShipmentController::class)->prefix('shipments')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca pengiriman produk'])->name('shipments');
         Route::get('/export', 'export')->name('shipments.export');

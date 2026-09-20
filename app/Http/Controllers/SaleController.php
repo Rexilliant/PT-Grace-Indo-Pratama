@@ -132,7 +132,8 @@ class SaleController extends Controller
         });
 
         $export = new class ($rows, $mergeRanges) implements FromCollection, WithEvents, WithHeadings {
-            public function __construct(private $rows, private $mergeRanges) {}
+            public function __construct(private $rows, private $mergeRanges)
+            {}
 
             public function collection()
             {
@@ -451,11 +452,14 @@ class SaleController extends Controller
         // 2. Jika BELUM lunas, jalankan validasi pembayaran cicilan seperti biasa
         $request->validate(
             [
+                'payment_date' => ['required', 'date'], 
                 'payment_amount' => ['required', 'string'],
                 'invoice' => ['required', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
                 'notes' => ['nullable', 'string', 'max:1000'],
             ],
             [
+                'payment_date.required' => 'Tanggal pembayaran wajib diisi.', 
+                'payment_date.date' => 'Format tanggal pembayaran tidak valid.', 
                 'payment_amount.required' => 'Nominal cicilan wajib diisi.',
                 'invoice.required' => 'Bukti pembayaran wajib diupload.',
                 'invoice.mimes' => 'Bukti pembayaran harus berupa PNG, JPG, JPEG, atau PDF.',
@@ -496,10 +500,11 @@ class SaleController extends Controller
             ]);
 
             // Simpan history cicilan
+            // Simpan history cicilan
             $paymentHistory = HistorySalePayment::create([
                 'sale_id' => $sale->id,
                 'created_by' => Auth::id(),
-                'payment_date' => now()->toDateString(),
+                'payment_date' => $request->input('payment_date'),
                 'amount' => $additionalPayment,
             ]);
 
