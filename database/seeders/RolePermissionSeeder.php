@@ -118,6 +118,8 @@ class RolePermissionSeeder extends Seeder
             158 => 'edit bahan baku masuk sendiri',
             159 => 'hapus bahan baku masuk sendiri',
             160 => 'export stok bahan baku',
+            161 => 'baca history stok bahan baku',
+            162 => 'baca history stok produk',
         ];
 
         $permissions = [];
@@ -134,14 +136,14 @@ class RolePermissionSeeder extends Seeder
 
         // 3. Seed Role Has Permissions
         $rolePermissionsMap = [
-            // Role ID 1 (master): permission 75-150 dan 153-160 (Ditambahkan ID 160)
-            1 => array_merge(range(75, 150), [153, 154, 155, 156, 157, 158, 159, 160]),
+            // Role ID 1 (master): permission 75-150 dan 153-162
+            1 => array_merge(range(75, 150), [153, 154, 155, 156, 157, 158, 159, 160, 161, 162]),
 
             // Role ID 3 (Kepala Pemasaran)
-            3 => [79, 103, 104, 107, 108, 110, 111, 113, 114, 116, 117, 118, 119, 132, 137, 139],
+            3 => [79, 103, 104, 107, 108, 110, 111, 113, 114, 116, 117, 118, 119, 132, 137, 139, 162],
 
-            // Role ID 4 (Kepala Produksi): Ditambahkan ID 75 (akses dashboard) dan ID 160 (export stok bahan baku)
-            4 => [79, 81, 82, 84, 85, 87, 88, 89, 90, 91, 98, 99, 100, 101, 104, 105, 106, 108, 111, 112, 114, 132, 137, 139, 153, 156, 157, 158, 159, 160],
+            // Role ID 4 (Kepala Produksi): Ditambahkan ID 75, ID 160, ID 161, ID 162
+            4 => [75, 79, 81, 82, 84, 85, 87, 88, 89, 90, 91, 98, 99, 100, 101, 104, 105, 106, 108, 111, 112, 114, 132, 137, 139, 153, 156, 157, 158, 159, 160, 161, 162],
         ];
 
         $roleHasPermissions = [];

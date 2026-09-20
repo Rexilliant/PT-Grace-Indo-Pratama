@@ -166,8 +166,8 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     // Stok Movement
     Route::controller(StockMovementController::class)->prefix('stock-movements')->group(function () {
-        Route::get('/', 'index')->middleware(['auth', 'permission:baca stok bahan baku|baca stok movement|baca produk stok'])->name('admin.gudang-stok-movement');
-        Route::get('/export', 'export')->name('admin.gudang-stok-movement.export');
+        Route::get('/', 'index')->middleware(['auth', 'permission:baca history stok bahan baku|baca history stok produk'])->name('admin.gudang-stok-movement');
+        Route::get('/export', 'export')->middleware(['auth', 'permission:baca history stok bahan baku|baca history stok produk'])->name('admin.gudang-stok-movement.export');
     });
 
     // Executive Produk

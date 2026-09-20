@@ -18,14 +18,18 @@
 
     {{-- Category Tabs --}}
     <div class="mb-5 flex border-b border-gray-300">
-        <a href="{{ route('admin.gudang-stok-movement', array_merge(request()->query(), ['category' => 'raw_material'])) }}"
-            class="px-6 py-3 font-semibold text-sm transition border-b-2 {{ $category === 'raw_material' ? 'border-[#275931] text-[#275931] bg-white rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
-            📦 Mutasi Bahan Baku
-        </a>
-        <a href="{{ route('admin.gudang-stok-movement', array_merge(request()->query(), ['category' => 'product'])) }}"
-            class="px-6 py-3 font-semibold text-sm transition border-b-2 {{ $category === 'product' ? 'border-[#275931] text-[#275931] bg-white rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
-            🏷️ Mutasi Produk Jadi
-        </a>
+        @can('baca history stok bahan baku')
+            <a href="{{ route('admin.gudang-stok-movement', array_merge(request()->query(), ['category' => 'raw_material'])) }}"
+                class="px-6 py-3 font-semibold text-sm transition border-b-2 {{ $category === 'raw_material' ? 'border-[#275931] text-[#275931] bg-white rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                📦 Mutasi Bahan Baku
+            </a>
+        @endcan
+        @can('baca history stok produk')
+            <a href="{{ route('admin.gudang-stok-movement', array_merge(request()->query(), ['category' => 'product'])) }}"
+                class="px-6 py-3 font-semibold text-sm transition border-b-2 {{ $category === 'product' ? 'border-[#275931] text-[#275931] bg-white rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                🏷️ Mutasi Produk Jadi
+            </a>
+        @endcan
     </div>
 
     {{-- Filter Form --}}

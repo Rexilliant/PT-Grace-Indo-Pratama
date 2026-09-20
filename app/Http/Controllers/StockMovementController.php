@@ -15,7 +15,38 @@ class StockMovementController extends Controller
 {
     public function index(Request $request)
     {
-        $category = $request->get('category', 'raw_material'); // raw_material | product
+        $canBahanBaku = auth()->user()->can('baca history stok bahan baku') || auth()->user()->hasRole('master');
+        $canProduk = auth()->user()->can('baca history stok produk') || auth()->user()->hasRole('master');
+
+        if (!$canBahanBaku && !$canProduk) {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses halaman history stok.');
+        }
+
+        $category = $request->get('category');
+        if (!$category) {
+            if ($canBahanBaku) {
+                $category = 'raw_material';
+            } elseif ($canProduk) {
+                $category = 'product';
+            } else {
+                $category = 'raw_material';
+            }
+        }
+
+        if ($category === 'product' && !$canProduk) {
+            if ($canBahanBaku) {
+                return redirect()->route('admin.gudang-stok-movement', ['category' => 'raw_material']);
+            }
+            abort(403, 'Anda tidak memiliki izin untuk melihat history stok produk.');
+        }
+
+        if ($category === 'raw_material' && !$canBahanBaku) {
+            if ($canProduk) {
+                return redirect()->route('admin.gudang-stok-movement', ['category' => 'product']);
+            }
+            abort(403, 'Anda tidak memiliki izin untuk melihat history stok bahan baku.');
+        }
+
         $userWarehouseId = auth()->user()->employee?->warehouse_id;
 
         // Rows per page
@@ -126,7 +157,18 @@ class StockMovementController extends Controller
 
     public function export(Request $request)
     {
+        $canBahanBaku = auth()->user()->can('baca history stok bahan baku') || auth()->user()->hasRole('master');
+        $canProduk = auth()->user()->can('baca history stok produk') || auth()->user()->hasRole('master');
+
         $category = $request->get('category', 'raw_material');
+
+        if ($category === 'product' && !$canProduk) {
+            abort(403, 'Anda tidak memiliki izin untuk export history stok produk.');
+        }
+        if ($category === 'raw_material' && !$canBahanBaku) {
+            abort(403, 'Anda tidak memiliki izin untuk export history stok bahan baku.');
+        }
+
         $userWarehouseId = auth()->user()->employee?->warehouse_id;
 
         if ($category === 'product') {
