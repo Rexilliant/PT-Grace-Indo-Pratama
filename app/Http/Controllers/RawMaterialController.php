@@ -219,15 +219,21 @@ class RawMaterialController extends Controller
     public function checkCode(Request $request)
     {
         $code = trim($request->query('code'));
+        $exceptId = $request->query('except_id');
 
         if (empty($code)) {
             return response()->json(['exists' => false]);
         }
 
         // Pake withTrashed() biar data terhapus (soft delete) tetep kedeteksi
-        $item = RawMaterial::withTrashed()
-            ->whereRaw('LOWER(code) = ?', [mb_strtolower($code)])
-            ->first();
+        $query = RawMaterial::withTrashed()
+            ->whereRaw('LOWER(code) = ?', [mb_strtolower($code)]);
+
+        if (!empty($exceptId)) {
+            $query->where('id', '!=', $exceptId);
+        }
+
+        $item = $query->first();
 
         if ($item) {
             $msg = $item->trashed()

@@ -252,17 +252,14 @@
 
                 if (!codeValue) return;
 
-                // Gunakan timer debounce
+                // Gunakan timer debounce (tunggu 800ms setelah selesai mengetik)
                 clearTimeout(inputKode.debounceTimer);
 
                 inputKode.debounceTimer = setTimeout(() => {
                     // 1. Cek Duplikat Lokal (di dalam form antar baris)
                     if (checkLocalDuplicate(inputKode)) {
                         setFieldError(inputKode, feedbackEl,
-                            `Kode "${codeValue}" sudah dimasukkan pada baris lain!`);
-                        showDuplicateModal(
-                            `Kode barang "${codeValue}" sudah kamu masukkan pada baris lain di form ini.`,
-                            inputKode);
+                            `⚠️ Kode "${codeValue}" sudah dimasukkan pada baris lain!`);
                         return;
                     }
 
@@ -283,16 +280,15 @@
                         .then(data => {
                             if (data.exists) {
                                 setFieldError(inputKode, feedbackEl,
-                                    `Kode "${codeValue}" sudah terdaftar di database!`);
-                                showDuplicateModal(data.message, inputKode);
+                                    `⚠️ Kode "${codeValue}" sudah terdaftar di sistem!`);
                             } else {
-                                setFieldSuccess(inputKode, feedbackEl, 'Kode barang tersedia ✓');
+                                setFieldSuccess(inputKode, feedbackEl, '✓ Kode barang tersedia');
                             }
                         })
                         .catch(err => {
                             console.error('Error saat mengecek kode barang:', err);
                         });
-                }, 350);
+                }, 800);
             }
 
             function checkLocalDuplicate(currentInput) {
