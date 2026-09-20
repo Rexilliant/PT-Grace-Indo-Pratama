@@ -562,7 +562,7 @@ class PurchaseReceiptController extends Controller
             return back()->withInput()->withErrors(['error' => 'Anda tidak memiliki akses untuk mengedit bahan baku masuk.']);
         }
 
-        $receipt = PurchaseReceipt::findOrFail($id);
+        $receipt = PurchaseReceipt::with(['items.rawMaterial'])->findOrFail($id);
 
         $canEdit = $hasFullEdit 
             || ($hasOwnWarehouseEdit && $userWarehouseId && (int)$receipt->warehouse_id === (int)$userWarehouseId)
@@ -584,62 +584,107 @@ class PurchaseReceiptController extends Controller
         try {
             DB::transaction(function () use ($validated, $id) {
                 $userId = auth()->id();
-                $receipt = PurchaseReceipt::with(['items'])->findOrFail($id);
+                $receipt = PurchaseReceipt::with(['items.rawMaterial'])->findOrFail($id);
+                $warehouseId = $receipt->warehouse_id;
+
+                // 1. Petakan kuantitas lama per bahan baku
+                $oldQtyMap = [];
                 foreach ($receipt->items as $oldItem) {
-                    RawMaterialStock::where([
-                        'raw_material_id' => (int) $oldItem->raw_material_id,
-                        'warehouse_id' => $receipt->warehouse_id,
-                    ])->decrement('stock', (int) $oldItem->quantity_received);
+                    $oldQtyMap[$oldItem->raw_material_id] = ($oldQtyMap[$oldItem->raw_material_id] ?? 0) + (int) $oldItem->quantity_received;
                 }
 
-                RawMaterialStockMovement::where([
-                    'ref_type' => PurchaseReceipt::class,
-                    'ref_id' => $receipt->id,
-                ])->delete();
+                // 2. Petakan kuantitas baru per bahan baku
+                $newQtyMap = [];
+                foreach ($validated['items'] as $newItem) {
+                    $newQtyMap[$newItem['raw_material_id']] = ($newQtyMap[$newItem['raw_material_id']] ?? 0) + (int) $newItem['quantity_received'];
+                }
 
-                $procurement = Procurement::findOrFail($receipt->procurement_id);
-                $warehouse_id = $procurement->warehouse_id;
+                // 3. Validasi stok sebelum eksekusi jika ada pengurangan kuantitas
+                $allMaterialIds = array_unique(array_merge(array_keys($oldQtyMap), array_keys($newQtyMap)));
+                foreach ($allMaterialIds as $matId) {
+                    $oldQty = $oldQtyMap[$matId] ?? 0;
+                    $newQty = $newQtyMap[$matId] ?? 0;
+                    $diff = $newQty - $oldQty;
+
+                    if ($diff < 0) {
+                        $reduction = abs($diff);
+                        $currentStock = RawMaterialStock::where([
+                            'raw_material_id' => $matId,
+                            'warehouse_id' => $warehouseId,
+                        ])->value('stock') ?? 0;
+
+                        if ($currentStock < $reduction) {
+                            $material = RawMaterial::find($matId);
+                            $matName = $material ? "{$material->name} ({$material->code})" : "ID {$matId}";
+                            $unit = $material?->unit ?? '';
+                            throw new \Exception("Stok bahan baku '{$matName}' tidak mencukupi untuk dikurangi. Stok saat ini di gudang: {$currentStock} {$unit}, sedangkan pengurangan yang diminta: {$reduction} {$unit}. (Sebagian stok kemungkinan sudah terpakai dalam proses produksi atau transaksi lainnya).");
+                        }
+                    }
+                }
+
+                // 4. Update header receipt
                 $receipt->update([
-                    'warehouse_id' => $warehouse_id,
                     'received_at' => $validated['received_at'],
                     'total_price' => (int) ($validated['total_price'] ?? 0),
                 ]);
 
-                PurchaseReceiptItem::where('purchase_receipt_id', $receipt->id)->delete();
+                // 5. Sesuaikan stok dan catat pergerakan mutasi
+                foreach ($allMaterialIds as $matId) {
+                    $oldQty = $oldQtyMap[$matId] ?? 0;
+                    $newQty = $newQtyMap[$matId] ?? 0;
+                    $diff = $newQty - $oldQty;
 
+                    if ($diff > 0) {
+                        RawMaterialStock::updateOrCreate(
+                            [
+                                'raw_material_id' => $matId,
+                                'warehouse_id' => $warehouseId,
+                            ],
+                            []
+                        );
+                        RawMaterialStock::where([
+                            'raw_material_id' => $matId,
+                            'warehouse_id' => $warehouseId,
+                        ])->increment('stock', $diff);
+
+                        RawMaterialStockMovement::create([
+                            'warehouse_id' => $warehouseId,
+                            'raw_material_id' => $matId,
+                            'type' => 'in',
+                            'stock' => $diff,
+                            'ref_type' => PurchaseReceipt::class,
+                            'ref_id' => $receipt->id,
+                            'responsible_id' => $userId,
+                            'note' => "Penyesuaian (penambahan) kuantitas pada penerimaan {$receipt->receipt_number}",
+                        ]);
+                    } elseif ($diff < 0) {
+                        $reduction = abs($diff);
+                        RawMaterialStock::where([
+                            'raw_material_id' => $matId,
+                            'warehouse_id' => $warehouseId,
+                        ])->decrement('stock', $reduction);
+
+                        RawMaterialStockMovement::create([
+                            'warehouse_id' => $warehouseId,
+                            'raw_material_id' => $matId,
+                            'type' => 'out',
+                            'stock' => $reduction,
+                            'ref_type' => PurchaseReceipt::class,
+                            'ref_id' => $receipt->id,
+                            'responsible_id' => $userId,
+                            'note' => "Penyesuaian (pengurangan) kuantitas pada penerimaan {$receipt->receipt_number}",
+                        ]);
+                    }
+                }
+
+                // 6. Update item detail receipt
+                PurchaseReceiptItem::where('purchase_receipt_id', $receipt->id)->delete();
                 foreach ($validated['items'] as $row) {
                     PurchaseReceiptItem::create([
                         'purchase_receipt_id' => $receipt->id,
                         'raw_material_id' => (int) $row['raw_material_id'],
                         'quantity_received' => (int) $row['quantity_received'],
                     ]);
-
-                    // movement baru
-                    RawMaterialStockMovement::create([
-                        'warehouse_id' => $receipt->warehouse_id,
-                        'raw_material_id' => (int) $row['raw_material_id'],
-                        'type' => 'in',
-                        'stock' => (int) $row['quantity_received'],
-                        'ref_type' => PurchaseReceipt::class,
-                        'ref_id' => $receipt->id,
-                        'responsible_id' => $userId,
-                        'note' => "Update penerimaan dari procurement ID {$receipt->procurement_id}",
-                    ]);
-
-                    // pastikan stock row ada
-                    RawMaterialStock::updateOrCreate(
-                        [
-                            'raw_material_id' => (int) $row['raw_material_id'],
-                            'warehouse_id' => $receipt->warehouse_id,
-                        ],
-                        []
-                    );
-
-                    // tambah stock baru
-                    RawMaterialStock::where([
-                        'raw_material_id' => (int) $row['raw_material_id'],
-                        'warehouse_id' => $receipt->warehouse_id,
-                    ])->increment('stock', (int) $row['quantity_received']);
                 }
             });
 
@@ -651,7 +696,7 @@ class PurchaseReceiptController extends Controller
 
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Gagal update barang masuk. Silakan coba lagi.']);
+                ->withErrors(['error' => $th->getMessage() ?: 'Gagal update barang masuk. Silakan coba lagi.']);
         }
     }
 
@@ -669,7 +714,7 @@ class PurchaseReceiptController extends Controller
                 return back()->withErrors(['error' => 'Anda tidak memiliki akses untuk menghapus bahan baku masuk.']);
             }
 
-            $receipt = PurchaseReceipt::with(['items'])->findOrFail($id);
+            $receipt = PurchaseReceipt::with(['items.rawMaterial'])->findOrFail($id);
 
             $canDelete = $hasFullDelete 
                 || ($hasOwnWarehouseDelete && $userWarehouseId && (int) $receipt->warehouse_id === (int) $userWarehouseId)
@@ -680,6 +725,8 @@ class PurchaseReceiptController extends Controller
             }
 
             DB::transaction(function () use ($receipt) {
+                $userId = auth()->id();
+
                 // CEK: jangan sampai stok jadi minus setelah reverse
                 foreach ($receipt->items as $item) {
                     $current = RawMaterialStock::where([
@@ -688,26 +735,33 @@ class PurchaseReceiptController extends Controller
                     ])->value('stock') ?? 0;
 
                     if ($current < (int) $item->quantity_received) {
-                        throw new \Exception('Stok sudah terpakai. Tidak bisa hapus barang masuk ini.');
+                        $material = $item->rawMaterial;
+                        $matName = $material ? "{$material->name} ({$material->code})" : "ID {$item->raw_material_id}";
+                        $unit = $material?->unit ?? '';
+                        throw new \Exception("Bahan baku '{$matName}' tidak dapat dihapus karena stoknya sudah terpakai. Stok saat ini di gudang: {$current} {$unit}, sedangkan penerimaan yang ingin dihapus: {$item->quantity_received} {$unit}.");
                     }
                 }
 
-                // REVERSE STOK
+                // REVERSE STOK & CATAT MUTASI PEMBALIK
                 foreach ($receipt->items as $item) {
                     RawMaterialStock::where([
                         'raw_material_id' => (int) $item->raw_material_id,
                         'warehouse_id' => $receipt->warehouse_id,
                     ])->decrement('stock', (int) $item->quantity_received);
+
+                    RawMaterialStockMovement::create([
+                        'warehouse_id' => $receipt->warehouse_id,
+                        'raw_material_id' => (int) $item->raw_material_id,
+                        'type' => 'out',
+                        'stock' => (int) $item->quantity_received,
+                        'ref_type' => PurchaseReceipt::class,
+                        'ref_id' => $receipt->id,
+                        'responsible_id' => $userId,
+                        'note' => "Pembatalan/Penghapusan penerimaan {$receipt->receipt_number}",
+                    ]);
                 }
 
-                // HAPUS MOVEMENT untuk receipt ini
-                RawMaterialStockMovement::where([
-                    'ref_type' => PurchaseReceipt::class,
-                    'ref_id' => $receipt->id,
-                ])->delete();
-
                 // SOFT DELETE RECEIPT
-                // deleted_by akan otomatis terisi dari event model
                 $receipt->delete();
             });
 

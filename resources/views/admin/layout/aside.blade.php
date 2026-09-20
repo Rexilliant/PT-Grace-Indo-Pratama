@@ -134,6 +134,13 @@
                         </a>
                     @endcan
 
+                    @canany(['baca stok bahan baku', 'baca stok movement', 'baca produk stok'])
+                        <a href="{{ route('admin.gudang-stok-movement') }}"
+                            class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-stok-movement')">
+                            History Stok Bahan Baku
+                        </a>
+                    @endcanany
+
                 </div>
             </details>
         @endcanany
@@ -469,6 +476,13 @@
                             Stok Bahan Baku
                         </a>
                     @endcan
+
+                    @canany(['baca stok bahan baku', 'baca stok movement', 'baca produk stok'])
+                        <a href="{{ route('admin.gudang-stok-movement') }}"
+                            class="block px-3 py-2 rounded-xl text-[13px] font-medium hover:bg-slate-100 @yield('menu-gudang-stok-movement')">
+                            Stok Bahan Baku Movement
+                        </a>
+                    @endcanany
 
                 </div>
             </details>

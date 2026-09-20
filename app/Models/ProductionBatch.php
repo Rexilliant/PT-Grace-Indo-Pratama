@@ -54,6 +54,11 @@ class ProductionBatch extends Model
         return $this->belongsTo(User::class, 'deleted_by');
     }
 
+    public function getBatchCodeAttribute(): string
+    {
+        return 'PB-' . str_pad($this->id, 5, '0', STR_PAD_LEFT);
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

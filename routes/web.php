@@ -17,6 +17,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\ShipmentReceiptController;
+use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
@@ -159,6 +160,12 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::put('/{id}', 'update')->middleware(['auth', 'permission:edit bahan baku'])->name('admin.gudang-bahan-baku.update');
         Route::delete('/{id}', 'destroy')->middleware(['auth', 'permission:hapus bahan baku'])->name('admin.gudang-bahan-baku.destroy');
         Route::get('/export', 'export')->name('admin.gudang-bahan-baku.export');
+    });
+
+    // Stok Movement
+    Route::controller(StockMovementController::class)->prefix('stock-movements')->group(function () {
+        Route::get('/', 'index')->middleware(['auth', 'permission:baca stok bahan baku|baca stok movement|baca produk stok'])->name('admin.gudang-stok-movement');
+        Route::get('/export', 'export')->name('admin.gudang-stok-movement.export');
     });
 
     // Executive Produk
