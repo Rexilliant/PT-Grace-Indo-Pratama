@@ -4,17 +4,23 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class ProductSeeder extends Seeder
 {
     public function run(): void
     {
+        // 1. Matikan constraint foreign key & bersihkan data lama
+        Schema::disableForeignKeyConstraints();
+        DB::table('product_variants')->truncate();
+        DB::table('products')->truncate();
+        Schema::enableForeignKeyConstraints();
+
         $products = [
             [
                 'code' => 'PRD-001',
                 'name' => 'Pupuk NPK Mutiara',
-                'description' => 'Pupuk NPK untuk meningkatkan pertumbuhan tanaman',
                 'status' => 'aktif',
                 'variants' => [
                     ['name' => '1 Kg', 'pack_size' => 1, 'unit' => 'kg', 'price' => 25000],
@@ -24,7 +30,6 @@ class ProductSeeder extends Seeder
             [
                 'code' => 'PRD-002',
                 'name' => 'Pupuk Urea',
-                'description' => 'Pupuk nitrogen tinggi untuk daun',
                 'status' => 'aktif',
                 'variants' => [
                     ['name' => '1 Kg', 'pack_size' => 1, 'unit' => 'kg', 'price' => 15000],
@@ -34,7 +39,6 @@ class ProductSeeder extends Seeder
             [
                 'code' => 'PRD-003',
                 'name' => 'Pupuk Organik Cair',
-                'description' => 'Pupuk organik cair untuk semua jenis tanaman',
                 'status' => 'aktif',
                 'variants' => [
                     ['name' => '500 ml', 'pack_size' => 500, 'unit' => 'ml', 'price' => 20000],
@@ -44,7 +48,6 @@ class ProductSeeder extends Seeder
             [
                 'code' => 'PRD-004',
                 'name' => 'Pupuk Kandang',
-                'description' => 'Pupuk alami dari kotoran hewan',
                 'status' => 'aktif',
                 'variants' => [
                     ['name' => '10 Kg', 'pack_size' => 10, 'unit' => 'kg', 'price' => 30000],
@@ -54,7 +57,6 @@ class ProductSeeder extends Seeder
             [
                 'code' => 'PRD-005',
                 'name' => 'Pupuk ZA',
-                'description' => 'Pupuk amonium sulfat untuk tanaman',
                 'status' => 'aktif',
                 'variants' => [
                     ['name' => '1 Kg', 'pack_size' => 1, 'unit' => 'kg', 'price' => 12000],
@@ -63,29 +65,38 @@ class ProductSeeder extends Seeder
             ],
         ];
 
-        foreach ($products as $product) {
-            $productId = DB::table('products')->insertGetId([
-                'code' => $product['code'],
-                'name' => $product['name'],
-                'description' => $product['description'],
-                'status' => $product['status'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        // 2. Jalankan transaksi database
+        DB::transaction(function () use ($products) {
+            $now = now();
 
-            foreach ($product['variants'] as $variant) {
-                DB::table('product_variants')->insert([
-                    'product_id' => $productId,
-                    'sku' => 'SKU-' . $product['code'] . '-' . Str::random(5),
-                    'name' => $product['name'] . ' - ' . $variant['name'],
-                    'pack_size' => $variant['pack_size'],
-                    'unit' => $variant['unit'],
-                    'price' => $variant['price'],
-                    'status' => 'aktif',
-                    'created_at' => now(),
-                    'updated_at' => now(),
+            foreach ($products as $product) {
+                // Insert ke tabel products tanpa kolom description
+                $productId = DB::table('products')->insertGetId([
+                    'code' => $product['code'],
+                    'name' => $product['name'],
+                    'status' => $product['status'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ]);
+
+                foreach ($product['variants'] as $variant) {
+                    // Format SKU rapi & konsisten (Contoh: SKU-PRD-001-1KG)
+                    $skuSuffix = Str::upper($variant['pack_size'] . $variant['unit']);
+                    $sku = "SKU-{$product['code']}-{$skuSuffix}";
+
+                    DB::table('product_variants')->insert([
+                        'product_id' => $productId,
+                        'sku' => $sku,
+                        'name' => $product['name'] . ' - ' . $variant['name'],
+                        'pack_size' => $variant['pack_size'],
+                        'unit' => $variant['unit'],
+                        'price' => $variant['price'],
+                        'status' => 'aktif',
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                }
             }
-        }
+        });
     }
 }
