@@ -70,51 +70,30 @@ class SaleController extends Controller
 
                 $rows->push([
                     'ID Penjualan' => $s->id,
-
                     'Tanggal Penjualan' => $s->sale_date ? Carbon::parse($s->sale_date)->format('d/m/Y') : '-',
-
                     'Penanggung Jawab' => $s->personResponsible->name ?? '-',
-
                     'Gudang' => $s->warehouse?->name ?? '-',
-
                     'Jenis Penjualan' => $s->sale_type ?? '-',
-
+                    'Tipe Stok' => $s->stock_type === 'po' ? 'Pre-Order (PO)' : 'Ready Stock',
                     'Nama Pembeli' => $s->customer_name ?? '-',
-
                     'Kontak Pembeli' => $s->customer_contact ?? '-',
-
                     'Provinsi Pembeli' => $s->customer_province ?? '-',
-
                     'Kota Pembeli' => $s->customer_city ?? '-',
-
                     'Alamat Pembeli' => $s->customer_address ?? '-',
-
                     'Total Amount' => $s->total_amount ?? 0,
-
                     'Paid Amount' => $s->paid_amount ?? 0,
-
                     'Debt Amount' => $s->debt_amount ?? 0,
-
                     'Status' => $s->status ?? '-',
-
                     'Catatan' => $s->notes ?? '-',
-
                     'Riwayat Pembayaran' => $paymentHistories ?: '-',
-
                     'BST / Bukti Serah Terima' => $deliveryProof?->file_name ?? '-',
-
                     'SKU' => $variant->sku ?? '-',
-
                     'Produk' => $product->name ?? ($variant->name ?? '-'),
-
                     'Variant' => $variant->name ?? '-',
-
-                    'Qty' => $item->quantity ?? 0,
-
+                    'Qty Ordered' => $item->quantity ?? 0,
+                    'Qty Fulfilled' => $item->fulfilled_quantity ?? 0,
                     'Harga Satuan' => $item->price ?? 0,
-
                     'Diskon' => $item->discount ?? 0,
-
                     'Subtotal' => $item->subtotal ?? 0,
                 ]);
 
@@ -122,7 +101,6 @@ class SaleController extends Controller
             }
 
             $endRow = $currentRow - 1;
-
             if ($endRow > $startRow) {
                 $mergeRanges[] = [
                     'start' => $startRow,
@@ -133,7 +111,8 @@ class SaleController extends Controller
 
         $export = new class ($rows, $mergeRanges) implements FromCollection, WithEvents, WithHeadings {
             public function __construct(private $rows, private $mergeRanges)
-            {}
+            {
+            }
 
             public function collection()
             {
@@ -142,7 +121,34 @@ class SaleController extends Controller
 
             public function headings(): array
             {
-                return ['ID Penjualan', 'Tanggal Penjualan', 'Penanggung Jawab', 'Gudang', 'Jenis Penjualan', 'Nama Pembeli', 'Kontak Pembeli', 'Provinsi Pembeli', 'Kota Pembeli', 'Alamat Pembeli', 'Total Amount', 'Paid Amount', 'Debt Amount', 'Status', 'Catatan', 'Riwayat Pembayaran', 'BST / Bukti Serah Terima', 'SKU', 'Produk', 'Variant', 'Qty', 'Harga Satuan', 'Diskon', 'Subtotal'];
+                return [
+                'ID Penjualan',
+                'Tanggal Penjualan',
+                'Penanggung Jawab',
+                'Gudang',
+                'Jenis Penjualan',
+                'Tipe Stok',
+                'Nama Pembeli',
+                'Kontak Pembeli',
+                'Provinsi Pembeli',
+                'Kota Pembeli',
+                'Alamat Pembeli',
+                'Total Amount',
+                'Paid Amount',
+                'Debt Amount',
+                'Status',
+                'Catatan',
+                'Riwayat Pembayaran',
+                'BST / Bukti Serah Terima',
+                'SKU',
+                'Produk',
+                'Variant',
+                'Qty Ordered',
+                'Qty Fulfilled',
+                'Harga Satuan',
+                'Diskon',
+                'Subtotal',
+                ];
             }
 
             public function registerEvents(): array
@@ -150,7 +156,7 @@ class SaleController extends Controller
                 return [
                     AfterSheet::class => function (AfterSheet $event) {
                         foreach ($this->mergeRanges as $range) {
-                            foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q'] as $column) {
+                            foreach (['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'] as $column) {
                                 $event->sheet->mergeCells($column . $range['start'] . ':' . $column . $range['end']);
                             }
                         }
@@ -203,11 +209,13 @@ class SaleController extends Controller
     public function create()
     {
         $warehouseId = auth()->user()->employee?->warehouse_id;
+
         if ($warehouseId) {
             $warehouses = Warehouse::where('id', $warehouseId)->where('type', 'pemasaran')->get();
         } else {
             $warehouses = Warehouse::where('type', 'pemasaran')->get();
         }
+
         return view('admin.sales.add-laporan-penjualan', [
             'reportDate' => now()->format('Y-m-d'),
             'personResponsibleName' => Auth::user()?->name ?? '-',
@@ -254,41 +262,38 @@ class SaleController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Bersihkan nilai Down Payment dari format mata uang menjadi integer murni
         $dpValue = $this->parseMoney($request->input('down_payment', 0));
 
-        // 2. Validasi Input
         $request->validate(
             [
                 'sale_date' => ['required', 'date'],
                 'sale_type' => ['required', 'in:Perseorangan,Instansi,Pesanan'],
+                'stock_type' => ['required', 'in:ready,po'],
                 'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
                 'customer_province' => ['required', 'string', 'max:255'],
                 'customer_city' => ['required', 'string', 'max:255'],
-                'customer_address' => ['required', 'string'], // Wajib diisi
+                'customer_address' => ['required', 'string'],
                 'customer_name' => ['required', 'string', 'max:255'],
                 'customer_contact' => ['required', 'string', 'max:255'],
                 'status' => ['required', 'in:Lunas,Terhutang'],
                 'down_payment' => [
                     'required',
                     function ($attribute, $value, $fail) use ($request, $dpValue) {
-                        // Validasi: Jika Terhutang, DP harus lebih dari 0
                         if ($request->status === 'Terhutang' && $dpValue <= 0) {
                             $fail('Down Payment (DP) wajib diisi lebih dari 0 jika status Terhutang.');
                         }
                     },
                 ],
                 'notes' => ['nullable', 'string'],
-                'invoice' => ['required', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'], // Bukti Bayar Wajib
-
+                'invoice' => ['required', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
                 'items' => ['required', 'array', 'min:1'],
                 'items.*.product_stock_id' => ['required', 'integer', 'exists:product_stocks,id'],
                 'items.*.quantity' => ['required', 'integer', 'min:1'],
                 'items.*.discount' => ['nullable', 'string'],
             ],
             [
-                // Pesan Error Kustom (Muncul di peringatan kolom)
                 'sale_date.required' => 'Tanggal penjualan wajib dipilih.',
+                'stock_type.required' => 'Tipe stok (Ready / PO) wajib dipilih.',
                 'customer_name.required' => 'Nama pembeli wajib diisi.',
                 'customer_contact.required' => 'Nomor kontak pembeli wajib diisi.',
                 'customer_address.required' => 'Alamat lengkap wajib diisi.',
@@ -299,13 +304,12 @@ class SaleController extends Controller
         );
 
         $itemsInput = collect($request->input('items', []))->values();
+        $isPo = $request->stock_type === 'po';
 
-        // 3. Eksekusi Database Transaction
-        return DB::transaction(function () use ($request, $itemsInput, $dpValue) {
+        return DB::transaction(function () use ($request, $itemsInput, $dpValue, $isPo) {
             $stockIds = $itemsInput->pluck('product_stock_id')->map(fn($id) => (int) $id)->unique()->values();
             $warehouseId = (int) $request->warehouse_id;
 
-            // Ambil data stok dan kunci untuk update (Pencegahan Race Condition)
             $stocks = ProductStock::query()
                 ->with(['productVariant:id,product_id,sku,name,price'])
                 ->whereIn('id', $stockIds)
@@ -316,7 +320,6 @@ class SaleController extends Controller
             $normalizedItems = [];
             $grandTotal = 0;
 
-            // Validasi item dan hitung total
             foreach ($itemsInput as $index => $item) {
                 $productStockId = (int) ($item['product_stock_id'] ?? 0);
                 $quantity = (int) ($item['quantity'] ?? 0);
@@ -325,11 +328,16 @@ class SaleController extends Controller
                 $stock = $stocks->get($productStockId);
 
                 if (!$stock || (int) $stock->warehouse_id !== $warehouseId) {
-                    throw ValidationException::withMessages(["items.$index.product_stock_id" => 'Barang tidak valid atau tidak ada di gudang ini.']);
+                    throw ValidationException::withMessages([
+                        "items.$index.product_stock_id" => 'Barang tidak valid atau tidak ada di gudang ini.',
+                    ]);
                 }
 
-                if ($stock->stock < $quantity) {
-                    throw ValidationException::withMessages(["items.$index.quantity" => "Stok {$stock->productVariant?->name} tidak cukup (Tersedia: {$stock->stock})."]);
+                // Hanya validasi stok kalau Ready Stock
+                if (!$isPo && $stock->stock < $quantity) {
+                    throw ValidationException::withMessages([
+                        "items.$index.quantity" => "Stok {$stock->productVariant?->name} tidak cukup (Tersedia: {$stock->stock}).",
+                    ]);
                 }
 
                 $price = (int) ($stock->productVariant?->price ?? 0);
@@ -339,6 +347,7 @@ class SaleController extends Controller
                 $normalizedItems[] = [
                     'product_stock_id' => $stock->id,
                     'quantity' => $quantity,
+                    'fulfilled_quantity' => $isPo ? 0 : $quantity,
                     'price' => $price,
                     'discount' => $discount,
                     'subtotal' => $subtotal,
@@ -347,18 +356,15 @@ class SaleController extends Controller
                 $grandTotal += $subtotal;
             }
 
-            // Hitung Nominal Pembayaran dan Hutang
             if ($request->status === 'Lunas') {
                 $paidAmount = $grandTotal;
             } else {
-                // Pastikan dibayar tidak melebihi total pesanan
                 $paidAmount = min($dpValue, $grandTotal);
             }
 
             $debtAmount = max(0, $grandTotal - $paidAmount);
             $finalStatus = $debtAmount > 0 ? 'Terhutang' : 'Lunas';
 
-            // 4. Simpan Data Penjualan Utama
             $sale = Sale::create([
                 'report_date' => now()->toDateString(),
                 'sale_date' => $request->sale_date,
@@ -366,6 +372,7 @@ class SaleController extends Controller
                 'updated_by' => Auth::id(),
                 'warehouse_id' => $warehouseId,
                 'sale_type' => $request->sale_type,
+                'stock_type' => $request->stock_type,
                 'customer_province' => trim((string) $request->customer_province),
                 'customer_city' => trim((string) $request->customer_city),
                 'customer_address' => $request->customer_address,
@@ -378,27 +385,27 @@ class SaleController extends Controller
                 'status' => $finalStatus,
             ]);
 
-            // 5. Simpan Items & Kurangi Stok
             foreach ($normalizedItems as $item) {
                 $sale->items()->create($item);
 
-                $stock = $stocks->get($item['product_stock_id']);
-                $stock->decrement('stock', $item['quantity']);
+                // Hanya potong stok kalau Ready Stock
+                if (!$isPo) {
+                    $stock = $stocks->get($item['product_stock_id']);
+                    $stock->decrement('stock', $item['quantity']);
 
-                // Catat mutasi stok
-                ProductStockMovement::create([
-                    'warehouse_id' => $stock->warehouse_id,
-                    'province' => $stock->province,
-                    'product_stock_id' => $stock->id,
-                    'type' => 'Out',
-                    'quantity' => $item['quantity'],
-                    'ref_type' => Sale::class,
-                    'ref_id' => $sale->id,
-                    'note' => 'Penjualan #' . $sale->id,
-                ]);
+                    ProductStockMovement::create([
+                        'warehouse_id' => $stock->warehouse_id,
+                        'province' => $stock->province,
+                        'product_stock_id' => $stock->id,
+                        'type' => 'Out',
+                        'quantity' => $item['quantity'],
+                        'ref_type' => Sale::class,
+                        'ref_id' => $sale->id,
+                        'note' => 'Penjualan Ready #' . $sale->id,
+                    ]);
+                }
             }
 
-            // 6. Simpan History Pembayaran Pertama & Upload Bukti
             if ($paidAmount > 0) {
                 $paymentHistory = HistorySalePayment::create([
                     'sale_id' => $sale->id,
@@ -412,13 +419,20 @@ class SaleController extends Controller
                 }
             }
 
-            return redirect()->route('admin.pemasaran-laporan-penjualan')->with('success', 'Laporan penjualan berhasil disimpan.');
+            return redirect()
+                ->route('admin.pemasaran-laporan-penjualan')
+                ->with('success', 'Laporan penjualan berhasil disimpan.');
         });
     }
 
     public function edit($id)
     {
-        $sale = Sale::with(['warehouse', 'personResponsible', 'items.productStock.productVariant.product', 'paymentHistories'])->findOrFail($id);
+        $sale = Sale::with([
+            'warehouse',
+            'personResponsible',
+            'items.productStock.productVariant.product',
+            'paymentHistories',
+        ])->findOrFail($id);
 
         return view('admin.sales.edit-laporan-penjualan', [
             'sale' => $sale,
@@ -430,12 +444,10 @@ class SaleController extends Controller
 
     public function update(Request $request, $id)
     {
-        $sale = Sale::findOrFail($id);
-
-        // Cek status lunas
+        $sale = Sale::with('items')->findOrFail($id);
         $isPaidOff = $sale->status === 'Lunas' || (int) $sale->debt_amount <= 0;
 
-        // 1. Jika sudah lunas, kita hanya izinkan update Catatan (Notes)
+        // Jika sudah lunas, hanya boleh update catatan
         if ($isPaidOff) {
             $request->validate([
                 'notes' => ['nullable', 'string', 'max:1000'],
@@ -446,71 +458,141 @@ class SaleController extends Controller
                 'updated_by' => Auth::id(),
             ]);
 
-            return redirect()->route('admin.pemasaran-laporan-penjualan.edit', $sale->id)->with('success', 'Catatan laporan berhasil diperbarui.');
+            return redirect()
+                ->route('admin.pemasaran-laporan-penjualan.edit', $sale->id)
+                ->with('success', 'Catatan laporan berhasil diperbarui.');
         }
 
-        // 2. Jika BELUM lunas, jalankan validasi pembayaran cicilan seperti biasa
-        $request->validate(
-            [
-                'payment_date' => ['required', 'date'], 
-                'payment_amount' => ['required', 'string'],
-                'invoice' => ['required', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
-                'notes' => ['nullable', 'string', 'max:1000'],
-            ],
-            [
-                'payment_date.required' => 'Tanggal pembayaran wajib diisi.', 
-                'payment_date.date' => 'Format tanggal pembayaran tidak valid.', 
-                'payment_amount.required' => 'Nominal cicilan wajib diisi.',
-                'invoice.required' => 'Bukti pembayaran wajib diupload.',
-                'invoice.mimes' => 'Bukti pembayaran harus berupa PNG, JPG, JPEG, atau PDF.',
-                'invoice.max' => 'Ukuran bukti pembayaran maksimal 3 MB.',
-            ],
-        );
+        // Validasi untuk yang masih terhutang (payment & invoice sekarang optional)
+        $rules = [
+            'payment_date' => ['nullable', 'date'],
+            'payment_amount' => ['nullable', 'string'],
+            'invoice' => ['nullable', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ];
+
+        if ($sale->stock_type === 'po') {
+            $rules['fulfill'] = ['nullable', 'array'];
+            $rules['fulfill.*'] = ['nullable', 'integer', 'min:0'];
+        }
+
+        $request->validate($rules, [
+            'invoice.mimes' => 'Bukti pembayaran harus berupa PNG, JPG, JPEG, atau PDF.',
+            'invoice.max' => 'Ukuran bukti pembayaran maksimal 3 MB.',
+        ]);
 
         return DB::transaction(function () use ($request, $sale) {
+
+            // === 1. Proses Fulfill PO (jika ada) ===
+            if ($sale->stock_type === 'po' && $request->has('fulfill')) {
+                $fulfillInput = $request->input('fulfill', []);
+                $fulfillmentDate = $request->input('fulfillment_date') ?: now()->toDateString();
+
+                $stockIds = $sale->items->pluck('product_stock_id')->unique()->values();
+                $stocks = ProductStock::query()
+                    ->whereIn('id', $stockIds)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+
+                foreach ($sale->items as $item) {
+                    $addQty = (int) ($fulfillInput[$item->id] ?? 0);
+                    if ($addQty <= 0)
+                        continue;
+
+                    $remaining = max(0, $item->quantity - $item->fulfilled_quantity);
+
+                    if ($addQty > $remaining) {
+                        throw ValidationException::withMessages([
+                            "fulfill.{$item->id}" => "Qty fulfill melebihi sisa PO (sisa: {$remaining}).",
+                        ]);
+                    }
+
+                    $stock = $stocks->get($item->product_stock_id);
+
+                    if (!$stock || $stock->stock < $addQty) {
+                        throw ValidationException::withMessages([
+                            "fulfill.{$item->id}" => 'Stok tidak cukup untuk item ini (tersedia: ' . ($stock->stock ?? 0) . ').',
+                        ]);
+                    }
+
+                    // Potong stok
+                    $stock->decrement('stock', $addQty);
+
+                    ProductStockMovement::create([
+                        'warehouse_id' => $stock->warehouse_id,
+                        'province' => $stock->province,
+                        'product_stock_id' => $stock->id,
+                        'type' => 'Out',
+                        'quantity' => $addQty,
+                        'ref_type' => Sale::class,
+                        'ref_id' => $sale->id,
+                        'note' => 'Fulfill PO #' . $sale->id . ' item #' . $item->id,
+                    ]);
+
+                    // Update fulfilled_quantity
+                    $item->increment('fulfilled_quantity', $addQty);
+
+                    // === CATAT HISTORY FULFILL ===
+                    \App\Models\SaleItemFulfillment::create([
+                        'sale_id' => $sale->id,
+                        'sale_item_id' => $item->id,
+                        'product_stock_id' => $item->product_stock_id,
+                        'quantity' => $addQty,
+                        'fulfillment_date' => $fulfillmentDate,
+                        'created_by' => Auth::id(),
+                        'note' => 'Pemenuhan PO',
+                    ]);
+                }
+            }
+
+            // === 2. Proses Pembayaran Cicilan (sekarang optional) ===
             $additionalPayment = $this->parseMoney($request->input('payment_amount'));
 
-            if ($additionalPayment <= 0) {
-                throw ValidationException::withMessages([
-                    'payment_amount' => 'Nominal cicilan harus lebih dari 0.',
+            if ($additionalPayment > 0) {
+                $existingPaid = (int) $sale->paymentHistories()->sum('amount');
+                $newPaid = $existingPaid + $additionalPayment;
+
+                if ($newPaid > (int) $sale->total_amount) {
+                    $remainingDebt = max(0, (int) $sale->total_amount - $existingPaid);
+                    throw ValidationException::withMessages([
+                        'payment_amount' => 'Nominal cicilan melebihi sisa tagihan (Sisa: Rp ' . number_format($remainingDebt, 0, ',', '.') . ').',
+                    ]);
+                }
+
+                $debtAmount = max(0, (int) $sale->total_amount - $newPaid);
+                $finalStatus = $debtAmount <= 0 ? 'Lunas' : 'Terhutang';
+
+                $sale->update([
+                    'paid_amount' => $newPaid,
+                    'debt_amount' => $debtAmount,
+                    'status' => $finalStatus,
+                    'notes' => $request->input('notes'),
+                    'updated_by' => Auth::id(),
+                ]);
+
+                $paymentHistory = HistorySalePayment::create([
+                    'sale_id' => $sale->id,
+                    'created_by' => Auth::id(),
+                    'payment_date' => $request->input('payment_date') ?: now()->toDateString(),
+                    'amount' => $additionalPayment,
+                ]);
+
+                // Upload hanya kalau ada file
+                if ($request->hasFile('invoice')) {
+                    $paymentHistory->addMedia($request->file('invoice'))->toMediaCollection('payment_proof');
+                }
+            } else {
+                // Tidak ada pembayaran, cukup update notes saja
+                $sale->update([
+                    'notes' => $request->input('notes'),
+                    'updated_by' => Auth::id(),
                 ]);
             }
 
-            $existingPaid = (int) $sale->paymentHistories()->sum('amount');
-            $newPaid = $existingPaid + $additionalPayment;
-
-            // Validasi agar tidak overpayment
-            if ($newPaid > (int) $sale->total_amount) {
-                $remainingDebt = max(0, (int) $sale->total_amount - $existingPaid);
-                throw ValidationException::withMessages([
-                    'payment_amount' => 'Nominal cicilan melebihi sisa tagihan (Sisa: Rp ' . number_format($remainingDebt, 0, ',', '.') . ').',
-                ]);
-            }
-
-            $debtAmount = max(0, (int) $sale->total_amount - $newPaid);
-            $finalStatus = $debtAmount <= 0 ? 'Lunas' : 'Terhutang';
-
-            // Update data utama
-            $sale->update([
-                'paid_amount' => $newPaid,
-                'debt_amount' => $debtAmount,
-                'status' => $finalStatus,
-                'notes' => $request->input('notes'),
-                'updated_by' => Auth::id(),
-            ]);
-
-            // Simpan history cicilan
-            // Simpan history cicilan
-            $paymentHistory = HistorySalePayment::create([
-                'sale_id' => $sale->id,
-                'created_by' => Auth::id(),
-                'payment_date' => $request->input('payment_date'),
-                'amount' => $additionalPayment,
-            ]);
-
-            $paymentHistory->addMedia($request->file('invoice'))->toMediaCollection('payment_proof');
-
-            return redirect()->route('admin.pemasaran-laporan-penjualan.edit', $sale->id)->with('success', 'Pembayaran berhasil ditambahkan.');
+            return redirect()
+                ->route('admin.pemasaran-laporan-penjualan.edit', $sale->id)
+                ->with('success', 'Perubahan berhasil disimpan.');
         });
     }
 
@@ -521,51 +603,65 @@ class SaleController extends Controller
         DB::transaction(function () use ($sale) {
             $stockIds = $sale->items->pluck('product_stock_id')->filter()->map(fn($id) => (int) $id)->unique()->values();
 
-            $stocks = ProductStock::query()->whereIn('id', $stockIds)->lockForUpdate()->get()->keyBy('id');
+            $stocks = ProductStock::query()
+                ->whereIn('id', $stockIds)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
 
             foreach ($sale->items as $item) {
-                $stock = $stocks->get((int) $item->product_stock_id);
+                // Hanya kembalikan stok yang sudah di-fulfill
+                $qtyToReturn = (int) $item->fulfilled_quantity;
 
+                if ($qtyToReturn <= 0) {
+                    continue;
+                }
+
+                $stock = $stocks->get((int) $item->product_stock_id);
                 if (!$stock) {
                     continue;
                 }
 
-                $stock->increment('stock', (int) $item->quantity);
+                $stock->increment('stock', $qtyToReturn);
 
                 ProductStockMovement::create([
                     'warehouse_id' => $stock->warehouse_id,
                     'province' => $stock->province,
                     'product_stock_id' => $stock->id,
                     'type' => 'In',
-                    'quantity' => (int) $item->quantity,
+                    'quantity' => $qtyToReturn,
                     'ref_type' => Sale::class,
                     'ref_id' => $sale->id,
                     'note' => 'Pengembalian stok karena hapus sale #' . $sale->id,
                 ]);
             }
 
-            // simpan siapa yang menghapus
             $sale->update([
                 'deleted_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
 
-            // soft delete history pembayaran dulu
             $sale->paymentHistories()->delete();
-
-            // soft delete item penjualan
             $sale->items()->delete();
-
-            // soft delete sale utama
             $sale->delete();
         });
 
-        return redirect()->route('admin.pemasaran-laporan-penjualan')->with('success', 'Laporan penjualan berhasil dihapus dan stok dikembalikan.');
+        return redirect()
+            ->route('admin.pemasaran-laporan-penjualan')
+            ->with('success', 'Laporan penjualan berhasil dihapus dan stok dikembalikan.');
     }
 
     public function historyPayment($id)
     {
-        $sale = Sale::with(['warehouse', 'personResponsible', 'updatedBy', 'items.productStock.productVariant.product', 'paymentHistories.createdBy'])->findOrFail($id);
+        $sale = Sale::with([
+            'warehouse',
+            'personResponsible',
+            'updatedBy',
+            'items.productStock.productVariant.product',
+            'paymentHistories.createdBy',
+            'fulfillments.saleItem.productStock.productVariant',
+            'fulfillments.createdBy',
+        ])->findOrFail($id);
 
         return view('admin.sales.history-pembayaran-penjualan', compact('sale'));
     }
@@ -620,5 +716,25 @@ class SaleController extends Controller
         ])->findOrFail($id);
 
         return view('admin.sales.invoice-penjualan', compact('sale'));
+    }
+
+    public function pemenuhanPo($id)
+    {
+        $sale = Sale::with([
+            'personResponsible',
+            'warehouse',
+            'items.productStock.productVariant.product',
+            'fulfillments.saleItem.productStock.productVariant',
+            'fulfillments.createdBy',
+        ])->findOrFail($id);
+
+        // Hanya boleh dibuka kalau tipenya PO
+        if ($sale->stock_type !== 'po') {
+            return redirect()
+                ->route('admin.pemasaran-laporan-penjualan.history-pembayaran', $sale->id)
+                ->with('error', 'Halaman ini hanya tersedia untuk transaksi Pre-Order (PO).');
+        }
+
+        return view('admin.sales.pemenuhan-po', compact('sale'));
     }
 }

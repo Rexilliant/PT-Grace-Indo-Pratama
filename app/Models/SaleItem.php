@@ -15,6 +15,7 @@ class SaleItem extends Model
         'sale_id',
         'product_stock_id',
         'quantity',
+        'fulfilled_quantity',   // ← tambah
         'price',
         'discount',
         'subtotal',
@@ -22,10 +23,16 @@ class SaleItem extends Model
 
     protected $casts = [
         'quantity' => 'integer',
+        'fulfilled_quantity' => 'integer',
         'price' => 'integer',
         'discount' => 'integer',
         'subtotal' => 'integer',
     ];
+
+    public function remainingPoQty(): int
+    {
+        return max(0, $this->quantity - $this->fulfilled_quantity);
+    }
 
     public function sale()
     {

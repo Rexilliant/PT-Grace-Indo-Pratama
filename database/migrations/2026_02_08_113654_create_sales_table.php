@@ -18,6 +18,7 @@ return new class extends Migration {
                 ->constrained('users')
                 ->cascadeOnDelete();
             $table->string('sale_type');
+            $table->enum('order_type', ['Ready Stock', 'PO'])->default('Ready Stock');
             $table->string('customer_province');
             $table->string('customer_city')->nullable();
             $table->text('customer_address')->nullable();

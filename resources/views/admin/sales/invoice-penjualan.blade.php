@@ -25,6 +25,7 @@
         }
 
         @media print {
+
             html,
             body {
                 background: white !important;
@@ -60,8 +61,6 @@
         $bankName = 'Transfer Bank';
         $bankAccountName = 'A/N PT Grace Indo Pratama';
 
-        $approvedBy = 'Manager Pemasaran';
-
         $invoiceDate = Carbon::parse($sale->report_date)->translatedFormat('d F Y');
         $saleDate = Carbon::parse($sale->sale_date)->translatedFormat('d F Y');
 
@@ -74,8 +73,12 @@
         );
 
         $paymentHistories = $sale->paymentHistories->sortBy([['payment_date', 'asc'], ['id', 'asc']])->values();
-
         $totalPaid = $paymentHistories->sum('amount');
+
+        $isPo = $sale->stock_type === 'po';
+        $stockTypeLabel = $isPo ? 'Pre-Order (PO)' : 'Ready Stock';
+        $totalFulfilled = $sale->items->sum('fulfilled_quantity');
+        $totalOrdered = $sale->items->sum('quantity');
     @endphp
 
     {{-- top tools --}}
@@ -105,6 +108,11 @@
             <h1 class="text-[22px] font-extrabold tracking-wide text-gray-900">
                 INVOICE PENJUALAN
             </h1>
+            @if ($isPo)
+                <div class="mt-1 text-[12px] font-bold text-amber-700">
+                    (PRE-ORDER)
+                </div>
+            @endif
         </div>
 
         <div class="mt-4 border-t border-gray-300"></div>
@@ -114,7 +122,7 @@
             <div>
                 <div class="flex items-center gap-3">
                     <div class="flex items-center mr-4">
-                        <img src="{{ asset('media/image/bhos-logo.png') }}" alt="BHOS Technology" class="h-12 w-auto">
+                        <img src="{{ asset('image/bhos-logo.png') }}" alt="BHOS Technology" class="h-12 w-auto">
                     </div>
 
                     <div class="text-[18px] font-extrabold leading-tight tracking-wide text-[#127a45]">
@@ -144,6 +152,10 @@
                             <td class="py-1 text-right font-semibold text-gray-600">Tanggal Penjualan :</td>
                             <td class="py-1 pl-4 text-right font-semibold">{{ $saleDate }}</td>
                         </tr>
+                        <tr>
+                            <td class="py-1 text-right font-semibold text-gray-600">Tipe Stok :</td>
+                            <td class="py-1 pl-4 text-right font-semibold">{{ $stockTypeLabel }}</td>
+                        </tr>
                     </table>
                 </div>
             </div>
@@ -162,7 +174,6 @@
                 @if ($sale->customer_address)
                     <div>{{ $sale->customer_address }}</div>
                 @endif
-                {{-- <div>PIC: {{ $sale->personResponsible?->name ?? '-' }}</div> --}}
             </div>
         </div>
 
@@ -178,6 +189,10 @@
                         <th class="border border-[#1d603d] px-3 py-3 text-center font-extrabold">SKU</th>
                         <th class="border border-[#1d603d] px-3 py-3 text-center font-extrabold">Nama Produk</th>
                         <th class="border border-[#1d603d] px-3 py-3 text-center font-extrabold">Qty</th>
+                        @if ($isPo)
+                            <th class="border border-[#1d603d] px-3 py-3 text-center font-extrabold">Dipenuhi</th>
+                            <th class="border border-[#1d603d] px-3 py-3 text-center font-extrabold">Sisa</th>
+                        @endif
                         <th class="border border-[#1d603d] px-3 py-3 text-center font-extrabold">Unit</th>
                         <th class="border border-[#1d603d] px-3 py-3 text-center font-extrabold">Harga Satuan</th>
                         <th class="border border-[#1d603d] px-3 py-3 text-center font-extrabold">Diskon</th>
@@ -186,6 +201,9 @@
                 </thead>
                 <tbody>
                     @foreach ($sale->items as $item)
+                        @php
+                            $remaining = max(0, $item->quantity - $item->fulfilled_quantity);
+                        @endphp
                         <tr class="bg-white">
                             <td class="border border-gray-300 px-3 py-3 text-center font-semibold">
                                 {{ $item->productStock?->productVariant?->sku ?? '-' }}
@@ -196,6 +214,14 @@
                             <td class="border border-gray-300 px-3 py-3 text-center font-semibold">
                                 {{ $item->quantity }}
                             </td>
+                            @if ($isPo)
+                                <td class="border border-gray-300 px-3 py-3 text-center font-semibold text-green-700">
+                                    {{ $item->fulfilled_quantity }}
+                                </td>
+                                <td class="border border-gray-300 px-3 py-3 text-center font-semibold text-red-600">
+                                    {{ $remaining }}
+                                </td>
+                            @endif
                             <td class="border border-gray-300 px-3 py-3 text-center font-semibold">
                                 {{ $item->productStock?->productVariant?->unit ?? '-' }}
                             </td>
@@ -212,6 +238,15 @@
                     @endforeach
                 </tbody>
             </table>
+
+            @if ($isPo)
+                <div class="mt-3 text-[11px] text-gray-600">
+                    <span class="font-semibold">Keterangan PO:</span>
+                    Total Ordered: <strong>{{ $totalOrdered }}</strong> |
+                    Sudah Dipenuhi: <strong class="text-green-700">{{ $totalFulfilled }}</strong> |
+                    Sisa: <strong class="text-red-600">{{ max(0, $totalOrdered - $totalFulfilled) }}</strong>
+                </div>
+            @endif
         </div>
 
         <div class="mt-7 border-t border-gray-300"></div>

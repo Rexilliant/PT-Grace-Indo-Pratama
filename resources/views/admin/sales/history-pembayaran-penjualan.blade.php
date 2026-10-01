@@ -12,13 +12,12 @@
                 : 'bg-green-100 text-green-700 border-green-200';
 
         $statusDot = $sale->status === 'Terhutang' ? 'bg-red-500' : 'bg-green-500';
-
         $saleNumber = 'SALE-' . str_pad($sale->id, 5, '0', STR_PAD_LEFT);
-
         $totalItems = $sale->items->sum('quantity');
+        $totalFulfilled = $sale->items->sum('fulfilled_quantity');
         $paymentCount = $sale->paymentHistories->count();
-
-        $invoiceUrl = method_exists($sale, 'getFirstMediaUrl') ? $sale->getFirstMediaUrl('invoice_payment') : null;
+        $isPo = $sale->stock_type === 'po';
+        $stockTypeLabel = $isPo ? 'Pre-Order (PO)' : 'Ready Stock';
     @endphp
 
     {{-- breadcrumb --}}
@@ -39,12 +38,8 @@
         <div class="bg-gradient-to-r from-[#53BF6A] to-[#275931] px-6 py-5 text-white">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
-                    <div class="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">
-                        Payment History
-                    </div>
-                    <h1 class="mt-2 text-2xl font-bold leading-tight">
-                        {{ $saleNumber }}
-                    </h1>
+                    <div class="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Payment History</div>
+                    <h1 class="mt-2 text-2xl font-bold leading-tight">{{ $saleNumber }}</h1>
                     <p class="mt-2 text-sm text-white/90">
                         Riwayat pembayaran untuk transaksi penjualan
                         <span class="font-semibold">{{ $sale->customer_name }}</span>
@@ -56,6 +51,12 @@
                         class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold {{ $statusClass }}">
                         <span class="h-2.5 w-2.5 rounded-full {{ $statusDot }}"></span>
                         {{ $sale->status }}
+                    </span>
+
+                    <span
+                        class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold
+                        {{ $isPo ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-blue-100 text-blue-800 border-blue-200' }}">
+                        {{ $stockTypeLabel }}
                     </span>
 
                     <a href="{{ route('admin.pemasaran-laporan-penjualan.edit', $sale->id) }}"
@@ -95,9 +96,7 @@
 
             <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
                 <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Pembayaran Tercatat</div>
-                <div class="mt-2 text-2xl font-extrabold text-gray-900">
-                    {{ $paymentCount }}
-                </div>
+                <div class="mt-2 text-2xl font-extrabold text-gray-900">{{ $paymentCount }}</div>
             </div>
 
             <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
@@ -117,9 +116,10 @@
     </section>
 
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
-        {{-- left column --}}
+        {{-- LEFT COLUMN --}}
         <div class="xl:col-span-8 space-y-6">
-            {{-- detail transaksi --}}
+
+            {{-- Detail Transaksi --}}
             <section class="rounded-2xl border border-gray-200 bg-white shadow-sm">
                 <div class="border-b border-gray-200 px-6 py-4">
                     <h2 class="text-lg font-bold text-gray-900">Detail Transaksi</h2>
@@ -155,44 +155,37 @@
 
                     <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
                         <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Jenis Penjualan</div>
-                        <div class="mt-2 text-sm font-bold text-gray-900">
-                            {{ $sale->sale_type }}
-                        </div>
+                        <div class="mt-2 text-sm font-bold text-gray-900">{{ $sale->sale_type }}</div>
+                    </div>
+
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Tipe Stok</div>
+                        <div class="mt-2 text-sm font-bold text-gray-900">{{ $stockTypeLabel }}</div>
                     </div>
 
                     <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
                         <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Provinsi</div>
-                        <div class="mt-2 text-sm font-bold text-gray-900">
-                            {{ $sale->customer_province }}
-                        </div>
+                        <div class="mt-2 text-sm font-bold text-gray-900">{{ $sale->customer_province }}</div>
                     </div>
 
                     <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
                         <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Daerah</div>
-                        <div class="mt-2 text-sm font-bold text-gray-900">
-                            {{ $sale->customer_city }}
-                        </div>
+                        <div class="mt-2 text-sm font-bold text-gray-900">{{ $sale->customer_city }}</div>
                     </div>
 
                     <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
                         <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Nama Pembeli</div>
-                        <div class="mt-2 text-sm font-bold text-gray-900">
-                            {{ $sale->customer_name }}
-                        </div>
+                        <div class="mt-2 text-sm font-bold text-gray-900">{{ $sale->customer_name }}</div>
                     </div>
 
                     <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
                         <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Kontak Pembeli</div>
-                        <div class="mt-2 text-sm font-bold text-gray-900">
-                            {{ $sale->customer_contact }}
-                        </div>
+                        <div class="mt-2 text-sm font-bold text-gray-900">{{ $sale->customer_contact }}</div>
                     </div>
 
                     <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 md:col-span-2">
                         <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Alamat Lengkap</div>
-                        <div class="mt-2 text-sm font-bold text-gray-900">
-                            {{ $sale->customer_address ?: '-' }}
-                        </div>
+                        <div class="mt-2 text-sm font-bold text-gray-900">{{ $sale->customer_address ?: '-' }}</div>
                     </div>
 
                     <div class="rounded-xl border border-gray-200 bg-gray-50 p-4 md:col-span-2">
@@ -204,7 +197,7 @@
                 </div>
             </section>
 
-            {{-- item dijual --}}
+            {{-- Item yang Dijual --}}
             <section class="rounded-2xl border border-gray-200 bg-white shadow-sm">
                 <div
                     class="flex flex-col gap-2 border-b border-gray-200 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -213,9 +206,21 @@
                         <p class="mt-1 text-sm text-gray-500">Rincian barang pada transaksi ini</p>
                     </div>
 
-                    <div
-                        class="inline-flex items-center rounded-full bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700">
-                        Total Qty: {{ $totalItems }}
+                    <div class="flex flex-wrap gap-2">
+                        <div
+                            class="inline-flex items-center rounded-full bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700">
+                            Total Qty: {{ $totalItems }}
+                        </div>
+                        @if ($isPo)
+                            <div
+                                class="inline-flex items-center rounded-full bg-green-100 px-4 py-2 text-sm font-bold text-green-700">
+                                Dipenuhi: {{ $totalFulfilled }}
+                            </div>
+                            <div
+                                class="inline-flex items-center rounded-full bg-red-100 px-4 py-2 text-sm font-bold text-red-700">
+                                Sisa PO: {{ max(0, $totalItems - $totalFulfilled) }}
+                            </div>
+                        @endif
                     </div>
                 </div>
 
@@ -226,15 +231,19 @@
                                 <th class="px-6 py-4 font-extrabold">Kode Produk</th>
                                 <th class="px-6 py-4 font-extrabold">SKU</th>
                                 <th class="px-6 py-4 font-extrabold">Nama Produk</th>
-                                <th class="px-6 py-4 font-extrabold">Qty</th>
+                                <th class="px-6 py-4 font-extrabold">Qty Ordered</th>
+                                @if ($isPo)
+                                    <th class="px-6 py-4 font-extrabold">Qty Dipenuhi</th>
+                                    <th class="px-6 py-4 font-extrabold">Sisa PO</th>
+                                @endif
                                 <th class="px-6 py-4 font-extrabold">Harga</th>
                                 <th class="px-6 py-4 font-extrabold">Diskon</th>
                                 <th class="px-6 py-4 font-extrabold">Subtotal</th>
                             </tr>
                         </thead>
-
                         <tbody class="divide-y divide-gray-200 bg-white">
                             @forelse ($sale->items as $item)
+                                @php $remainingPo = max(0, $item->quantity - $item->fulfilled_quantity); @endphp
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 font-semibold">
                                         {{ $item->productStock?->productVariant?->product?->code ?? '-' }}
@@ -245,9 +254,12 @@
                                     <td class="px-6 py-4 font-semibold">
                                         {{ $item->productStock?->productVariant?->name ?? '-' }}
                                     </td>
-                                    <td class="px-6 py-4 font-semibold">
-                                        {{ $item->quantity }}
-                                    </td>
+                                    <td class="px-6 py-4 font-semibold">{{ $item->quantity }}</td>
+                                    @if ($isPo)
+                                        <td class="px-6 py-4 font-semibold text-green-700">{{ $item->fulfilled_quantity }}
+                                        </td>
+                                        <td class="px-6 py-4 font-semibold text-red-600">{{ $remainingPo }}</td>
+                                    @endif
                                     <td class="px-6 py-4 font-semibold">
                                         Rp {{ number_format($item->price, 0, ',', '.') }}
                                     </td>
@@ -260,7 +272,8 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-6 text-center font-semibold text-gray-500">
+                                    <td colspan="{{ $isPo ? 9 : 7 }}"
+                                        class="px-6 py-6 text-center font-semibold text-gray-500">
                                         Belum ada item pada transaksi ini
                                     </td>
                                 </tr>
@@ -270,7 +283,64 @@
                 </div>
             </section>
 
-            {{-- history pembayaran --}}
+            {{-- Riwayat Pemenuhan PO --}}
+            @if ($isPo)
+                <section class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <div class="border-b border-gray-200 px-6 py-4">
+                        <h2 class="text-lg font-bold text-gray-900">Riwayat Pemenuhan / Penyerahan Stok PO</h2>
+                        <p class="mt-1 text-sm text-gray-500">Kapan dan berapa qty yang sudah dipenuhi dari stok ready</p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm text-left text-gray-900">
+                            <thead class="bg-gray-50 text-gray-700">
+                                <tr class="[&>th]:border-b [&>th]:border-gray-200">
+                                    <th class="px-6 py-4 font-extrabold">No</th>
+                                    <th class="px-6 py-4 font-extrabold">Tanggal Penyerahan</th>
+                                    <th class="px-6 py-4 font-extrabold">Produk</th>
+                                    <th class="px-6 py-4 font-extrabold">SKU</th>
+                                    <th class="px-6 py-4 font-extrabold">Qty Dipenuhi</th>
+                                    <th class="px-6 py-4 font-extrabold">Diinput Oleh</th>
+                                    <th class="px-6 py-4 font-extrabold">Waktu Input</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white">
+                                @forelse ($sale->fulfillments->sortByDesc('fulfillment_date') as $fulfill)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 font-semibold">{{ $loop->iteration }}</td>
+                                        <td class="px-6 py-4 font-semibold">
+                                            {{ $fulfill->fulfillment_date?->format('d/m/Y') ?? '-' }}
+                                        </td>
+                                        <td class="px-6 py-4 font-semibold">
+                                            {{ $fulfill->saleItem?->productStock?->productVariant?->name ?? '-' }}
+                                        </td>
+                                        <td class="px-6 py-4 font-semibold">
+                                            {{ $fulfill->saleItem?->productStock?->productVariant?->sku ?? '-' }}
+                                        </td>
+                                        <td class="px-6 py-4 font-bold text-green-700">
+                                            {{ $fulfill->quantity }}
+                                        </td>
+                                        <td class="px-6 py-4 font-semibold">
+                                            {{ $fulfill->createdBy?->name ?? '-' }}
+                                        </td>
+                                        <td class="px-6 py-4 font-semibold">
+                                            {{ $fulfill->created_at?->format('d/m/Y H:i') ?? '-' }}
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="px-6 py-6 text-center font-semibold text-gray-500">
+                                            Belum ada riwayat pemenuhan PO
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            @endif
+
+            {{-- Riwayat Pembayaran --}}
             <section class="rounded-2xl border border-gray-200 bg-white shadow-sm">
                 <div class="border-b border-gray-200 px-6 py-4">
                     <h2 class="text-lg font-bold text-gray-900">Riwayat Pembayaran</h2>
@@ -290,12 +360,8 @@
                                 <th class="px-6 py-4 font-extrabold whitespace-nowrap">Bukti Pembayaran</th>
                             </tr>
                         </thead>
-
                         <tbody class="divide-y divide-gray-200 bg-white">
-                            @php
-                                $runningPaid = 0;
-                            @endphp
-
+                            @php $runningPaid = 0; @endphp
                             @forelse ($sale->paymentHistories as $payment)
                                 @php
                                     $runningPaid += $payment->amount;
@@ -304,28 +370,20 @@
                                         ? $payment->getFirstMediaUrl('payment_proof')
                                         : null;
                                 @endphp
-
                                 <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-4 font-semibold whitespace-nowrap">
-                                        {{ $loop->iteration }}
-                                    </td>
-
+                                    <td class="px-6 py-4 font-semibold whitespace-nowrap">{{ $loop->iteration }}</td>
                                     <td class="px-6 py-4 font-semibold whitespace-nowrap">
                                         {{ $payment->createdBy?->name ?? '-' }}
                                     </td>
-
                                     <td class="px-6 py-4 font-semibold whitespace-nowrap">
                                         {{ $payment->created_at ? $payment->created_at->format('d/m/Y H:i') : '-' }}
                                     </td>
-
                                     <td class="px-6 py-4 font-semibold whitespace-nowrap">
                                         {{ \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') }}
                                     </td>
-
                                     <td class="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">
                                         Rp {{ number_format($payment->amount, 0, ',', '.') }}
                                     </td>
-
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if ($remainingAfterPayment > 0)
                                             <span
@@ -340,7 +398,6 @@
                                             </span>
                                         @endif
                                     </td>
-
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if ($proofUrl)
                                             <a href="{{ $proofUrl }}" target="_blank"
@@ -348,9 +405,7 @@
                                                 Lihat Bukti
                                             </a>
                                         @else
-                                            <span class="text-xs font-semibold text-gray-400">
-                                                Tidak ada bukti
-                                            </span>
+                                            <span class="text-xs font-semibold text-gray-400">Tidak ada bukti</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -367,9 +422,13 @@
             </section>
         </div>
 
-        {{-- right column --}}
+
+
+
+        {{-- RIGHT COLUMN --}}
         <div class="xl:col-span-4 space-y-6">
-            {{-- payment progress --}}
+
+            {{-- Progress Pembayaran --}}
             <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 class="text-lg font-bold text-gray-900">Progress Pembayaran</h2>
                 <p class="mt-1 text-sm text-gray-500">Ringkasan progres dari total tagihan</p>
@@ -384,7 +443,6 @@
                         <span>Terlunasi</span>
                         <span>{{ $progress }}%</span>
                     </div>
-
                     <div class="h-3 w-full overflow-hidden rounded-full bg-gray-200">
                         <div class="h-full rounded-full bg-gradient-to-r from-[#53BF6A] to-[#275931]"
                             style="width: {{ $progress }}%"></div>
@@ -398,14 +456,12 @@
                             Rp {{ number_format($sale->total_amount, 0, ',', '.') }}
                         </div>
                     </div>
-
                     <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
                         <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Sudah Dibayar</div>
                         <div class="mt-2 text-lg font-extrabold text-gray-900">
                             Rp {{ number_format($sale->paid_amount, 0, ',', '.') }}
                         </div>
                     </div>
-
                     <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
                         <div class="text-xs font-semibold uppercase tracking-wide text-gray-500">Sisa Pembayaran</div>
                         <div
@@ -416,7 +472,45 @@
                 </div>
             </section>
 
-            {{-- quick facts --}}
+            {{-- Progress Fulfill PO --}}
+            @if ($isPo)
+                <section class="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+                    <h2 class="text-lg font-bold text-amber-900">Progress Fulfill PO</h2>
+                    <p class="mt-1 text-sm text-amber-700">Seberapa banyak barang PO yang sudah diambil dari stok</p>
+
+                    @php
+                        $fulfillProgress = $totalItems > 0 ? min(100, round(($totalFulfilled / $totalItems) * 100)) : 0;
+                    @endphp
+
+                    <div class="mt-5">
+                        <div class="mb-2 flex items-center justify-between text-sm font-semibold text-amber-800">
+                            <span>Sudah Dipenuhi</span>
+                            <span>{{ $fulfillProgress }}%</span>
+                        </div>
+                        <div class="h-3 w-full overflow-hidden rounded-full bg-amber-200">
+                            <div class="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-700"
+                                style="width: {{ $fulfillProgress }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 space-y-3">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="font-semibold text-amber-800">Total Ordered</span>
+                            <span class="font-bold text-amber-900">{{ $totalItems }}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="font-semibold text-amber-800">Sudah Dipenuhi</span>
+                            <span class="font-bold text-green-700">{{ $totalFulfilled }}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="font-semibold text-amber-800">Sisa PO</span>
+                            <span class="font-bold text-red-600">{{ max(0, $totalItems - $totalFulfilled) }}</span>
+                        </div>
+                    </div>
+                </section>
+            @endif
+
+            {{-- Ringkasan Cepat --}}
             <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 class="text-lg font-bold text-gray-900">Ringkasan Cepat</h2>
                 <p class="mt-1 text-sm text-gray-500">Highlight transaksi ini</p>
@@ -426,17 +520,20 @@
                         <span class="text-sm font-semibold text-gray-500">Jumlah Jenis Barang</span>
                         <span class="text-sm font-bold text-gray-900">{{ $sale->items->count() }}</span>
                     </div>
-
                     <div class="flex items-start justify-between gap-4">
                         <span class="text-sm font-semibold text-gray-500">Total Kuantitas</span>
                         <span class="text-sm font-bold text-gray-900">{{ $totalItems }}</span>
                     </div>
-
+                    @if ($isPo)
+                        <div class="flex items-start justify-between gap-4">
+                            <span class="text-sm font-semibold text-gray-500">Qty Sudah Dipenuhi</span>
+                            <span class="text-sm font-bold text-green-700">{{ $totalFulfilled }}</span>
+                        </div>
+                    @endif
                     <div class="flex items-start justify-between gap-4">
                         <span class="text-sm font-semibold text-gray-500">Jumlah Pembayaran</span>
                         <span class="text-sm font-bold text-gray-900">{{ $paymentCount }}</span>
                     </div>
-
                     <div class="flex items-start justify-between gap-4">
                         <span class="text-sm font-semibold text-gray-500">Terakhir Diupdate</span>
                         <span class="text-sm font-bold text-gray-900">
@@ -446,19 +543,17 @@
                 </div>
             </section>
 
-            {{-- invoice & bst --}}
+            {{-- Dokumen Transaksi --}}
             <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 class="text-lg font-bold text-gray-900">Dokumen Transaksi</h2>
                 <p class="mt-1 text-sm text-gray-500">Cetak invoice atau lihat bukti serah terima</p>
 
                 <div class="mt-5 space-y-3">
-                    {{-- Tombol Cetak Invoice --}}
                     <a href="{{ route('admin.pemasaran-laporan-penjualan.invoice', $sale->id) }}"
                         class="inline-flex w-full items-center justify-center rounded-xl bg-[#2D2ACD] px-4 py-3 text-sm font-bold text-white hover:bg-blue-800 transition-colors">
                         Cetak Invoice
                     </a>
 
-                    {{-- Tombol Laporan BST --}}
                     @php
                         $bstUrl = method_exists($sale, 'getFirstMediaUrl')
                             ? $sale->getFirstMediaUrl('delivery_proof')
@@ -474,15 +569,18 @@
                     @else
                         <button disabled
                             class="inline-flex w-full cursor-not-allowed items-center justify-center rounded-xl bg-gray-300 px-4 py-3 text-sm font-bold text-gray-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-2 h-4 w-4" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
                             BST Belum Diupload
                         </button>
                     @endif
+                    
+                    @if ($isPo)
+                        <a href="{{ route('admin.pemasaran-laporan-penjualan.pemenuhan-po', $sale->id) }}"
+                            class="inline-flex w-full items-center justify-center rounded-xl bg-amber-600 px-4 py-3 text-sm font-bold text-white hover:bg-amber-700 transition-colors">
+                            Cetak Surat Pemenuhan PO
+                        </a>
+                    @endif
                 </div>
+
             </section>
         </div>
     </div>

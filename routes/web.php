@@ -86,29 +86,62 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     // Laporan Penjualan
     Route::prefix('admin')->middleware(['auth'])->group(function () {
-        Route::get('/pemasaran/laporan-penjualan', [SaleController::class, 'index'])->middleware(['auth', 'permission:baca penjualan'])
+
+        Route::get('/pemasaran/laporan-penjualan', [SaleController::class, 'index'])
+            ->middleware(['auth', 'permission:baca penjualan'])
             ->name('admin.pemasaran-laporan-penjualan');
+
         Route::get('/pemasaran/laporan-penjualan/export', [SaleController::class, 'export'])
             ->name('admin.pemasaran-laporan-penjualan.export');
-        Route::get('/pemasaran/laporan-penjualan/create', [SaleController::class, 'create'])->middleware(['auth', 'permission:tambah penjualan'])
+
+        Route::get('/pemasaran/laporan-penjualan/create', [SaleController::class, 'create'])
+            ->middleware(['auth', 'permission:tambah penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.create');
-        Route::post('/pemasaran/laporan-penjualan', [SaleController::class, 'store'])->middleware(['auth', 'permission:tambah penjualan'])
+
+        Route::post('/pemasaran/laporan-penjualan', [SaleController::class, 'store'])
+            ->middleware(['auth', 'permission:tambah penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.store');
+
         Route::get('/pemasaran/laporan-penjualan/stocks-by-warehouse', [SaleController::class, 'getStocksByWarehouse'])
             ->name('admin.pemasaran-laporan-penjualan.stocks-by-warehouse');
-        Route::get('/pemasaran/laporan-penjualan/{id}/edit', [SaleController::class, 'edit'])->middleware(['auth', 'permission:edit penjualan|baca penjualan'])
+
+        Route::get('/pemasaran/laporan-penjualan/{id}/edit', [SaleController::class, 'edit'])
+            ->middleware(['auth', 'permission:edit penjualan|baca penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.edit');
+
         Route::post('/pemasaran/laporan-penjualan/{id}/upload-bst', [SaleController::class, 'uploadDeliveryProof'])
             ->middleware(['auth', 'permission:edit penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.upload-bst');
-        Route::put('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'update'])->middleware(['auth', 'permission:edit penjualan'])
+
+        Route::put('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'update'])
+            ->middleware(['auth', 'permission:edit penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.update');
-        Route::delete('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'destroy'])->middleware(['auth', 'permission:hapus penjualan'])
+
+
+        // =========================================================
+        // FULFILLMENT PO
+        // =========================================================
+
+        Route::post('/pemasaran/laporan-penjualan/{id}/fulfill-po', [SaleController::class, 'fulfillPO'])
+            ->middleware(['auth', 'permission:edit penjualan'])
+            ->name('admin.pemasaran-laporan-penjualan.fulfill-po');
+
+
+        Route::delete('/pemasaran/laporan-penjualan/{id}', [SaleController::class, 'destroy'])
+            ->middleware(['auth', 'permission:hapus penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.destroy');
-        Route::get('/pemasaran/laporan-penjualan/{id}/history-pembayaran', [SaleController::class, 'historyPayment'])->middleware(['auth', 'permission:baca penjualan'])
+
+        Route::get('/pemasaran/laporan-penjualan/{id}/history-pembayaran', [SaleController::class, 'historyPayment'])
+            ->middleware(['auth', 'permission:baca penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.history-pembayaran');
-        Route::get('/pemasaran/laporan-penjualan/{id}/invoice', [SaleController::class, 'invoice'])->middleware(['auth', 'permission:baca penjualan'])
+
+        Route::get('/pemasaran/laporan-penjualan/{id}/invoice', [SaleController::class, 'invoice'])
+            ->middleware(['auth', 'permission:baca penjualan'])
             ->name('admin.pemasaran-laporan-penjualan.invoice');
+
+        Route::get('pemasaran-laporan-penjualan/{id}/pemenuhan-po', [SaleController::class, 'pemenuhanPo'])
+            ->name('admin.pemasaran-laporan-penjualan.pemenuhan-po');
+
     });
 
     // This Point
