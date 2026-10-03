@@ -4,7 +4,7 @@
 
 <body class="text-slate-700 font-plus-jakarta-sans md:flex bg-[#F8FAFC]">
     @include('admin.layout.aside')
-    <section class="w-full ">
+    <section class="w-full min-w-0 flex-1">
         @include('admin.layout.nav')
         <main class="p-5">
             @yield('content')

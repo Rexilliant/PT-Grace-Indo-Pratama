@@ -1,6 +1,6 @@
 {{-- desktop --}}
 <aside
-    class="hidden lg:flex flex-col bg-white lg:w-[432px] 2xl:w-[350px] h-screen z-[100] lg:sticky left-0 top-0 shadow-[0_4px_4px_rgba(0,0,0,0.25)] p-5 overflow-hidden">
+    class="hidden lg:flex flex-col bg-white lg:w-[280px] 2xl:w-[280px] shrink-0 h-screen z-[100] lg:sticky left-0 top-0 shadow-[0_4px_4px_rgba(0,0,0,0.25)] p-5 overflow-hidden">
 
     {{-- header --}}
     <div class="flex items-center mb-6 shrink-0">
