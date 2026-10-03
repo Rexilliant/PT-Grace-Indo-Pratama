@@ -191,8 +191,13 @@
 
                     <div>
                         <label class="{{ $labelClass }}">Nama Penerima</label>
-                        <input type="text" value="{{ $shipment->receivedBy->name ?? '-' }}" readonly
-                            class="{{ $readonlyClass }}">
+                        <input type="text" name="received_name"
+                            value="{{ old('received_name', $shipment->received_name) }}"
+                            @if (!$isDetailEditable) readonly @endif
+                            class="@error('received_name') {{ $inputErrorClass }} @else {{ $isDetailEditable ? $inputNormalClass : $readonlyClass }} @enderror">
+                        @error('received_name')
+                            <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>

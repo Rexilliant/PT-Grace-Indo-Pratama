@@ -62,6 +62,24 @@ class Procurement extends Model
         return $this->belongsTo(Warehouse::class);
     }
 
+    public function purchaseReceipts()
+    {
+        return $this->hasMany(PurchaseReceipt::class);
+    }
+
+    public function canBeDeleted(): bool
+    {
+        if ($this->status === 'Menunggu') {
+            return true;
+        }
+
+        $hasReceipts = isset($this->purchase_receipts_count)
+            ? $this->purchase_receipts_count > 0
+            : (isset($this->purchase_receipts_exists) ? $this->purchase_receipts_exists : $this->purchaseReceipts()->exists());
+
+        return !$hasReceipts;
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()

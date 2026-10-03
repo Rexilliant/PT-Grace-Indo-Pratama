@@ -23,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        date_default_timezone_set(config('app.timezone', 'Asia/Jakarta'));
+        \Carbon\Carbon::setLocale(config('app.locale', 'id'));
+
         require_once app_path('Helpers/log_helper.php');
 
         $totalProcurementMenunggu = 0;

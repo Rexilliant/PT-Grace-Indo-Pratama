@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->foreignId('employee_id')->nullable()->constrained()->cascadeOnDelete();
             $table->string('password');
+            $table->string('status')->default('active');
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

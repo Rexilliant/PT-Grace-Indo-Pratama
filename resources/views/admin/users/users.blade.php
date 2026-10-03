@@ -122,12 +122,12 @@
                                 </td>
 
                                 <td class="px-6 py-4">
-                                    @if ($user->deleted_at == null)
-                                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                                    @if ($user->status === 'active' || ($user->status === null && $user->deleted_at === null))
+                                        <span class="bg-green-100 text-green-800 px-2.5 py-1 rounded-full text-xs font-semibold">
                                             Aktif
                                         </span>
                                     @else
-                                        <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
+                                        <span class="bg-red-100 text-red-800 px-2.5 py-1 rounded-full text-xs font-semibold">
                                             Nonaktif
                                         </span>
                                     @endif

@@ -382,6 +382,8 @@ class ProductionController extends Controller
                     'status' => 'completed',
                 ]);
 
+                $batchCode = 'PB-' . str_pad($batch->id, 5, '0', STR_PAD_LEFT);
+
                 foreach ($items as $item) {
                     $rawMaterialId = $item['raw_material_id'];
                     $quantityUse = $item['quantity_use'];
@@ -414,7 +416,7 @@ class ProductionController extends Controller
                         'ref_type' => 'production_batches',
                         'ref_id' => $batch->id,
                         'responsible_id' => $userId,
-                        'note' => 'Pemakaian bahan baku untuk produksi',
+                        'note' => 'Pemakaian bahan baku untuk produksi (' . $batchCode . ')',
                     ]);
                 }
 
@@ -427,7 +429,7 @@ class ProductionController extends Controller
                     'quantity' => $productionQty,
                     'ref_type' => 'production_batches',
                     'ref_id' => $batch->id,
-                    'note' => 'Hasil tambah produksi',
+                    'note' => 'Hasil tambah produksi (' . $batchCode . ')',
                 ]);
             });
 
@@ -497,34 +499,143 @@ class ProductionController extends Controller
             }
 
             DB::transaction(function () use ($id, $userId, $warehouseId, $productVariantId, $productionQty, $entryDate, $note, $items) {
-                $batch = ProductionBatch::with(['materials', 'productStock'])
+                $batch = ProductionBatch::with(['materials.rawMaterial', 'productStock'])
                     ->lockForUpdate()
                     ->findOrFail($id);
 
+                $batchCode = 'PB-' . str_pad($batch->id, 5, '0', STR_PAD_LEFT);
                 $oldWarehouseId = (int) $batch->warehouse_id;
                 $oldProductStock = ProductStock::lockForUpdate()->findOrFail($batch->product_stock_id);
                 $oldProductionQty = (int) $batch->quantity;
 
-                foreach ($batch->materials as $oldMaterial) {
-                    $oldRawStock = RawMaterialStock::where('raw_material_id', $oldMaterial->raw_material_id)->where('warehouse_id', $oldWarehouseId)->lockForUpdate()->first();
+                // 1. Map old and new materials
+                $oldMaterialsMap = $batch->materials->pluck('quantity_use', 'raw_material_id')->toArray();
+                $newMaterialsMap = $items->pluck('quantity_use', 'raw_material_id')->toArray();
 
-                    if ($oldRawStock) {
-                        $oldRawStock->increment('stock', (int) $oldMaterial->quantity_use);
+                if ($oldWarehouseId === $warehouseId) {
+                    // Kasus A: Gudang Sama -> Hitung selisih diferensial
+                    $allMaterialIds = array_unique(array_merge(array_keys($oldMaterialsMap), array_keys($newMaterialsMap)));
+
+                    // A1. Validasi kecukupan stok terlebih dahulu sebelum eksekusi mutasi
+                    foreach ($allMaterialIds as $matId) {
+                        $oldQty = (int) ($oldMaterialsMap[$matId] ?? 0);
+                        $newQty = (int) ($newMaterialsMap[$matId] ?? 0);
+                        $diff = $newQty - $oldQty;
+
+                        if ($diff > 0) {
+                            // Pemakaian bertambah, cek apakah stok bahan baku di gudang mencukupi
+                            $rawStock = RawMaterialStock::with('rawMaterial')->where('raw_material_id', $matId)->where('warehouse_id', $warehouseId)->lockForUpdate()->first();
+                            $currentStock = $rawStock?->stock ?? 0;
+
+                            if ($currentStock < $diff) {
+                                $materialName = $rawStock?->rawMaterial?->name ?? "ID {$matId}";
+                                $unit = $rawStock?->rawMaterial?->unit ?? '';
+                                throw new \Exception("Stok bahan baku '{$materialName}' tidak mencukupi untuk penambahan pemakaian sebanyak {$diff} {$unit}. (Stok tersedia saat ini: {$currentStock} {$unit}).");
+                            }
+                        }
+                    }
+
+                    // A2. Eksekusi penyesuaian stok bahan baku dan catat riwayat mutasi
+                    foreach ($allMaterialIds as $matId) {
+                        $oldQty = (int) ($oldMaterialsMap[$matId] ?? 0);
+                        $newQty = (int) ($newMaterialsMap[$matId] ?? 0);
+                        $diff = $newQty - $oldQty;
+
+                        $rawStock = RawMaterialStock::where('raw_material_id', $matId)->where('warehouse_id', $warehouseId)->lockForUpdate()->first();
+
+                        if ($diff > 0) {
+                            // Pemakaian bertambah -> Kurangi stok bahan baku & catat mutasi 'out'
+                            $rawStock->decrement('stock', $diff);
+
+                            RawMaterialStockMovement::create([
+                                'warehouse_id' => $warehouseId,
+                                'raw_material_id' => $matId,
+                                'type' => 'out',
+                                'stock' => $diff,
+                                'ref_type' => 'production_batches',
+                                'ref_id' => $batch->id,
+                                'responsible_id' => $userId,
+                                'note' => "Penyesuaian (penambahan pemakaian) bahan baku produksi ({$batchCode})",
+                            ]);
+                        } elseif ($diff < 0) {
+                            // Pemakaian berkurang -> Kembalikan stok bahan baku & catat mutasi 'in'
+                            $returnQty = abs($diff);
+                            if ($rawStock) {
+                                $rawStock->increment('stock', $returnQty);
+                            } else {
+                                RawMaterialStock::create([
+                                    'raw_material_id' => $matId,
+                                    'warehouse_id' => $warehouseId,
+                                    'stock' => $returnQty,
+                                ]);
+                            }
+
+                            RawMaterialStockMovement::create([
+                                'warehouse_id' => $warehouseId,
+                                'raw_material_id' => $matId,
+                                'type' => 'in',
+                                'stock' => $returnQty,
+                                'ref_type' => 'production_batches',
+                                'ref_id' => $batch->id,
+                                'responsible_id' => $userId,
+                                'note' => "Penyesuaian (pengembalian pemakaian) bahan baku produksi ({$batchCode})",
+                            ]);
+                        }
+                    }
+                } else {
+                    // Kasus B: Pindah Gudang -> Kembalikan bahan baku di gudang lama & kurangi di gudang baru
+                    // B1. Kembalikan bahan baku lama ke gudang lama
+                    foreach ($batch->materials as $oldMat) {
+                        $oldRawStock = RawMaterialStock::where('raw_material_id', $oldMat->raw_material_id)->where('warehouse_id', $oldWarehouseId)->lockForUpdate()->first();
+                        if ($oldRawStock) {
+                            $oldRawStock->increment('stock', (int) $oldMat->quantity_use);
+                        } else {
+                            RawMaterialStock::create([
+                                'raw_material_id' => $oldMat->raw_material_id,
+                                'warehouse_id' => $oldWarehouseId,
+                                'stock' => (int) $oldMat->quantity_use,
+                            ]);
+                        }
+
+                        RawMaterialStockMovement::create([
+                            'warehouse_id' => $oldWarehouseId,
+                            'raw_material_id' => $oldMat->raw_material_id,
+                            'type' => 'in',
+                            'stock' => (int) $oldMat->quantity_use,
+                            'ref_type' => 'production_batches',
+                            'ref_id' => $batch->id,
+                            'responsible_id' => $userId,
+                            'note' => "Penyesuaian (pengembalian pindah gudang) bahan baku produksi ({$batchCode})",
+                        ]);
+                    }
+
+                    // B2. Validasi & kurangi bahan baku di gudang baru
+                    foreach ($items as $item) {
+                        $matId = $item['raw_material_id'];
+                        $qtyUse = $item['quantity_use'];
+
+                        $newRawStock = RawMaterialStock::with('rawMaterial')->where('raw_material_id', $matId)->where('warehouse_id', $warehouseId)->lockForUpdate()->first();
+                        if (!$newRawStock || $newRawStock->stock < $qtyUse) {
+                            $matName = $newRawStock?->rawMaterial?->name ?? "ID {$matId}";
+                            throw new \Exception("Stok bahan baku '{$matName}' di gudang tujuan tidak mencukupi.");
+                        }
+
+                        $newRawStock->decrement('stock', $qtyUse);
+
+                        RawMaterialStockMovement::create([
+                            'warehouse_id' => $warehouseId,
+                            'raw_material_id' => $matId,
+                            'type' => 'out',
+                            'stock' => $qtyUse,
+                            'ref_type' => 'production_batches',
+                            'ref_id' => $batch->id,
+                            'responsible_id' => $userId,
+                            'note' => "Pemakaian bahan baku untuk produksi ({$batchCode})",
+                        ]);
                     }
                 }
 
-                if ($oldProductStock->stock < $oldProductionQty) {
-                    throw new \Exception('Stok produk jadi lama tidak mencukupi untuk proses update.');
-                }
-
-                $oldProductStock->decrement('stock', $oldProductionQty);
-
-                ProductionHasMaterial::where('production_batch_id', $batch->id)->delete();
-
-                RawMaterialStockMovement::where('ref_type', 'production_batches')->where('ref_id', $batch->id)->delete();
-
-                ProductStockMovement::where('ref_type', 'production_batches')->where('ref_id', $batch->id)->delete();
-
+                // 2. Tangani Produk Jadi (Product Stock)
                 $productStock = ProductStock::firstOrCreate(
                     [
                         'product_variant_id' => $productVariantId,
@@ -535,60 +646,95 @@ class ProductionController extends Controller
                     ],
                 );
 
-                foreach ($items as $item) {
-                    $rawMaterialId = $item['raw_material_id'];
-                    $quantityUse = $item['quantity_use'];
+                if ($oldProductStock->id === $productStock->id) {
+                    // Produk & Gudang sama -> Hitung selisih kuantitas hasil produksi
+                    $prodDiff = $productionQty - $oldProductionQty;
 
-                    $rawStock = RawMaterialStock::with('rawMaterial')->where('raw_material_id', $rawMaterialId)->where('warehouse_id', $warehouseId)->lockForUpdate()->first();
+                    if ($prodDiff > 0) {
+                        // Hasil produksi bertambah
+                        $productStock->increment('stock', $prodDiff);
 
-                    if (!$rawStock) {
-                        throw new \Exception("Stok bahan baku tidak ditemukan untuk gudang ID {$warehouseId}.");
+                        ProductStockMovement::create([
+                            'warehouse_id' => $warehouseId,
+                            'product_stock_id' => $productStock->id,
+                            'type' => 'in',
+                            'quantity' => $prodDiff,
+                            'ref_type' => 'production_batches',
+                            'ref_id' => $batch->id,
+                            'note' => "Penyesuaian (penambahan hasil) produksi ({$batchCode})",
+                        ]);
+                    } elseif ($prodDiff < 0) {
+                        // Hasil produksi berkurang -> Cek stok produk saat ini
+                        $reduction = abs($prodDiff);
+                        if ($productStock->stock < $reduction) {
+                            throw new \Exception("Stok produk jadi di gudang tidak mencukupi untuk pengurangan kuantitas produksi sebanyak {$reduction}. (Produk kemungkinan sudah terjual atau dikirim).");
+                        }
+
+                        $productStock->decrement('stock', $reduction);
+
+                        ProductStockMovement::create([
+                            'warehouse_id' => $warehouseId,
+                            'product_stock_id' => $productStock->id,
+                            'type' => 'out',
+                            'quantity' => $reduction,
+                            'ref_type' => 'production_batches',
+                            'ref_id' => $batch->id,
+                            'note' => "Penyesuaian (pengurangan hasil) produksi ({$batchCode})",
+                        ]);
+                    }
+                } else {
+                    // Produk atau Gudang berbeda
+                    if ($oldProductStock->stock < $oldProductionQty) {
+                        throw new \Exception('Stok produk jadi lama tidak mencukupi untuk penyesuaian perubahan produk/gudang.');
                     }
 
-                    if ($rawStock->stock < $quantityUse) {
-                        $materialName = $rawStock->rawMaterial->name ?? 'Unknown Material';
-                        throw new \Exception("Stok bahan baku {$materialName} tidak mencukupi.");
-                    }
+                    $oldProductStock->decrement('stock', $oldProductionQty);
 
-                    ProductionHasMaterial::create([
-                        'production_batch_id' => $batch->id,
-                        'raw_material_id' => $rawMaterialId,
-                        'stock' => $rawStock->stock,
-                        'quantity_use' => $quantityUse,
-                    ]);
-
-                    $rawStock->decrement('stock', $quantityUse);
-
-                    RawMaterialStockMovement::create([
-                        'warehouse_id' => $warehouseId,
-                        'raw_material_id' => $rawMaterialId,
+                    ProductStockMovement::create([
+                        'warehouse_id' => $oldWarehouseId,
+                        'product_stock_id' => $oldProductStock->id,
                         'type' => 'out',
-                        'stock' => $quantityUse,
+                        'quantity' => $oldProductionQty,
                         'ref_type' => 'production_batches',
                         'ref_id' => $batch->id,
-                        'responsible_id' => $userId,
-                        'note' => 'Pemakaian bahan baku untuk produksi',
+                        'note' => "Penyesuaian (pengalihan produk lama) produksi ({$batchCode})",
+                    ]);
+
+                    $productStock->increment('stock', $productionQty);
+
+                    ProductStockMovement::create([
+                        'warehouse_id' => $warehouseId,
+                        'product_stock_id' => $productStock->id,
+                        'type' => 'in',
+                        'quantity' => $productionQty,
+                        'ref_type' => 'production_batches',
+                        'ref_id' => $batch->id,
+                        'note' => "Hasil produksi barang jadi ({$batchCode})",
                     ]);
                 }
 
+                // 3. Perbarui detail bahan baku pada batch produksi
+                ProductionHasMaterial::where('production_batch_id', $batch->id)->delete();
+                foreach ($items as $item) {
+                    $rawMatId = $item['raw_material_id'];
+                    $qtyUse = $item['quantity_use'];
+                    $currentRawStock = RawMaterialStock::where('raw_material_id', $rawMatId)->where('warehouse_id', $warehouseId)->value('stock') ?? 0;
+
+                    ProductionHasMaterial::create([
+                        'production_batch_id' => $batch->id,
+                        'raw_material_id' => $rawMatId,
+                        'stock' => $currentRawStock,
+                        'quantity_use' => $qtyUse,
+                    ]);
+                }
+
+                // 4. Perbarui data batch produksi
                 $batch->update([
                     'product_stock_id' => $productStock->id,
                     'warehouse_id' => $warehouseId,
                     'entry_date' => $entryDate,
                     'quantity' => $productionQty,
                     'note' => $note,
-                ]);
-
-                $productStock->increment('stock', $productionQty);
-
-                ProductStockMovement::create([
-                    'warehouse_id' => $warehouseId,
-                    'product_stock_id' => $productStock->id,
-                    'type' => 'in',
-                    'quantity' => $productionQty,
-                    'ref_type' => 'production_batches',
-                    'ref_id' => $batch->id,
-                    'note' => 'Hasil produksi barang jadi',
                 ]);
             });
 

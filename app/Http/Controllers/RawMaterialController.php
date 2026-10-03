@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RawMaterialController extends Controller
 {
@@ -39,7 +40,8 @@ class RawMaterialController extends Controller
         });
 
         $export = new class ($rows) implements FromCollection, WithHeadings {
-            public function __construct(private $rows) {}
+            public function __construct(private $rows)
+            {}
 
             public function collection()
             {
@@ -55,9 +57,61 @@ class RawMaterialController extends Controller
         return Excel::download($export, 'bahan_baku_' . now()->format('Ymd_His') . '.xlsx');
     }
 
+    public function exportStock(Request $request)
+    {
+        $warehouseId = auth()->user()->employee?->warehouse_id;
+        $q = RawMaterialStock::query()->with(['rawMaterial', 'warehouse']);
+
+        if ($warehouseId) {
+            $q->where('warehouse_id', $warehouseId);
+        } elseif ($request->filled('warehouse_id')) {
+            $q->where('warehouse_id', $request->warehouse_id);
+        }
+
+        if ($request->filled('code')) {
+            $q->whereHas('rawMaterial', function ($u) use ($request) {
+                $u->where('code', 'like', "%{$request->code}%");
+            });
+        }
+
+        if ($request->filled('name')) {
+            $search = $request->name;
+            $q->whereHas('rawMaterial', function ($u) use ($search) {
+                $u->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        $rows = $q->get()->map(function ($stock) {
+            return [
+                'Kode Barang' => $stock->rawMaterial->code ?? '-',
+                'Bahan Baku' => $stock->rawMaterial->name ?? '-',
+                'Gudang' => $stock->warehouse->name ?? '-',
+                'Jumlah Stok' => $stock->stock,
+            ];
+        });
+
+        $export = new class ($rows) implements FromCollection, WithHeadings {
+            public function __construct(private $rows)
+            {}
+
+            public function collection()
+            {
+                return $this->rows;
+            }
+
+            public function headings(): array
+            {
+                return ['Kode Barang', 'Bahan Baku', 'Gudang', 'Jumlah Stok'];
+            }
+        };
+
+        return Excel::download($export, 'stok_bahan_baku_' . now()->format('Ymd_His') . '.xlsx');
+    }
+
     public function index(Request $request)
     {
         $q = RawMaterial::query()->orderBy('created_at', 'desc');
+
         if ($request->filled('code')) {
             $q->where('code', 'like', "%{$request->code}%");
         }
@@ -66,18 +120,21 @@ class RawMaterialController extends Controller
             $q->where('name', 'like', "%{$request->name}%");
         }
 
-        // FILTER PROVINCE
         if ($request->filled('status')) {
             $q->where('status', 'like', "%{$request->status}%");
         }
 
-        // ROWS PER PAGE (dropdown 10/25/50)
         $perPage = (int) $request->get('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
 
         $materials = $q->paginate($perPage)->withQueryString();
 
-        $statuses = RawMaterial::query()->select('status')->whereNotNull('status')->distinct()->orderBy('status')->pluck('status');
+        $statuses = RawMaterial::query()
+            ->select('status')
+            ->whereNotNull('status')
+            ->distinct()
+            ->orderBy('status')
+            ->pluck('status');
 
         return view('admin.raw_materials.raw_materials', compact('materials', 'statuses'));
     }
@@ -86,32 +143,33 @@ class RawMaterialController extends Controller
     {
         $warehouseId = auth()->user()->employee?->warehouse_id;
         $q = RawMaterialStock::query()->with('rawMaterial');
-        // Jika user punya warehouse_id, procurement hanya gudang itu
+
+        // Mengatur hirarki filter gudang
         if ($warehouseId) {
             $q->where('warehouse_id', $warehouseId);
-        }
-        // Filter warehouse_id dari request hanya berlaku kalau user tidak punya gudang
-        if (!$warehouseId && $request->filled('warehouse_id')) {
+        } elseif ($request->filled('warehouse_id')) {
             $q->where('warehouse_id', $request->warehouse_id);
         }
+
         if ($request->filled('code')) {
             $q->whereHas('rawMaterial', function ($u) use ($request) {
                 $u->where('code', 'like', "%{$request->code}%");
             });
         }
+
         if ($request->filled('name')) {
             $search = $request->name;
             $q->whereHas('rawMaterial', function ($u) use ($search) {
                 $u->where('name', 'like', "%{$search}%");
             });
         }
-        if ($request->filled('warehouse_id')) {
-            $q->where('warehouse_id', $request->warehouse_id);
-        }
+
         $perPage = (int) $request->get('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50, 100, 500]) ? $perPage : 10;
-        $stocks = $q->paginate(5)->withQueryString();
-        // Jika user punya warehouse_id, dropdown gudang hanya gudang itu
+
+        // Menggunakan variabel $perPage secara dinamis
+        $stocks = $q->paginate($perPage)->withQueryString();
+
         if ($warehouseId) {
             $warehouses = Warehouse::where('id', $warehouseId)->get();
         } else {
@@ -130,10 +188,13 @@ class RawMaterialController extends Controller
     {
         $request->validate([
             'items' => 'required|array|min:1',
-            'items.*.kode_barang' => 'required|unique:raw_materials,code',
+            'items.*.kode_barang' => 'required|distinct|unique:raw_materials,code',
             'items.*.bahan_baku' => 'required',
             'items.*.unit' => 'required',
             'items.*.status' => 'required',
+        ], [
+            'items.*.kode_barang.unique' => 'Kode barang ":input" sudah digunakan di database!',
+            'items.*.kode_barang.distinct' => 'Ada kode barang yang sama/duplikat dalam form ini.',
         ]);
 
         foreach ($request->items as $item) {
@@ -143,13 +204,6 @@ class RawMaterialController extends Controller
                 'unit' => $item['unit'],
                 'status' => $item['status'],
             ]);
-
-            // kalau nanti mau bikin stok default per bahan baku, buka ini lagi
-            // RawMaterialStock::create([
-            //     'raw_material_id' => $material->id,
-            //     'province' => 'Belum diisi',
-            //     'stock' => 0,
-            // ]);
         }
 
         return redirect()->route('admin.gudang-bahan-baku')->with('success', 'Bahan baku berhasil ditambahkan!');
@@ -160,6 +214,36 @@ class RawMaterialController extends Controller
         $material = RawMaterial::with('stock')->findOrFail($id);
 
         return view('admin.raw_materials.edit-bahan-baku', compact('material'));
+    }
+
+    public function checkCode(Request $request)
+    {
+        $code = trim($request->query('code'));
+        $exceptId = $request->query('except_id');
+
+        if (empty($code)) {
+            return response()->json(['exists' => false]);
+        }
+
+        // Pake withTrashed() biar data terhapus (soft delete) tetep kedeteksi
+        $query = RawMaterial::withTrashed()
+            ->whereRaw('LOWER(code) = ?', [mb_strtolower($code)]);
+
+        if (!empty($exceptId)) {
+            $query->where('id', '!=', $exceptId);
+        }
+
+        $item = $query->first();
+
+        if ($item) {
+            $msg = $item->trashed()
+                ? "Kode barang '{$code}' sudah pernah digunakan (status terhapus/soft delete)."
+                : "Kode barang '{$code}' sudah terdaftar di sistem.";
+
+            return response()->json(['exists' => true, 'message' => $msg]);
+        }
+
+        return response()->json(['exists' => false, 'message' => "Kode barang tersedia."]);
     }
 
     public function update(Request $request, $id)

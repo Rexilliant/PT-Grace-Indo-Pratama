@@ -140,16 +140,18 @@
                                         class="text-blue-600 hover:underline">
                                         Sunting
                                     </a>
-                                    |
 
-                                    <form action="{{ route('delete-warehouse', ['id' => $warehouse->id]) }}" method="POST"
-                                        class="inline-block form-delete">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:underline">
-                                            Hapus
-                                        </button>
-                                    </form>
+                                    @can('hapus gudang')
+                                        |
+                                        <form action="{{ route('delete-warehouse', ['id' => $warehouse->id]) }}" method="POST"
+                                            class="inline-block form-delete">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:underline">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </td>
                             </tr>
                         @empty
@@ -214,6 +216,5 @@
                 });
             });
         });
-        
     </script>
 @endsection

@@ -30,6 +30,7 @@ class User extends Authenticatable
         'email',
         'employee_id',
         'password',
+        'status',
     ];
 
     /**
@@ -53,6 +54,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
     }
 
     public function employee()
@@ -93,7 +99,7 @@ class User extends Authenticatable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'email', 'employee_id'])
+            ->logOnly(['name', 'email', 'employee_id', 'status'])
             ->logOnlyDirty()
             ->dontLogEmptyChanges();
     }

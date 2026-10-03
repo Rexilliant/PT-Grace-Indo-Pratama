@@ -162,6 +162,14 @@
 
                 @if (!$isPaidOff)
                     <div>
+                        <label class="block text-xs font-bold text-gray-800 mb-2.5 text-blue-700">Tanggal Pembayaran</label>
+                        <input type="date" name="payment_date" value="{{ old('payment_date', now()->format('Y-m-d')) }}"
+                            class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500">
+                        @error('payment_date')
+                            <p class="mt-1 text-xs text-red-600 font-bold">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-gray-800 mb-2.5 text-blue-700">Input Tambahan
                             Pembayaran</label>
                         <input name="payment_amount" id="paymentAmount" value="{{ old('payment_amount') }}"
@@ -260,9 +268,23 @@
         const formatRupiah = (num) => 'Rp ' + Number(num).toLocaleString('id-ID');
 
         // SINKRONISASI PEMBAYARAN
+        // function syncPaymentSummary() {
+        //     if (isPaidOff || !paymentAmount) return;
+        //     const additional = parseNumber(paymentAmount.value);
+        //     const totalPaid = currentPaidAmount + additional;
+        //     const remaining = Math.max(0, totalAmount - totalPaid);
+        //     if (remainingDebtDisplay) remainingDebtDisplay.value = formatRupiah(remaining);
+        //     if (statusDisplay) statusDisplay.value = (remaining <= 0) ? 'Lunas' : 'Terhutang';
+        // }
+        // SINKRONISASI PEMBAYARAN
         function syncPaymentSummary() {
             if (isPaidOff || !paymentAmount) return;
-            const additional = parseNumber(paymentAmount.value);
+            const maxAllowedPayment = totalAmount - currentPaidAmount;
+            let additional = parseNumber(paymentAmount.value);
+            if (additional > maxAllowedPayment) {
+                additional = maxAllowedPayment;
+                paymentAmount.value = additional;
+            }
             const totalPaid = currentPaidAmount + additional;
             const remaining = Math.max(0, totalAmount - totalPaid);
             if (remainingDebtDisplay) remainingDebtDisplay.value = formatRupiah(remaining);

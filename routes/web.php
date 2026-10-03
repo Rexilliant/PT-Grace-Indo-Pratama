@@ -17,6 +17,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\ShipmentReceiptController;
+use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Support\Facades\Route;
@@ -153,12 +154,20 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::controller(RawMaterialController::class)->prefix('raw-materials')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca bahan baku'])->name('admin.gudang-bahan-baku');
         Route::get('/create', 'create')->middleware(['auth', 'permission:tambah bahan baku'])->name('admin.add-bahan-baku');
+        Route::get('/check-code', 'checkCode')->name('admin.raw-materials.check-code');
         Route::get('/stock', 'stockIndex')->middleware(['auth', 'permission:baca stok bahan baku'])->name('admin.gudang-stok-bahan-baku');
+        Route::get('/stock/export', 'exportStock')->middleware(['auth', 'permission:export bahan baku'])->name('admin.gudang-stok-bahan-baku.export');
         Route::post('/store', 'store')->middleware(['auth', 'permission:tambah bahan baku'])->name('admin.add-bahan-baku.store');
         Route::get('/{id}/edit', 'edit')->middleware(['auth', 'permission:edit bahan baku|baca bahan baku'])->name('admin.gudang-bahan-baku.edit');
         Route::put('/{id}', 'update')->middleware(['auth', 'permission:edit bahan baku'])->name('admin.gudang-bahan-baku.update');
         Route::delete('/{id}', 'destroy')->middleware(['auth', 'permission:hapus bahan baku'])->name('admin.gudang-bahan-baku.destroy');
         Route::get('/export', 'export')->name('admin.gudang-bahan-baku.export');
+    });
+
+    // Stok Movement
+    Route::controller(StockMovementController::class)->prefix('stock-movements')->group(function () {
+        Route::get('/', 'index')->middleware(['auth', 'permission:baca history stok bahan baku|baca history stok produk'])->name('admin.gudang-stok-movement');
+        Route::get('/export', 'export')->middleware(['auth', 'permission:baca history stok bahan baku|baca history stok produk'])->name('admin.gudang-stok-movement.export');
     });
 
     // Executive Produk
@@ -216,23 +225,23 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/create', 'create')->middleware(['auth', 'permission:tambah pengadaan bahan baku'])->name('create-procurement');
         Route::post('/store', 'store')->middleware(['auth', 'permission:tambah pengadaan bahan baku'])->name('store-procurement');
         Route::get('/', 'index')->middleware(['auth', 'permission:baca pengadaan bahan baku'])->name('procurements');
-        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit pengadaan bahan baku|baca pengadaan bahan baku'])->name('edit-procurement');
+        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit pengadaan bahan baku|baca pengadaan bahan baku|edit status pengadaan bahan baku'])->name('edit-procurement');
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus pengadaan bahan baku'])->name('delete-procurement');
-        Route::put('/edit/{id}', 'update')->name('update-procurement');
+        Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit pengadaan bahan baku|edit status pengadaan bahan baku'])->name('update-procurement');
         Route::get('/print/{id}', 'print')->middleware(['auth', 'permission:baca pengadaan bahan baku'])->name('print-procurement');
         Route::get('/export', 'export')->middleware(['auth', 'permission:export pengadaan bahan baku'])->name('procurements.export');
 
     });
     Route::controller(PurchaseReceiptController::class)->prefix('purchase-receipts')->group(function () {
-        Route::get('/', 'index')->middleware(['auth', 'permission:baca bahan baku masuk'])->name('purchase-receipts');
-        Route::get('/export', 'export')->name('purchase-receipts.export');
-        Route::get('/create', 'create')->middleware(['auth', 'permission:tambah bahan baku masuk'])->name('create-purchase-receipt');
-        Route::post('/store', 'store')->middleware(['auth', 'permission:tambah bahan baku masuk'])->name('store-purchase-receipt');
-        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit bahan baku masuk|baca bahan baku masuk'])->name('edit-purchase-receipt');
-        Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit bahan baku masuk'])->name('update-purchase-receipt');
+        Route::get('/', 'index')->middleware(['auth', 'permission:baca bahan baku masuk|baca bahan baku masuk gudang sendiri'])->name('purchase-receipts');
+        Route::get('/export', 'export')->middleware(['auth', 'permission:export bahan baku masuk|export bahan baku masuk gudang sendiri'])->name('purchase-receipts.export');
+        Route::get('/create', 'create')->middleware(['auth', 'permission:tambah bahan baku masuk|tambah bahan baku masuk gudang sendiri'])->name('create-purchase-receipt');
+        Route::post('/store', 'store')->middleware(['auth', 'permission:tambah bahan baku masuk|tambah bahan baku masuk gudang sendiri'])->name('store-purchase-receipt');
+        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit bahan baku masuk|edit bahan baku masuk gudang sendiri|edit bahan baku masuk sendiri|baca bahan baku masuk|baca bahan baku masuk gudang sendiri'])->name('edit-purchase-receipt');
+        Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit bahan baku masuk|edit bahan baku masuk gudang sendiri|edit bahan baku masuk sendiri'])->name('update-purchase-receipt');
         Route::post('/add-media/{id}', 'addMedia')->name('purchase-receipts.add-media');
-        Route::get('/print/{id}', 'print')->middleware(['auth', 'permission:baca bahan baku masuk'])->name('purchase-receipts.print');
-        Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus bahan baku masuk'])->name('purchase-receipts.destroy');
+        Route::get('/print/{id}', 'print')->middleware(['auth', 'permission:baca bahan baku masuk|baca bahan baku masuk gudang sendiri'])->name('purchase-receipts.print');
+        Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus bahan baku masuk|hapus bahan baku masuk gudang sendiri|hapus bahan baku masuk sendiri'])->name('purchase-receipts.destroy');
         Route::get('/procurement-items/{procurement}', 'getProcurementItems')->name('purchase-receipt.procurement-items');
     });
 
@@ -248,7 +257,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/{id}', 'show')->middleware(['auth', 'permission:baca history aktivitas'])->name('activity-history.show');
     });
 
-   
+
     Route::controller(ShipmentController::class)->prefix('shipments')->group(function () {
         Route::get('/', 'index')->middleware(['auth', 'permission:baca pengiriman produk'])->name('shipments');
         Route::get('/export', 'export')->name('shipments.export');

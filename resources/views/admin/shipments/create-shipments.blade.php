@@ -99,16 +99,10 @@
 
                 <div>
                     <label class="{{ $labelClass }}">Nama Penerima</label>
-                    <select name="received_by_id"
-                        class="@error('received_by_id') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
-                        <option value="">-- Pilih Penerima --</option>
-                        @foreach ($users as $user)
-                            <option value="{{ $user->id }}" @selected(old('received_by_id') == $user->id)>
-                                {{ $user->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('received_by_id')
+                    <input type="text" name="received_name" value="{{ old('received_name') }}"
+                        placeholder="Masukkan nama penerima"
+                        class="@error('received_name') {{ $inputErrorClass }} @else {{ $inputNormalClass }} @enderror">
+                    @error('received_name')
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                 </div>

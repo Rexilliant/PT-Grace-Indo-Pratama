@@ -125,6 +125,7 @@ class ProcurementController extends Controller
 
         $q = Procurement::query()
             ->with(['procurement_items', 'userRequest', 'warehouse'])
+            ->withCount('purchaseReceipts')
             ->orderBy('created_at', 'desc');
 
         // Jika user punya warehouse_id, procurement hanya gudang itu
@@ -250,42 +251,107 @@ class ProcurementController extends Controller
 
     public function edit(Request $request, $id)
     {
-        $warehouses = Warehouse::where('type', 'produksi')->get();
-        $procurement = Procurement::with('procurement_items.raw_material')->findOrFail($id);
+        $user = Auth::user();
 
-        return view('admin.procurement.edit-procurement', compact('warehouses', 'procurement'));
+        $warehouseId = optional($user->employee)->warehouse_id;
+
+        $warehouses = Warehouse::where('type', 'produksi')
+            ->when($warehouseId, function ($query) use ($warehouseId) {
+                $query->where('id', $warehouseId);
+            })
+            ->get();
+
+        $rawMaterials = RawMaterial::select('id', 'code', 'name', 'unit')->orderBy('name')->get();
+        $procurement = Procurement::with(['procurement_items.raw_material', 'userRequest', 'warehouse'])->findOrFail($id);
+
+        return view('admin.procurement.edit-procurement', compact('warehouses', 'rawMaterials', 'procurement'));
     }
 
     public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'status' => 'required|string',
+        $procurement = Procurement::findOrFail($id);
+
+        $user = auth()->user();
+        $isMenunggu = $procurement->status === 'Menunggu';
+
+        $canEditData = $user->can('edit pengadaan bahan baku') && $isMenunggu;
+        $canEditStatus = $user->can('edit status pengadaan bahan baku') && $isMenunggu;
+
+        if (!$canEditData && !$canEditStatus) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki izin untuk mengubah data ini atau status pengadaan sudah tidak dapat diubah.');
+        }
+
+        $rules = [
+            'status' => 'required|string|in:Menunggu,Disetujui,Ditolak',
             'reason' => 'nullable|string',
-        ]);
+        ];
+
+        if ($canEditData) {
+            $rules['warehouse_id'] = 'required|exists:warehouses,id';
+            $rules['purchase_at'] = 'required|date';
+            $rules['note'] = 'nullable|string';
+            $rules['items'] = 'required|array|min:1';
+            $rules['items.*.raw_material_id'] = 'required|exists:raw_materials,id';
+            $rules['items.*.quantity_requested'] = 'required|integer|min:1';
+        }
+
+        $messages = [
+            'status.in' => 'Status tidak valid.',
+            'warehouse_id.required' => 'Gudang wajib diisi.',
+            'warehouse_id.exists' => 'Gudang tidak valid.',
+            'purchase_at.required' => 'Tanggal pemesanan wajib diisi.',
+            'purchase_at.date' => 'Tanggal pemesanan tidak valid.',
+            'items.required' => 'Minimal 1 item pesanan wajib ada.',
+            'items.min' => 'Minimal 1 item pesanan wajib ada.',
+            'items.*.raw_material_id.required' => 'Silakan pilih bahan baku.',
+            'items.*.raw_material_id.exists' => 'Bahan baku tidak valid.',
+            'items.*.quantity_requested.required' => 'Jumlah pesanan wajib diisi.',
+            'items.*.quantity_requested.integer' => 'Jumlah pesanan harus berupa angka.',
+            'items.*.quantity_requested.min' => 'Jumlah pesanan minimal 1.',
+        ];
+
+        $validated = $request->validate($rules, $messages);
+
+        if ($canEditStatus && $validated['status'] === 'Ditolak' && empty(trim($validated['reason'] ?? ''))) {
+            return redirect()->back()->withInput($request->all())->with('error', 'Alasan penolakan wajib diisi.');
+        }
 
         try {
-            $procurement = Procurement::findOrFail($id);
+            if ($canEditData) {
+                $procurement->warehouse_id = $validated['warehouse_id'];
+                $procurement->purchase_at = $validated['purchase_at'];
+                $procurement->note = $validated['note'] ?? null;
 
-            if ($validated['status'] === 'Disetujui') {
-                $procurement->update([
-                    'status' => $validated['status'],
-                    'approved_at' => now(),
-                    'approved_by' => auth()->user()->id,
-                ]);
+                ProcurementItem::where('procurement_id', $procurement->id)->forceDelete();
 
-                return redirect()->back()->with('success', 'Pengadaan berhasil diperbarui.');
-            } elseif ($validated['status'] === 'Ditolak') {
-                $procurement->update([
-                    'status' => $validated['status'],
-                    'reason' => $validated['reason'] ?? null,
-                    'rejected_at' => now(),
-                    'rejected_by' => auth()->user()->id,
-                ]);
-
-                return redirect()->route('procurements')->with('success', 'Pengadaan berhasil diperbarui.');
-            } else {
-                return redirect()->back()->with('error', 'Status tidak valid.');
+                foreach ($validated['items'] as $itemData) {
+                    ProcurementItem::create([
+                        'procurement_id' => $procurement->id,
+                        'raw_material_id' => $itemData['raw_material_id'],
+                        'quantity_requested' => $itemData['quantity_requested'],
+                    ]);
+                }
             }
+
+            if ($canEditStatus) {
+                $newStatus = $validated['status'];
+                if ($newStatus === 'Disetujui') {
+                    $procurement->status = 'Disetujui';
+                    $procurement->approved_at = now();
+                    $procurement->approved_by = auth()->id();
+                } elseif ($newStatus === 'Ditolak') {
+                    $procurement->status = 'Ditolak';
+                    $procurement->reason = $validated['reason'] ?? null;
+                    $procurement->rejected_at = now();
+                    $procurement->rejected_by = auth()->id();
+                } elseif ($newStatus === 'Menunggu') {
+                    $procurement->status = 'Menunggu';
+                }
+            }
+
+            $procurement->save();
+
+            return redirect()->route('procurements')->with('success', 'Pengadaan berhasil diperbarui.');
         } catch (\Throwable $th) {
             save_log_error($th);
 
@@ -296,7 +362,11 @@ class ProcurementController extends Controller
     public function destroy($id)
     {
         try {
-            $procurement = Procurement::findOrFail($id);
+            $procurement = Procurement::withCount('purchaseReceipts')->findOrFail($id);
+
+            if (!$procurement->canBeDeleted()) {
+                return redirect()->route('procurements')->with('error', 'Data pengadaan tidak dapat dihapus karena sudah ada di penerimaan barang (purchase receipt).');
+            }
 
             $procurement->update([
                 'deleted_by' => auth()->id(),

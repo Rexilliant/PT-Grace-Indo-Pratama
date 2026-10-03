@@ -81,6 +81,20 @@
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
                                focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300" />
                 </div>
+
+                {{-- Status --}}
+                <div class="lg:col-span-2">
+                    <label class="mb-2 block text-sm font-semibold text-slate-800">Status Akun</label>
+                    <select name="status"
+                        class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900
+                               focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-600/20 focus:border-blue-300">
+                        <option value="active" {{ old('status', 'active') == 'active' ? 'selected' : '' }}>Aktif (Dapat Login)</option>
+                        <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Nonaktif (Tidak Dapat Login)</option>
+                    </select>
+                    @error('status')
+                        <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
             {{-- Tabs: role-role + custom --}}

@@ -110,6 +110,22 @@
                     <input type="password" name="password_confirmation" @if ($isReadOnly) readonly @endif
                         class="{{ $inputClass }}" />
                 </div>
+
+                {{-- Status --}}
+                <div class="lg:col-span-2">
+                    <label class="mb-2 block text-sm font-semibold text-slate-800">Status Akun</label>
+                    <select name="status" @if ($isReadOnly) disabled @endif
+                        class="{{ $inputClass }}">
+                        <option value="active" {{ old('status', $user->status ?? 'active') == 'active' ? 'selected' : '' }}>Aktif (Dapat Login)</option>
+                        <option value="inactive" {{ old('status', $user->status) == 'inactive' ? 'selected' : '' }}>Nonaktif (Tidak Dapat Login)</option>
+                    </select>
+                    @if ($isReadOnly)
+                        <input type="hidden" name="status" value="{{ old('status', $user->status ?? 'active') }}">
+                    @endif
+                    @error('status')
+                        <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
             <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">

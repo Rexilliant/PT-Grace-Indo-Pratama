@@ -150,9 +150,23 @@
                                     {{ \Carbon\Carbon::parse($procurement->purchase_at)->format('d/m/Y') }}</td>
                                 <td class="px-6 py-4">{{ $procurement->userRequest->name ?? '-' }}</td>
                                 <td class="px-6 py-4">{{ $procurement->warehouse->name }}</td>
-                                <td class="px-6 py-4">{{ $procurement->status }}</td>
+                                {{-- <td class="px-6 py-4">{{ $procurement->status }}</td> --}}
                                 <td class="px-6 py-4">
-                                    @canany(['edit pengadaan bahan baku', 'baca pengadaan bahan baku'])
+                                    @php
+                                        $statusClass = match ($procurement->status) {
+                                            'Menunggu' => 'bg-yellow-100 text-yellow-800',
+                                            'Ditolak' => 'bg-red-100 text-red-800',
+                                            'Disetujui' => 'bg-green-100 text-green-800',
+                                            default => 'bg-gray-100 text-gray-800',
+                                        };
+                                    @endphp
+                                    <span
+                                        class="inline-block px-3 py-1 rounded-full text-xs font-semibold {{ $statusClass }}">
+                                        {{ $procurement->status }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    @canany(['edit pengadaan bahan baku', 'baca pengadaan bahan baku', 'edit status pengadaan bahan baku'])
                                         <a href="{{ route('edit-procurement', ['id' => $procurement->id]) }}"
                                             class="text-blue-600 hover:underline">
                                             Sunting
@@ -166,15 +180,17 @@
                                     </a>
 
                                     @can('hapus pengadaan bahan baku')
-                                        <span class="mx-1">|</span>
-                                        <form action="{{ route('delete-procurement', ['id' => $procurement->id]) }}"
-                                            method="POST" class="inline-block form-delete">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:underline">
-                                                Hapus
-                                            </button>
-                                        </form>
+                                        @if ($procurement->canBeDeleted())
+                                            <span class="mx-1">|</span>
+                                            <form action="{{ route('delete-procurement', ['id' => $procurement->id]) }}"
+                                                method="POST" class="inline-block form-delete">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:underline">
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        @endif
                                     @endcan
 
 

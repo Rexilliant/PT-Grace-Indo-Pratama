@@ -187,7 +187,7 @@
             'address' => $shipment->address,
             'notes' => $shipment->notes,
             'warehouse_name' => $shipment->warehouse?->name,
-            'received_by_name' => $shipment->receivedBy?->name,
+            'received_by_name' => $shipment->received_name,
         ];
     }),
 ),

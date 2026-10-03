@@ -192,7 +192,7 @@
                                                 </button>
                                             </form>
                                         @endif --}}
-                                        
+
                                         @can('hapus karyawan')
                                             <form action="{{ route('delete.employee', $employee->id) }}" method="POST"
                                                 class="inline-block form-delete">
@@ -235,6 +235,31 @@
 
 @section('addJs')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {{-- Pop-up Notifikasi Error / Warning --}}
+    @if (session('error'))
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Hapus!',
+                text: "{{ session('error') }}",
+                confirmButtonColor: '#dc2626'
+            });
+        </script>
+    @endif
+
+    {{-- Pop-up Notifikasi Sukses --}}
+    @if (session('success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                timer: 2000,
+                showConfirmButton: false
+            });
+        </script>
+    @endif
 
     <script>
         document.querySelectorAll('.form-delete').forEach(form => {

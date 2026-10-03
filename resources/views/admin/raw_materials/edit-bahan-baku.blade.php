@@ -30,9 +30,10 @@
                 {{-- Kode Barang --}}
                 <div>
                     <label class="block text-sm font-bold mb-2">Kode Barang</label>
-                    <input name="kode_barang" type="text" placeholder="Contoh: CA0001"
+                    <input id="kode_barang" name="kode_barang" type="text" placeholder="Contoh: CA0001"
                         value="{{ old('kode_barang', $material->code) }}"
                         class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 focus:border-blue-600 focus:ring-0">
+                    <span id="codeFeedbackMsg" class="code-feedback-msg text-xs mt-1 block font-semibold"></span>
                 </div>
 
                 {{-- Bahan Baku --}}
@@ -47,7 +48,7 @@
                 <div>
                     <label class="block text-sm font-bold mb-2">Unit</label>
                     <input name="unit" type="text" placeholder="Contoh: Kg / Liter / Box"
-                        value="{{ old('bahan_baku', $material->unit) }}"
+                        value="{{ old('unit', $material->unit) }}"
                         class="w-full rounded-md border border-gray-400 bg-white
                                px-3 py-2.5 text-sm font-semibold text-gray-900
                                focus:border-blue-600 focus:ring-0">
@@ -128,5 +129,73 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+
+        // Real-time Check Kode Barang pada Edit
+        document.addEventListener('DOMContentLoaded', function() {
+            const kodeInput = document.getElementById('kode_barang');
+            const feedbackEl = document.getElementById('codeFeedbackMsg');
+            const initialCode = @json($material->code);
+            let debounceTimer = null;
+
+            if (kodeInput) {
+                kodeInput.addEventListener('input', function() {
+                    const codeValue = this.value.trim();
+
+                    this.classList.remove('border-red-500', 'ring-1', 'ring-red-500', 'border-green-500', 'ring-green-500');
+                    if (feedbackEl) {
+                        feedbackEl.textContent = '';
+                        feedbackEl.className = 'code-feedback-msg text-xs mt-1 block font-semibold';
+                    }
+
+                    if (!codeValue) return;
+
+                    // Jika kode sama dengan kode awal item ini
+                    if (codeValue.toLowerCase() === (initialCode || '').toLowerCase()) {
+                        this.classList.add('border-green-500', 'ring-1', 'ring-green-500');
+                        if (feedbackEl) {
+                            feedbackEl.textContent = '✓ Kode saat ini';
+                            feedbackEl.classList.add('text-green-600');
+                        }
+                        return;
+                    }
+
+                    // Debounce timer 800ms setelah selesai mengetik
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        const checkUrl = "{{ route('admin.raw-materials.check-code') }}?code=" +
+                            encodeURIComponent(codeValue) + "&except_id={{ $material->id }}";
+
+                        fetch(checkUrl, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(res => {
+                            if (!res.ok) throw new Error('Network error status: ' + res.status);
+                            return res.json();
+                        })
+                        .then(data => {
+                            if (data.exists) {
+                                kodeInput.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                                if (feedbackEl) {
+                                    feedbackEl.textContent = `⚠️ Kode "${codeValue}" sudah terdaftar di sistem!`;
+                                    feedbackEl.classList.add('text-red-600');
+                                }
+                            } else {
+                                kodeInput.classList.add('border-green-500', 'ring-1', 'ring-green-500');
+                                if (feedbackEl) {
+                                    feedbackEl.textContent = '✓ Kode barang tersedia';
+                                    feedbackEl.classList.add('text-green-600');
+                                }
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error saat mengecek kode barang:', err);
+                        });
+                    }, 800);
+                });
+            }
+        });
     </script>
 @endsection

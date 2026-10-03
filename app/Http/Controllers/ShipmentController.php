@@ -25,7 +25,7 @@ class ShipmentController extends Controller
     public function export(Request $request)
     {
         $q = Shipment::query()
-            ->with(['personResponsible', 'receivedBy', 'warehouse', 'approvedBy', 'rejectedBy', 'shipmentItems.productStock.productVariant.product', 'shipmentItems.productStock.warehouse', 'media'])
+            ->with(['personResponsible', 'warehouse', 'approvedBy', 'rejectedBy', 'shipmentItems.productStock.productVariant.product', 'shipmentItems.productStock.warehouse', 'media'])
             ->orderBy('created_at', 'desc');
 
         if ($request->filled('name')) {
@@ -72,7 +72,7 @@ class ShipmentController extends Controller
                     'Jenis Pengiriman' => $s->shipment_type ?? '-',
                     'Gudang / Tujuan' => $s->warehouse->name ?? ($s->province ?? '-'),
                     'Armada Pengiriman' => $s->shipping_fleet ?? '-',
-                    'Nama Penerima' => $s->receivedBy->name ?? '-',
+                    'Nama Penerima' => $s->received_name ?? '-',
                     'Kontak Penerima' => $s->contact ?? '-',
                     'Alamat Lengkap' => $s->address ?? '-',
                     'Catatan' => $s->notes ?? '-',
@@ -168,7 +168,7 @@ class ShipmentController extends Controller
 
     public function print($id)
     {
-        $shipment = Shipment::with(['personResponsible', 'receivedBy', 'warehouse', 'shipmentItems.productStock.productVariant', 'shipmentItems.productStock.warehouse'])->findOrFail($id);
+        $shipment = Shipment::with(['personResponsible', 'warehouse', 'shipmentItems.productStock.productVariant', 'shipmentItems.productStock.warehouse'])->findOrFail($id);
 
         return view('admin.shipments.print-shipments', compact('shipment'));
     }
@@ -178,21 +178,15 @@ class ShipmentController extends Controller
         $user = auth()->user();
         $warehouseId = $user->employee?->warehouse_id;
         if ($warehouseId !== null) {
-            $users = User::whereHas('employee', function ($query) use ($warehouseId) {
-                $query->where('warehouse_id', $warehouseId);
-            })->get();
-
             $warehousesTujuan = Warehouse::where('id', $warehouseId)->where('type', 'pemasaran')->get();
             $warehousesDari = Warehouse::where('type', 'produksi')->get();
         } else {
-            $users = User::all();
-
             $warehousesTujuan = Warehouse::where('type', 'pemasaran')->get();
             $warehousesDari = Warehouse::where('type', 'produksi')->get();
         }
         $productStocks = ProductStock::with('productVariant')->where('stock', '>', 0)->get();
 
-        return view('admin.shipments.create-shipments', compact('users', 'warehousesTujuan', 'warehousesDari', 'productStocks'));
+        return view('admin.shipments.create-shipments', compact('warehousesTujuan', 'warehousesDari', 'productStocks'));
     }
 
     public function store(Request $request)
@@ -203,7 +197,7 @@ class ShipmentController extends Controller
                 'shipment_type' => ['required', 'string', 'max:255'],
                 'warehouse_id' => ['required', 'exists:warehouses,id'],
                 'shipping_fleet' => ['required', 'string', 'max:255'],
-                'received_by_id' => ['required', 'exists:users,id'],
+                'received_name' => ['required', 'string', 'max:255'],
                 'contact' => ['required', 'string', 'max:255'],
                 'address' => ['required', 'string'],
                 'notes' => ['nullable', 'string'],
@@ -220,6 +214,7 @@ class ShipmentController extends Controller
                 'items.min' => 'Minimal harus ada 1 item pengiriman.',
                 'stock_warehouse.required' => 'Gudang stok wajib dipilih.',
                 'stock_warehouse.exists' => 'Gudang stok tidak valid.',
+                'received_name.required' => 'Nama penerima wajib diisi.',
             ],
         );
         try {
@@ -276,7 +271,7 @@ class ShipmentController extends Controller
                     'address' => $validated['address'],
                     'shipment_request_at' => $validated['shipment_request_at'],
                     'created_by_id' => $userId,
-                    'received_by_id' => $validated['received_by_id'] ?? null,
+                    'received_name' => $validated['received_name'],
                     'shipment_at' => $validated['shipment_at'] ?? null,
                     'shipment_services' => $validated['shipment_services'] ?? null,
                     'contact' => $validated['contact'],
@@ -309,7 +304,7 @@ class ShipmentController extends Controller
 
     public function edit($id)
     {
-        $shipment = Shipment::with(['personResponsible', 'receivedBy', 'warehouse', 'shipmentItems.productStock.productVariant', 'shipmentItems.productStock.warehouse'])->findOrFail($id);
+        $shipment = Shipment::with(['personResponsible', 'warehouse', 'shipmentItems.productStock.productVariant', 'shipmentItems.productStock.warehouse'])->findOrFail($id);
 
         $invoices = $shipment->media->where('collection_name', 'invoices_shipment')->values();
 
@@ -376,6 +371,7 @@ class ShipmentController extends Controller
                     'shipment_request_at' => ['required', 'date'],
                     'shipment_type' => ['required', 'string', 'max:255'],
                     'shipping_fleet' => ['required', 'string', 'max:255'],
+                    'received_name' => ['required', 'string', 'max:255'],
                     'contact' => ['required', 'string', 'max:255'],
                     'address' => ['required', 'string'],
                     'notes' => ['nullable', 'string'],
@@ -391,6 +387,7 @@ class ShipmentController extends Controller
                 'shipment_request_at.required' => 'Tanggal permintaan pengiriman wajib diisi.',
                 'shipment_type.required' => 'Jenis pengiriman wajib diisi.',
                 'shipping_fleet.required' => 'Armada pengiriman wajib diisi.',
+                'received_name.required' => 'Nama penerima wajib diisi.',
                 'contact.required' => 'Kontak penerima wajib diisi.',
                 'address.required' => 'Alamat wajib diisi.',
                 'items.required' => 'Item pengiriman wajib diisi.',
@@ -429,6 +426,7 @@ class ShipmentController extends Controller
                         'shipment_request_at' => $validated['shipment_request_at'],
                         'shipment_type' => $validated['shipment_type'],
                         'shipping_fleet' => $validated['shipping_fleet'],
+                        'received_name' => $validated['received_name'],
                         'contact' => $validated['contact'],
                         'address' => $validated['address'],
                         'notes' => $validated['notes'] ?? null,

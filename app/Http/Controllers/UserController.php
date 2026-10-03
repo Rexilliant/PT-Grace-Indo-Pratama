@@ -30,10 +30,10 @@ class UserController extends Controller
         }
 
         if ($request->filled('status')) {
-            if ($request->status == 'aktif') {
-                $q->whereNull('deleted_at');
-            } else {
-                $q->whereNotNull('deleted_at');
+            if ($request->status === 'aktif' || $request->status === 'active') {
+                $q->where('status', 'active');
+            } elseif ($request->status === 'nonaktif' || $request->status === 'inactive') {
+                $q->where('status', 'inactive');
             }
         }
 
@@ -62,6 +62,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
             'employee_id' => 'nullable|exists:employees,id',
             'password' => 'required|string|min:6|confirmed',
+            'status' => 'required|in:active,inactive',
 
             'role' => 'nullable|exists:roles,name',
             'permissions' => 'array',
@@ -73,6 +74,7 @@ class UserController extends Controller
                 'email' => $request->email,
                 'employee_id' => $request->employee_id,
                 'password' => bcrypt($request->password),
+                'status' => $request->status ?? 'active',
             ]);
             if ($request->filled('role')) {
                 $user->assignRole($request->role);
@@ -83,7 +85,7 @@ class UserController extends Controller
             }
 
             // Redirect atau tampilkan pesan sukses
-            return redirect()->back()->with('success', 'User berhasil dibuat!');
+            return redirect()->route('users')->with('success', 'User berhasil dibuat!');
 
         } catch (\Throwable $th) {
             save_log_error($th);
@@ -110,6 +112,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,'.$user->id,
             'password' => 'nullable|string|min:6|confirmed',
             'employee_id' => 'nullable|exists:employees,id',
+            'status' => 'required|in:active,inactive',
 
             'role' => 'nullable|exists:roles,name',
             'permissions' => 'array',
@@ -120,6 +123,7 @@ class UserController extends Controller
             $user->name = $request->name;
             $user->email = $request->email;
             $user->employee_id = $request->employee_id;
+            $user->status = $request->status ?? 'active';
 
             if ($request->filled('password')) {
                 $user->password = Hash::make($request->password);
@@ -138,7 +142,7 @@ class UserController extends Controller
                 $user->syncPermissions([]);
             }
 
-            return redirect()->back()->with('success', 'User berhasil diperbarui!');
+            return redirect()->route('users')->with('success', 'User berhasil diperbarui!');
         } catch (\Throwable $th) {
             save_log_error($th);
 

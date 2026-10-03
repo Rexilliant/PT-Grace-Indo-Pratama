@@ -25,7 +25,7 @@ class Shipment extends Model implements HasMedia
         'address',
         'shipment_request_at',
         'created_by_id',
-        'received_by_id',
+        'received_name',
         'approved_at',
         'approved_by_id',
         'rejected_at',
@@ -64,11 +64,6 @@ class Shipment extends Model implements HasMedia
     public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by_id');
-    }
-
-    public function receivedBy()
-    {
-        return $this->belongsTo(User::class, 'received_by_id');
     }
 
     public function rejectedBy()

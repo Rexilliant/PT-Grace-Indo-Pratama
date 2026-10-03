@@ -146,8 +146,23 @@
                                 </td>
                                 <td class="px-6 py-4">{{ $shipment->personResponsible->name }}</td>
                                 <td class="px-6 py-4">{{ $shipment->warehouse->name }}</td>
-                                <td class="px-6 py-4"><span
+                                {{-- <td class="px-6 py-4"><span
                                         class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{{ $shipment->status }}</span>
+                                </td> --}}
+                                <td class="px-6 py-4">
+                                    @php
+                                        $statusClass = match ($shipment->status) {
+                                            'Ditolak' => 'bg-red-100 text-red-800',
+                                            'Menunggu' =>  'bg-yellow-100 text-yellow-800', 
+                                            'Disetujui', 'Dikirim' =>'bg-blue-100 text-blue-800',
+                                            'Selesai' => 'bg-green-100 text-green-800',
+                                            default => 'bg-gray-100 text-gray-800',
+                                        };
+                                    @endphp
+                                    <span
+                                        class="inline-block px-3 py-1 rounded-full text-xs font-semibold {{ $statusClass }}">
+                                        {{ $shipment->status }}
+                                    </span>
                                 </td>
                                 <td class="px-6 py-4">
                                     @canany([
