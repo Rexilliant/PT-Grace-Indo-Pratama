@@ -447,31 +447,18 @@ class SaleController extends Controller
         $sale = Sale::with('items')->findOrFail($id);
         $isPaidOff = $sale->status === 'Lunas' || (int) $sale->debt_amount <= 0;
 
-        // Jika sudah lunas, hanya boleh update catatan
-        if ($isPaidOff) {
-            $request->validate([
-                'notes' => ['nullable', 'string', 'max:1000'],
-            ]);
-
-            $sale->update([
-                'notes' => $request->input('notes'),
-                'updated_by' => Auth::id(),
-            ]);
-
-            return redirect()
-                ->route('admin.pemasaran-laporan-penjualan.edit', $sale->id)
-                ->with('success', 'Catatan laporan berhasil diperbarui.');
-        }
-
-        // Validasi untuk yang masih terhutang (payment & invoice sekarang optional)
         $rules = [
-            'payment_date' => ['nullable', 'date'],
-            'payment_amount' => ['nullable', 'string'],
-            'invoice' => ['nullable', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
 
+        if (!$isPaidOff) {
+            $rules['payment_date'] = ['nullable', 'date'];
+            $rules['payment_amount'] = ['nullable', 'string'];
+            $rules['invoice'] = ['nullable', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'];
+        }
+
         if ($sale->stock_type === 'po') {
+            $rules['fulfillment_date'] = ['nullable', 'date'];
             $rules['fulfill'] = ['nullable', 'array'];
             $rules['fulfill.*'] = ['nullable', 'integer', 'min:0'];
         }

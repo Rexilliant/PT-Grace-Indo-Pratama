@@ -161,13 +161,26 @@
             </table>
         </section>
 
-        {{-- FULFILL PO (HANYA MUNCUL JIKA PO & BELUM LUNAS) --}}
-        @if ($isPo && !$isPaidOff)
-            <section class="bg-amber-50 p-5 shadow border border-amber-300 rounded-xl">
-                <h2 class="text-sm font-bold text-amber-800 mb-1">Fulfill Pre-Order (Ambil dari Stok Ready)</h2>
-                <p class="text-xs text-amber-700 mb-4">
-                    Isi qty yang ingin diambil dari stok ready sekarang. Stok baru akan berkurang sesuai input.
-                </p>
+        {{-- FULFILL PO (MUNCUL JIKA TIPE PO) --}}
+        @if ($isPo)
+            <section class="bg-amber-50 p-5 shadow border border-amber-300 rounded-xl space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-sm font-bold text-amber-800">Fulfill Pre-Order (Ambil dari Stok Ready)</h2>
+                        <p class="text-xs text-amber-700 mt-0.5">
+                            Isi qty yang ingin diambil dari stok ready sekarang. Stok baru akan berkurang sesuai input.
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-amber-800 mb-1.5">Tanggal Penyerahan / Pemenuhan</label>
+                        <input type="date" name="fulfillment_date"
+                            value="{{ old('fulfillment_date', now()->format('Y-m-d')) }}"
+                            class="w-full md:w-56 rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm">
+                        @error('fulfillment_date')
+                            <p class="text-red-500 text-[10px] mt-1 font-bold">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
 
                 <div class="space-y-4">
                     @foreach ($sale->items as $item)
@@ -178,7 +191,7 @@
                             class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end bg-white p-4 rounded-lg border border-amber-200">
                             <div class="md:col-span-2">
                                 <label class="text-xs font-bold text-gray-600">Produk</label>
-                                <div class="font-semibold text-sm">
+                                <div class="font-semibold text-sm text-gray-900">
                                     {{ $item->productStock?->productVariant?->name ?? '-' }}
                                 </div>
                                 <div class="text-xs text-gray-500">
@@ -187,7 +200,7 @@
                             </div>
                             <div>
                                 <label class="text-xs font-bold text-gray-600">Ordered</label>
-                                <div class="font-bold">{{ $item->quantity }}</div>
+                                <div class="font-bold text-gray-800">{{ $item->quantity }}</div>
                             </div>
                             <div>
                                 <label class="text-xs font-bold text-gray-600">Sudah Dipenuhi</label>
@@ -200,18 +213,11 @@
                                 </label>
                                 <input type="number" name="fulfill[{{ $item->id }}]" min="0"
                                     max="{{ $remaining }}" value="{{ old('fulfill.' . $item->id, 0) }}"
-                                    class="w-full rounded-md border border-gray-400 px-3 py-2 text-sm font-semibold"
+                                    class="w-full rounded-md border border-gray-400 px-3 py-2 text-sm font-semibold {{ $remaining <= 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-900' }}"
                                     {{ $remaining <= 0 ? 'disabled' : '' }}>
                                 @error('fulfill.' . $item->id)
                                     <p class="text-red-500 text-[10px] mt-1 font-bold">{{ $message }}</p>
                                 @enderror
-                            </div>
-                            <div class="mb-4">
-                                <label class="block text-xs font-bold text-amber-800 mb-2">Tanggal Penyerahan /
-                                    Pemenuhan</label>
-                                <input type="date" name="fulfillment_date"
-                                    value="{{ old('fulfillment_date', now()->format('Y-m-d')) }}"
-                                    class="w-full md:w-64 rounded-md border border-amber-300 bg-white px-3 py-2 text-sm font-semibold">
                             </div>
                         </div>
                     @endforeach
@@ -298,20 +304,96 @@
 
     {{-- BUKTI SERAH TERIMA (HANYA MUNCUL JIKA LUNAS) --}}
     @if ($isPaidOff)
+        @php
+            $bstMedia = method_exists($sale, 'getFirstMedia') ? $sale->getFirstMedia('delivery_proof') : null;
+            $bstUrl = $bstMedia?->getUrl();
+            $bstMime = $bstMedia?->mime_type ?? '';
+            $isImage = str_starts_with($bstMime, 'image/');
+            $isPdf = str_contains($bstMime, 'pdf');
+        @endphp
+
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl mt-10">
             <div class="mb-4">
-                <label class="block text-sm font-bold text-gray-800">Bukti Serah Terima Barang (BST)</label>
-                <p class="text-[10px] text-blue-600 font-medium italic">Unggah dokumen yang sudah ditandatangani.</p>
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-800">Bukti Serah Terima Barang (BST)</label>
+                        <p class="text-xs text-gray-600">Dokumen tanda terima serah barang yang sudah ditandatangani.</p>
+                    </div>
+                    @if ($bstMedia)
+                        <span
+                            class="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-800 border border-green-300">
+                            <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            BST Sudah Diunggah
+                        </span>
+                    @else
+                        <span
+                            class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 border border-amber-300">
+                            Belum Ada BST
+                        </span>
+                    @endif
+                </div>
             </div>
+
+            @if ($bstMedia)
+                {{-- DETAIL & LINK BST YANG SUDAH DIUNGGAH --}}
+                <div class="mb-6">
+                    <a href="{{ $bstUrl }}" target="_blank"
+                        class="group flex items-center justify-between gap-4 rounded-xl border border-gray-300 bg-white p-4 shadow-sm transition hover:border-[#2D2ACD] hover:shadow-md cursor-pointer">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div
+                                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg {{ $isPdf ? 'bg-red-100 text-red-600 group-hover:bg-red-200' : 'bg-blue-100 text-blue-600 group-hover:bg-blue-200' }} transition-colors">
+                                @if ($isPdf)
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                                        </path>
+                                    </svg>
+                                @else
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                        </path>
+                                    </svg>
+                                @endif
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-gray-900 group-hover:text-blue-700 truncate transition-colors">
+                                    {{ $bstMedia->file_name }}
+                                </p>
+                                <p class="text-xs text-gray-500">
+                                    {{ $bstMedia->human_readable_size }} · Diunggah pada
+                                    {{ $bstMedia->created_at?->format('d/m/Y H:i') }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="text-gray-400 group-hover:text-blue-600 shrink-0 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
+                                </path>
+                            </svg>
+                        </div>
+                    </a>
+                </div>
+            @endif
+
             <form action="{{ route('admin.pemasaran-laporan-penjualan.upload-bst', $sale->id) }}" method="POST"
                 enctype="multipart/form-data">
                 @csrf
+                <label class="block text-xs font-bold text-gray-700 mb-2">
+                    {{ $bstMedia ? 'Unggah Ulang BST (Ganti Dokumen)' : 'Pilih File Dokumen BST' }}
+                </label>
                 <input type="file" name="delivery_proof" id="bstPond"
                     accept="image/png, image/jpeg, image/jpg, application/pdf">
                 <div class="mt-4 flex justify-end">
                     <button type="submit"
                         class="rounded-lg px-8 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-800 transition-colors">
-                        Upload & Simpan BST
+                        {{ $bstMedia ? 'Update Dokumen BST' : 'Upload & Simpan BST' }}
                     </button>
                 </div>
                 @error('delivery_proof')
