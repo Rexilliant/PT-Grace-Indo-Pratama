@@ -296,8 +296,8 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/export', 'export')->name('shipments.export');
         Route::get('/create', 'create')->middleware(['auth', 'permission:tambah pengiriman produk'])->name('create-shipment');
         Route::post('/store', 'store')->middleware(['auth', 'permission:tambah pengiriman produk'])->name('store-shipment');
-        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit pengiriman produk|baca pengiriman produk'])->name('edit-shipment');
-        Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit pengiriman produk'])->name('update-shipment');
+        Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit pengiriman produk|baca pengiriman produk|edit status pengiriman produk'])->name('edit-shipment');
+        Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit pengiriman produk|edit status pengiriman produk'])->name('update-shipment');
         Route::get('/print/{id}', 'print')->middleware(['auth', 'permission:baca pengiriman produk'])->name('print-shipment');
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus pengiriman produk'])->name('delete-shipment');
         Route::get('/{id}/items', 'getShipmentItems')->name('shipments.items');
@@ -320,7 +320,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         Route::get('/create', 'create')->middleware(['auth', 'permission:tambah penerimaan pengiriman produk'])->name('create-shipment-receipt');
         Route::post('/store', 'store')->middleware(['auth', 'permission:tambah penerimaan pengiriman produk'])->name('store-shipment-receipt');
         Route::get('/edit/{id}', 'edit')->middleware(['auth', 'permission:edit penerimaan pengiriman produk|baca penerimaan pengiriman produk|edit status penerimaan pengiriman produk'])->name('edit-shipment-receipt');
-        Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit penerimaan pengiriman produk'])->name('update-shipment-receipt');
+        Route::put('/edit/{id}', 'update')->middleware(['auth', 'permission:edit penerimaan pengiriman produk|edit status penerimaan pengiriman produk'])->name('update-shipment-receipt');
         Route::get('/print/{id}', 'print')->middleware(['auth', 'permission:baca penerimaan pengiriman produk'])->name('print-shipment-receipt');
         Route::delete('/delete/{id}', 'destroy')->middleware(['auth', 'permission:hapus penerimaan pengiriman produk'])->name('delete-shipment-receipt');
     });
