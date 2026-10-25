@@ -106,12 +106,12 @@
                 <div>
                     <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Penanggung Jawab</label>
                     <p class="font-bold text-gray-800 border-l-4 border-[#53BF6A] pl-2 uppercase">
-                        {{ $productionBatch->personResponsible->name ?? '-' }}</p>
+                        {{ $productionBatch->personResponsible?->name ?? '-' }}</p>
                 </div>
                 <div>
                     <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Lokasi Gudang</label>
                     <p class="font-bold text-gray-800 border-l-4 border-[#53BF6A] pl-2 uppercase">
-                        {{ $productionBatch->warehouse->name }}</p>
+                        {{ $productionBatch->warehouse?->name ?? '-' }}</p>
                 </div>
                 <div>
                     <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tanggal Masuk</label>
@@ -192,7 +192,7 @@
             <div class="space-y-16">
                 <p class="text-[10px] font-black uppercase tracking-widest text-gray-500">Operator Produksi</p>
                 <div class="border-t border-gray-800 pt-2">
-                    <p class="text-sm font-bold uppercase">{{ $productionBatch->personResponsible->name ?? '-' }}</p>
+                    <p class="text-sm font-bold uppercase">{{ $productionBatch->personResponsible?->name ?? '-' }}</p>
                     <p class="text-[9px] text-gray-400 uppercase font-medium">Digital Signature Valid</p>
                 </div>
             </div>

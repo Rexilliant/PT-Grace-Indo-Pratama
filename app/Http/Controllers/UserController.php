@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -59,7 +60,11 @@ class UserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users', 'email')->whereNull('deleted_at'),
+            ],
             'employee_id' => 'nullable|exists:employees,id',
             'password' => 'required|string|min:6|confirmed',
             'status' => 'required|in:active,inactive',
@@ -67,6 +72,8 @@ class UserController extends Controller
             'role' => 'nullable|exists:roles,name',
             'permissions' => 'array',
             'permissions.*' => 'exists:permissions,name',
+        ], [
+            'email.unique' => 'Email ini sudah digunakan oleh user aktif.',
         ]);
         try {
             $user = User::create([
@@ -109,7 +116,11 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,'.$user->id,
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users', 'email')->ignore($user->id)->whereNull('deleted_at'),
+            ],
             'password' => 'nullable|string|min:6|confirmed',
             'employee_id' => 'nullable|exists:employees,id',
             'status' => 'required|in:active,inactive',
@@ -117,6 +128,8 @@ class UserController extends Controller
             'role' => 'nullable|exists:roles,name',
             'permissions' => 'array',
             'permissions.*' => 'exists:permissions,name',
+        ], [
+            'email.unique' => 'Email ini sudah digunakan oleh user aktif.',
         ]);
 
         try {
@@ -161,6 +174,16 @@ class UserController extends Controller
     public function restore($id)
     {
         $user = User::withTrashed()->findOrFail($id);
+
+        // Periksa apakah email sudah digunakan oleh user aktif lain
+        $conflict = User::where('id', '!=', $id)
+            ->where('email', $user->email)
+            ->exists();
+
+        if ($conflict) {
+            return back()->with('error', 'Gagal mengembalikan user. Email sudah digunakan oleh user aktif lain.');
+        }
+
         $user->restore();
 
         return redirect()->back()->with('success', 'User berhasil dikembalikan!');

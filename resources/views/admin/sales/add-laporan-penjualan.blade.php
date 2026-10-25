@@ -7,7 +7,6 @@
 @section('addCss')
     <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
     <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
-
     <style>
         .filepond--root {
             font-family: inherit;
@@ -84,7 +83,6 @@
         {{-- BLOK HEADER --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Tanggal Laporan</label>
                     <input type="date" value="{{ $reportDate }}" readonly
@@ -116,7 +114,20 @@
                     </select>
                 </div>
 
-                {{-- Nama Pembeli --}}
+                {{-- TIPE STOK (BARU) --}}
+                <div>
+                    <label class="block text-xs font-bold text-gray-800 mb-2.5">Tipe Stok</label>
+                    <select name="stock_type" id="stockTypeSelect"
+                        class="w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
+                        <option value="ready" {{ old('stock_type', 'ready') === 'ready' ? 'selected' : '' }}>
+                            Ready Stock
+                        </option>
+                        <option value="po" {{ old('stock_type') === 'po' ? 'selected' : '' }}>
+                            Pre-Order (PO)
+                        </option>
+                    </select>
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Nama Pembeli</label>
                     <input type="text" name="customer_name" value="{{ old('customer_name') }}"
@@ -127,7 +138,6 @@
                     @enderror
                 </div>
 
-                {{-- Kontak Pembeli --}}
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Kontak Pembeli</label>
                     <input type="text" name="customer_contact" value="{{ old('customer_contact') }}"
@@ -181,13 +191,11 @@
         <section class="space-y-4">
             <div class="flex items-center justify-between gap-3">
                 <h2 class="text-sm sm:text-base font-bold text-gray-800">Daftar Barang Terjual</h2>
-
                 <button type="button" id="addItemBtn"
                     class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-4 py-2 text-sm font-bold text-white hover:bg-blue-800">
                     + Tambah Barang
                 </button>
             </div>
-
             <div id="itemsContainer" class="space-y-4"></div>
         </section>
 
@@ -218,8 +226,8 @@
                         class="block text-xs font-bold @error('down_payment') text-red-600 @else text-gray-800 @enderror mb-2.5">
                         Down Payment <span class="text-red-600">*</span>
                     </label>
-                    <input name="down_payment" id="downPayment" value="{{ old('down_payment', 0) }}" inputmode="numeric"
-                        required min="1" {{-- Tambahkan min 1 --}}
+                    <input name="down_payment" id="downPayment" value="{{ old('down_payment', 0) }}"
+                        inputmode="numeric" required min="1"
                         class="w-full rounded-md border @error('down_payment') border-red-500 bg-red-50 @else border-gray-400 @enderror px-3 py-2.5 text-sm font-semibold text-gray-900">
                     @error('down_payment')
                         <p class="text-red-500 text-[10px] mt-1 font-bold">{{ $message }}</p>
@@ -243,10 +251,8 @@
         {{-- INVOICE --}}
         <section class="bg-gray-200/80 p-5 shadow border border-gray-300 rounded-xl">
             <label class="block text-sm font-bold mb-3 text-gray-800">Bukti Pembayaran</label>
-
             <input type="file" name="invoice" id="invoicePond"
                 accept="image/png, image/jpeg, image/jpg, application/pdf">
-
             @error('invoice')
                 <p class="mt-2 text-xs font-bold text-red-600">{{ $message }}</p>
             @enderror
@@ -258,7 +264,6 @@
                 class="inline-flex items-center justify-center rounded-lg bg-red-600 px-10 py-3 text-sm font-bold text-white hover:bg-red-700">
                 Batal
             </a>
-
             <button type="submit"
                 class="inline-flex items-center justify-center rounded-lg bg-[#2D2ACD] px-10 py-3 text-sm font-bold text-white hover:bg-blue-800">
                 Simpan
@@ -277,7 +282,6 @@
                     <h3 class="text-sm font-bold text-gray-900">Barang #__NUMBER__</h3>
                     <p class="text-xs text-gray-700 mt-1">Pilih barang sesuai gudang yang dipilih.</p>
                 </div>
-
                 <button type="button"
                     class="remove-item-btn inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-xs sm:text-sm font-bold text-white hover:bg-red-700">
                     Hapus
@@ -292,13 +296,11 @@
                         <option value="">Pilih gudang dulu</option>
                     </select>
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">SKU</label>
                     <input type="text" readonly
                         class="item-sku w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Stok Tersedia</label>
                     <input type="text" readonly
@@ -312,21 +314,18 @@
                     <input type="text" readonly
                         class="item-name w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Harga Satuan</label>
                     <input type="text" readonly
                         class="item-price-display w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900 cursor-not-allowed">
                     <input type="hidden" class="item-price-hidden">
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Jumlah Terjual</label>
                     <input type="number" min="0" step="1" name="items[__INDEX__][quantity]"
                         value="1"
                         class="item-quantity w-full rounded-md border border-gray-400 bg-white px-3 py-2.5 text-sm font-semibold text-gray-900">
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold text-gray-800 mb-2.5">Diskon Satuan</label>
                     <input type="text" name="items[__INDEX__][discount]" value="0" inputmode="numeric"
@@ -342,11 +341,9 @@
             </div>
         </section>
     </template>
-
 @endsection
 
 @section('addJs')
-
     <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
     <script src="https://unpkg.com/filepond-plugin-file-validate-size/dist/filepond-plugin-file-validate-size.js"></script>
@@ -366,7 +363,6 @@
         const warehouseSelect = document.getElementById('warehouseSelect');
         const customerProvince = document.getElementById('customerProvince');
         const customerCity = document.getElementById('customerCity');
-
         const itemsContainer = document.getElementById('itemsContainer');
         const addItemBtn = document.getElementById('addItemBtn');
         const saleItemTemplate = document.getElementById('saleItemTemplate');
@@ -376,15 +372,11 @@
         const jumlahTerhutang = document.getElementById('jumlahTerhutang');
         const blokTerhutang = document.getElementById('blokTerhutang');
         const blokTerhutang2 = document.getElementById('blokTerhutang2');
-
-        const invoiceInput = document.getElementById('invoice');
-        const dropzone = document.getElementById('dropzone');
-        const dropzoneContent = document.getElementById('dropzoneContent');
-        // Tambahkan ini di dalam tag <script> Anda
-        const saleForm = document.querySelector('form[action*="store"]');
+        const stockTypeSelect = document.getElementById('stockTypeSelect');
 
         let currentStocks = [];
         let provinceData = [];
+        let itemIndex = 0;
 
         function parseNumber(value) {
             if (value === null || value === undefined) return 0;
@@ -404,33 +396,21 @@
                         'Accept': 'application/json'
                     }
                 });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
                 provinceData = Array.isArray(data) ? data : [];
-
                 customerProvince.innerHTML = '<option value="">Pilih provinsi</option>';
-
                 if (!provinceData.length) {
                     customerProvince.innerHTML = '<option value="">Data provinsi kosong</option>';
                     return;
                 }
-
                 provinceData.forEach(item => {
                     const option = document.createElement('option');
                     option.value = item.province_name;
                     option.textContent = item.province_name;
-
-                    if (oldProvince && oldProvince === item.province_name) {
-                        option.selected = true;
-                    }
-
+                    if (oldProvince && oldProvince === item.province_name) option.selected = true;
                     customerProvince.appendChild(option);
                 });
-
                 populateCities(customerProvince.value);
             } catch (error) {
                 console.error('Gagal memuat provinceAndCity.json:', error);
@@ -442,46 +422,35 @@
 
         function populateCities(selectedProvince) {
             customerCity.innerHTML = '';
-
             if (!selectedProvince) {
                 customerCity.innerHTML = '<option value="">Pilih provinsi terlebih dahulu</option>';
                 customerCity.disabled = true;
                 return;
             }
-
             const province = provinceData.find(item => item.province_name === selectedProvince);
-
             if (!province || !Array.isArray(province.cities) || !province.cities.length) {
                 customerCity.innerHTML = '<option value="">Data daerah tidak tersedia</option>';
                 customerCity.disabled = true;
                 return;
             }
-
             customerCity.disabled = false;
             customerCity.innerHTML = '<option value="">Pilih daerah</option>';
-
             province.cities.forEach(city => {
                 const option = document.createElement('option');
                 option.value = city.name;
                 option.textContent = city.name;
-
-                if (oldCity && oldCity === city.name) {
-                    option.selected = true;
-                }
-
+                if (oldCity && oldCity === city.name) option.selected = true;
                 customerCity.appendChild(option);
             });
         }
 
         async function loadStocksByWarehouse(warehouseId) {
             currentStocks = [];
-
             if (!warehouseId) {
                 updateAllItemOptions();
                 recalculateGrandTotal();
                 return;
             }
-
             try {
                 const url = `${stocksByWarehouseUrl}?warehouse_id=${encodeURIComponent(warehouseId)}`;
                 const response = await fetch(url, {
@@ -490,14 +459,9 @@
                         'Accept': 'application/json'
                     }
                 });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const json = await response.json();
                 currentStocks = Array.isArray(json.data) ? json.data : [];
-
                 updateAllItemOptions();
                 recalculateGrandTotal();
             } catch (error) {
@@ -510,12 +474,10 @@
 
         function updateItemNumbers() {
             const cards = itemsContainer.querySelectorAll('.sale-item-card');
-
             cards.forEach((card, index) => {
                 const title = card.querySelector('h3');
                 if (title) title.textContent = `Barang #${index + 1}`;
             });
-
             const removeButtons = itemsContainer.querySelectorAll('.remove-item-btn');
             removeButtons.forEach(btn => {
                 btn.disabled = cards.length <= 1;
@@ -531,7 +493,6 @@
                 syncStockData(card);
                 return;
             }
-
             if (!currentStocks.length) {
                 select.innerHTML = '<option value="">Tidak ada barang tersedia di gudang ini</option>';
                 syncStockData(card);
@@ -539,7 +500,6 @@
             }
 
             select.innerHTML = '<option value="">Pilih jenis barang</option>';
-
             currentStocks.forEach(stock => {
                 const option = document.createElement('option');
                 option.value = stock.id;
@@ -550,14 +510,9 @@
                 option.dataset.unit = stock.unit || '';
                 option.textContent =
                     `${stock.product_name} (${stock.sku}) - Stok: ${stock.stock} ${stock.unit ?? ''}`;
-
-                if (String(selectedId) === String(stock.id)) {
-                    option.selected = true;
-                }
-
+                if (String(selectedId) === String(stock.id)) option.selected = true;
                 select.appendChild(option);
             });
-
             syncStockData(card);
         }
 
@@ -571,7 +526,6 @@
         function syncStockData(card) {
             const select = card.querySelector('.item-stock-select');
             const selectedOption = select?.options[select.selectedIndex];
-
             const stockIdInput = card.querySelector('.product-stock-id-input');
             const skuInput = card.querySelector('.item-sku');
             const stockAvailableInput = card.querySelector('.item-stock-available');
@@ -593,7 +547,6 @@
             skuInput.value = selectedOption.dataset.sku || '';
             stockAvailableInput.value = selectedOption.dataset.stock || '0';
             nameInput.value = selectedOption.dataset.name || '';
-
             const price = parseNumber(selectedOption.dataset.price || 0);
             priceHidden.value = price;
             priceDisplay.value = formatRupiah(price);
@@ -605,12 +558,15 @@
             const discountInput = card.querySelector('.item-discount');
             const subtotalDisplay = card.querySelector('.item-subtotal-display');
             const stockAvailable = parseNumber(card.querySelector('.item-stock-available')?.value || 0);
+            const isPo = stockTypeSelect?.value === 'po';
 
             let quantity = parseNumber(quantityInput?.value || 0);
             let discount = parseNumber(discountInput?.value || 0);
 
             if (quantity < 1) quantity = 1;
-            if (stockAvailable > 0 && quantity > stockAvailable) {
+
+            // Hanya batasi stok kalau Ready Stock
+            if (!isPo && stockAvailable > 0 && quantity > stockAvailable) {
                 quantity = stockAvailable;
             }
 
@@ -626,25 +582,20 @@
 
         function recalculateGrandTotal() {
             let total = 0;
-
             itemsContainer.querySelectorAll('.sale-item-card').forEach(card => {
                 const stockId = card.querySelector('.product-stock-id-input')?.value || '';
                 if (!stockId) return;
-
                 const price = parseNumber(card.querySelector('.item-price-hidden')?.value || 0);
                 const qty = parseNumber(card.querySelector('.item-quantity')?.value || 0);
                 const discount = parseNumber(card.querySelector('.item-discount')?.value || 0);
-
                 total += Math.max(0, price - discount) * Math.max(1, qty);
             });
-
             grandTotalDisplay.value = formatRupiah(total);
             syncTerhutang(total);
         }
 
         function syncTerhutang(grandTotal = 0) {
             const status = statusSelect?.value || 'Terhutang';
-
             if (status === 'Lunas') {
                 blokTerhutang.classList.add('hidden');
                 blokTerhutang2.classList.add('hidden');
@@ -652,23 +603,16 @@
                 if (jumlahTerhutang) jumlahTerhutang.value = formatRupiah(0);
                 return;
             }
-
-            // Jika Status Terhutang
             blokTerhutang.classList.remove('hidden');
             blokTerhutang2.classList.remove('hidden');
-
             let dp = parseNumber(downPayment?.value || 0);
-
-            // Jika DP 0 saat status terhutang, beri tanda visual
             if (dp <= 0) {
                 downPayment.classList.add('border-red-500', 'bg-red-50');
             } else {
                 downPayment.classList.remove('border-red-500', 'bg-red-50');
             }
-
             if (dp > grandTotal) dp = grandTotal;
             if (downPayment) downPayment.value = dp;
-
             const debt = Math.max(0, grandTotal - dp);
             if (jumlahTerhutang) jumlahTerhutang.value = formatRupiah(debt);
         }
@@ -685,28 +629,20 @@
                     recalculateCard(card);
                 });
             }
-
             if (quantityInput) {
                 quantityInput.addEventListener('focus', function() {
                     this.select();
                 });
-
                 quantityInput.addEventListener('click', function() {
                     this.select();
                 });
-
                 quantityInput.addEventListener('input', () => recalculateCard(card));
             }
-
             if (discountInput) {
                 discountInput.addEventListener('input', () => recalculateCard(card));
             }
-
             if (removeBtn) {
                 removeBtn.addEventListener('click', () => {
-                    const cards = itemsContainer.querySelectorAll('.sale-item-card');
-                    if (cards.length <= 1) return;
-
                     card.remove();
                     updateItemNumbers();
                     recalculateGrandTotal();
@@ -714,250 +650,96 @@
             }
         }
 
-        function createNewItemCard(selectedData = null) {
-            const index = itemsContainer.querySelectorAll('.sale-item-card').length;
+        function addItemCard(prefill = null) {
             const html = saleItemTemplate.innerHTML
-                .replaceAll('__INDEX__', index)
-                .replaceAll('__NUMBER__', index + 1);
-
+                .replaceAll('__INDEX__', itemIndex)
+                .replaceAll('__NUMBER__', itemIndex + 1);
             const wrapper = document.createElement('div');
             wrapper.innerHTML = html.trim();
-
             const card = wrapper.firstElementChild;
             itemsContainer.appendChild(card);
-
             bindCardEvents(card);
-
-            const selectedId = selectedData?.product_stock_id ?? '';
-            renderItemOptions(card, selectedId);
-
-            if (selectedData?.quantity) {
-                card.querySelector('.item-quantity').value = selectedData.quantity;
+            renderItemOptions(card, prefill?.product_stock_id || '');
+            if (prefill) {
+                const qtyInput = card.querySelector('.item-quantity');
+                const discInput = card.querySelector('.item-discount');
+                if (qtyInput) qtyInput.value = prefill.quantity || 1;
+                if (discInput) discInput.value = prefill.discount || 0;
             }
-
-            if (selectedData?.discount !== undefined) {
-                card.querySelector('.item-discount').value = selectedData.discount;
-            }
-
-            syncStockData(card);
-            recalculateCard(card);
+            itemIndex++;
             updateItemNumbers();
+            recalculateCard(card);
         }
 
-        customerProvince?.addEventListener('change', function() {
-            populateCities(this.value);
+        // Event Listeners
+        warehouseSelect?.addEventListener('change', () => {
+            loadStocksByWarehouse(warehouseSelect.value);
         });
 
-        warehouseSelect?.addEventListener('change', async function() {
-            await loadStocksByWarehouse(this.value);
+        customerProvince?.addEventListener('change', () => {
+            populateCities(customerProvince.value);
+        });
 
+        statusSelect?.addEventListener('change', () => {
+            recalculateGrandTotal();
+        });
+
+        downPayment?.addEventListener('input', () => {
+            recalculateGrandTotal();
+        });
+
+        stockTypeSelect?.addEventListener('change', () => {
+            // Re-validate quantity limits when switching type
             itemsContainer.querySelectorAll('.sale-item-card').forEach(card => {
-                renderItemOptions(card);
                 recalculateCard(card);
             });
         });
 
-        addItemBtn?.addEventListener('click', () => {
-            createNewItemCard();
-        });
+        addItemBtn?.addEventListener('click', () => addItemCard());
 
-        statusSelect?.addEventListener('change', () => recalculateGrandTotal());
-        downPayment?.addEventListener('input', () => recalculateGrandTotal());
-
-        async function initForm() {
-            await loadProvinces();
-
+        // Init
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProvinces();
             if (oldWarehouseId) {
                 warehouseSelect.value = oldWarehouseId;
-                await loadStocksByWarehouse(oldWarehouseId);
-            }
-
-            if (Array.isArray(oldItems) && oldItems.length) {
-                oldItems.forEach(item => createNewItemCard(item));
+                loadStocksByWarehouse(oldWarehouseId).then(() => {
+                    if (oldItems && oldItems.length) {
+                        oldItems.forEach(item => addItemCard(item));
+                    } else {
+                        addItemCard();
+                    }
+                });
             } else {
-                createNewItemCard();
+                addItemCard();
             }
 
-            updateItemNumbers();
-            recalculateGrandTotal();
-        }
-
-        initForm();
-
-        function validateInvoiceFile(file) {
-            const allowed = ['image/png', 'image/jpeg', 'application/pdf'];
-
-            if (!allowed.includes(file.type)) {
-                alert('File harus PNG / JPG / JPEG / PDF');
-                return false;
-            }
-
-            const maxSize = 3 * 1024 * 1024;
-            if (file.size > maxSize) {
-                alert('Ukuran file maksimal 3MB');
-                return false;
-            }
-
-            return true;
-        }
-
-        function getDefaultDropzoneContent() {
-            return `
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-700" fill="none"
-                viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
-                    d="M3 15a4 4 0 004 4h10a4 4 0 004-4m-4-4l-4-4m0 0L9 11m4-4v12" />
-            </svg>
-            <div class="text-sm text-gray-800">
-                <span class="font-bold">Click to upload</span> or drag and drop
-            </div>
-            <div class="text-xs text-gray-600">PNG, JPG, JPEG, or PDF (MAX 3 Mb)</div>
-        `;
-        }
-
-        function showDropzonePreview(file) {
-            const isImage = file.type.startsWith('image/');
-            const isPdf = file.type === 'application/pdf';
-            const fileSizeKb = (file.size / 1024).toFixed(1);
-
-            if (isImage) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    dropzoneContent.innerHTML = `
-                    <div class="flex flex-col items-center gap-3 w-full">
-                        <img src="${e.target.result}" alt="Preview invoice"
-                            class="max-h-40 w-auto rounded-lg border border-gray-300 shadow-sm object-contain bg-white p-1">
-                        <div class="text-sm font-bold text-gray-800 break-all">${file.name}</div>
-                        <div class="text-xs text-gray-600">${fileSizeKb} KB</div>
-                    </div>
-                `;
-                };
-                reader.readAsDataURL(file);
-                return;
-            }
-
-            if (isPdf) {
-                dropzoneContent.innerHTML = `
-                <div class="flex flex-col items-center gap-3 w-full">
-                    <div class="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600 font-bold text-sm border border-red-200">
-                        PDF
-                    </div>
-                    <div class="text-sm font-bold text-gray-800 break-all">${file.name}</div>
-                    <div class="text-xs text-gray-600">${fileSizeKb} KB</div>
-                </div>
-            `;
-            }
-        }
-
-        if (invoiceInput) {
-            invoiceInput.addEventListener('change', function() {
-                const file = this.files?.[0];
-
-                if (!file) {
-                    dropzoneContent.innerHTML = getDefaultDropzoneContent();
-                    return;
-                }
-
-                if (!validateInvoiceFile(file)) {
-                    this.value = '';
-                    dropzoneContent.innerHTML = getDefaultDropzoneContent();
-                    return;
-                }
-
-                showDropzonePreview(file);
-            });
-        }
-
-        if (dropzone) {
-            ['dragenter', 'dragover'].forEach(evt => {
-                dropzone.addEventListener(evt, e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    dropzone.classList.add('border-blue-600');
-                });
-            });
-
-            ['dragleave', 'dragend'].forEach(evt => {
-                dropzone.addEventListener(evt, e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    dropzone.classList.remove('border-blue-600');
-                });
-            });
-
-            dropzone.addEventListener('drop', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dropzone.classList.remove('border-blue-600');
-
-                const file = e.dataTransfer?.files?.[0];
-                if (!file) return;
-
-                if (!validateInvoiceFile(file)) return;
-
-                const dt = new DataTransfer();
-                dt.items.add(file);
-                invoiceInput.files = dt.files;
-
-                showDropzonePreview(file);
-            });
-        }
-
-        const invoiceElement = document.querySelector('#invoicePond');
-        if (invoiceElement) {
+            // FilePond
             FilePond.registerPlugin(
                 FilePondPluginFileValidateType,
                 FilePondPluginFileValidateSize,
                 FilePondPluginImagePreview
             );
-
-            FilePond.create(invoiceElement, {
-                storeAsFile: true,
-                acceptedFileTypes: ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'],
-                maxFileSize: '3MB',
-                labelIdle: `
-            <div class="flex flex-col items-center gap-2 py-4">
-                <div class="p-4 bg-blue-50 rounded-full transition-transform duration-300 hover:scale-110">
-                        <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                    </div>
-               <div class="text-center">
-                        <p class="text-base font-bold text-gray-700"><span class="filepond--label-action">Klik</span> atau Tarik gambar ke sini</p>
-                        <p class="text-xs text-gray-500 mt-1 font-medium">PNG, JPG, WEBP (Maksimum 2MB)</p>
-                    </div>
-            </div>
-        `,
-                labelFileTypeNotAllowed: 'Format tidak didukung',
-                fileValidateTypeLabelExpectedTypes: 'Hanya PNG/JPG/PDF',
-                labelMaxFileSizeExceeded: 'Ukuran file terlalu besar',
-                labelMaxFileSize: 'Maksimum 3MB'
-            });
-        }
-
-        saleForm.addEventListener('submit', function(e) {
-            const status = statusSelect.value;
-            const dpRaw = downPayment.value;
-            const dpAmount = parseNumber(dpRaw);
-
-            if (status === 'Terhutang' && dpAmount <= 0) {
-                e.preventDefault(); 
-
-                downPayment.classList.add('border-red-600', 'ring-2', 'ring-red-200');
-                downPayment.focus();
-
-                alert('Gagal Simpan: Jika status Terhutang, Down Payment tidak boleh 0.');
+            const inv = document.querySelector('#invoicePond');
+            if (inv) {
+                FilePond.create(inv, {
+                    storeAsFile: true,
+                    acceptedFileTypes: ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'],
+                    maxFileSize: '3MB',
+                    labelIdle: `
+                        <div class="flex flex-col items-center gap-2 py-4">
+                            <div class="p-4 bg-blue-50 rounded-full">
+                                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-base font-bold text-gray-700"><span class="filepond--label-action">Klik</span> atau Tarik file ke sini</p>
+                                <p class="text-xs text-gray-500 mt-1 font-medium">PNG, JPG, PDF (Maks. 3MB)</p>
+                            </div>
+                        </div>
+                    `,
+                });
             }
         });
-
-        @if (session('success'))
-            Swal.fire({
-                title: 'Berhasil!',
-                text: "{{ session('success') }}",
-                icon: 'success',
-                confirmButtonColor: '#53BF6A'
-            });
-        @endif
     </script>
-
 @endsection

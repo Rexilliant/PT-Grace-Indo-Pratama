@@ -38,7 +38,7 @@
     <section class="bg-white p-5 shadow border border-gray-300 rounded-lg mb-5">
         {{-- top bar --}}
         <form method="GET" class="mb-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
 
                 <div class="flex flex-col w-full">
                     <label class="text-xs font-semibold text-gray-700 mb-1">Nama Penanggung Jawab</label>
@@ -138,13 +138,17 @@
                             <th scope="col" class="px-6 py-3 font-extrabold text-left">Tanggal Penjualan</th>
                             <th scope="col" class="px-6 py-3 font-extrabold text-left">Penanggung Jawab</th>
                             <th scope="col" class="px-6 py-3 font-extrabold text-left">Provinsi</th>
-                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Aksi</th>
+                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Tipe Stok</th>
                             <th scope="col" class="px-6 py-3 font-extrabold text-left">Status</th>
+                            <th scope="col" class="px-6 py-3 font-extrabold text-left">Aksi</th>
                         </tr>
                     </thead>
 
                     <tbody class="bg-gray-200 divide-y divide-gray-500">
                         @forelse ($sales as $sale)
+                            @php
+                                $isPo = $sale->stock_type === 'po';
+                            @endphp
                             <tr class="hover:bg-gray-300">
                                 <td class="px-6 py-4 font-semibold">
                                     {{ $sale->id }}
@@ -166,9 +170,27 @@
                                     {{ $sale->customer_province }}
                                 </td>
 
+                                {{-- Kolom Tipe Stok --}}
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border
+                    {{ $isPo ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-blue-100 text-blue-800 border-blue-300' }}">
+                                        {{ $isPo ? 'PO' : 'RS' }}
+                                    </span>
+                                </td>
+
+                                <td class="px-6 py-4">
+                                    <span
+                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border
+                    {{ strtolower($sale->status) === 'terhutang'
+                        ? 'bg-red-100 text-red-800 border-red-300'
+                        : 'bg-green-100 text-green-800 border-green-300' }}">
+                                        {{ $sale->status }}
+                                    </span>
+                                </td>
+
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-4 font-semibold">
-
                                         <a href="{{ route('admin.pemasaran-laporan-penjualan.history-pembayaran', $sale->id) }}"
                                             target="_blank" class="text-[#2D2ACD] hover:underline">
                                             Riwayat
@@ -189,18 +211,10 @@
                                         </form>
                                     </div>
                                 </td>
-
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border {{ strtolower($sale->status) === 'terhutang' ? 'bg-red-100 text-red-800 border-red-300' : 'bg-green-100 text-green-800 border-green-300' }}">
-                                        {{ $sale->status }}
-                                    </span>
-                                </td>
                             </tr>
-
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-6 text-center text-gray-600 font-semibold">
+                                <td colspan="8" class="px-6 py-6 text-center text-gray-600 font-semibold">
                                     Belum ada data penjualan
                                 </td>
                             </tr>

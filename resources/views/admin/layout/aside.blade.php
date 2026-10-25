@@ -1,6 +1,6 @@
 {{-- desktop --}}
 <aside
-    class="hidden lg:flex flex-col bg-white lg:w-[432px] 2xl:w-[350px] h-screen z-[100] lg:sticky left-0 top-0 shadow-[0_4px_4px_rgba(0,0,0,0.25)] p-5 overflow-hidden">
+    class="hidden lg:flex flex-col bg-white lg:w-[280px] 2xl:w-[280px] shrink-0 h-screen z-[100] lg:sticky left-0 top-0 shadow-[0_4px_4px_rgba(0,0,0,0.25)] p-5 overflow-hidden">
 
     {{-- header --}}
     <div class="flex items-center mb-6 shrink-0">
@@ -10,8 +10,8 @@
 
         <div class="text-left leading-tight">
             <div class="text-[20px] font-black tracking-wide">PT</div>
-            <div class="text-[10px] font-semibold text-slate-500">GRACE INDO</div>
-            <div class="text-[10px] font-semibold text-slate-500">PRATAMA</div>
+            <div class="text-[10px] font-semibold text-slate-500">GRACE BORNEO</div>
+            <div class="text-[10px] font-semibold text-slate-500">INDONESIA</div>
         </div>
     </div>
 
@@ -353,8 +353,8 @@
 
         <div class="text-right leading-tight">
             <div class="text-[18px] font-black tracking-wide">PT</div>
-            <div class="text-[10px] font-semibold text-slate-500">GRACE INDO</div>
-            <div class="text-[10px] font-semibold text-slate-500">PRATAMA</div>
+            <div class="text-[10px] font-semibold text-slate-500">GRACE BORNEO</div>
+            <div class="text-[10px] font-semibold text-slate-500">INDONESIA</div>
         </div>
     </div>
 

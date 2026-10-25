@@ -185,7 +185,7 @@
                 <p class="text-xs font-bold uppercase">Penanggung Pemesanan</p>
                 <div class="mt-auto">
                     <p class="font-bold border-b border-gray-400 inline-block px-4 pb-1">
-                        {{ $shipment->personResponsible->name ?? '-' }}</p>
+                        {{ $shipment->personResponsible?->name ?? '-' }}</p>
                 </div>
             </div>
             <div class="hidden sm:block"></div> {{-- Spacer untuk desktop --}}
@@ -199,9 +199,9 @@
                         $statusLower = strtolower($shipment->status);
 
                         if (in_array($statusLower, ['disetujui', 'dikirim', 'selesai'])) {
-                            $statusUser = $shipment->approvedBy->name ?? $statusUser;
+                            $statusUser = $shipment->approvedBy?->name ?? $statusUser;
                         } elseif ($statusLower === 'ditolak') {
-                            $statusUser = $shipment->rejectedBy->name ?? $statusUser;
+                            $statusUser = $shipment->rejectedBy?->name ?? $statusUser;
                         }
                     @endphp
                     <p class="font-bold border-b border-gray-400 inline-block px-4 pb-1">

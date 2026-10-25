@@ -72,7 +72,7 @@
             </div>
             <div class="text-right text-sm">
                 <p>Tanggal Cetak: {{ now()->format('d/m/Y H:i') }}</p>
-                <p class="text-xs text-gray-500 mt-1 uppercase font-semibold">Dokumen Digital PT Grace Indo Pratama</p>
+                <p class="text-xs text-gray-500 mt-1 uppercase font-semibold">Dokumen Digital PT Grace Borneo Indonesia</p>
             </div>
         </div>
 

@@ -20,6 +20,7 @@ class Sale extends Model implements HasMedia
         'updated_by',
         'warehouse_id',
         'sale_type',
+        'stock_type',          // ← tambah
         'customer_province',
         'customer_city',
         'customer_address',
@@ -41,14 +42,24 @@ class Sale extends Model implements HasMedia
         'debt_amount' => 'integer',
     ];
 
+    public function isPo(): bool
+    {
+        return $this->stock_type === 'po';
+    }
+
+    public function isReady(): bool
+    {
+        return $this->stock_type === 'ready';
+    }
+
     public function personResponsible()
     {
-        return $this->belongsTo(User::class, 'person_responsible_id');
+        return $this->belongsTo(User::class, 'person_responsible_id')->withTrashed();
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by')->withTrashed();
     }
 
     public function items()
@@ -84,5 +95,10 @@ class Sale extends Model implements HasMedia
             ->logFillable()
             ->logOnlyDirty()
             ->dontLogEmptyChanges();
+    }
+
+    public function fulfillments()
+    {
+        return $this->hasMany(SaleItemFulfillment::class);
     }
 }
