@@ -31,7 +31,7 @@ class ProductionBatch extends Model
 
     public function personResponsible()
     {
-        return $this->belongsTo(User::class, 'person_responsible_id');
+        return $this->belongsTo(User::class, 'person_responsible_id')->withTrashed();
     }
 
     public function productStock()
@@ -41,7 +41,7 @@ class ProductionBatch extends Model
 
     public function warehouse()
     {
-        return $this->belongsTo(Warehouse::class);
+        return $this->belongsTo(Warehouse::class)->withTrashed();
     }
 
     public function materials()
@@ -51,7 +51,7 @@ class ProductionBatch extends Model
 
     public function deletedBy()
     {
-        return $this->belongsTo(User::class, 'deleted_by');
+        return $this->belongsTo(User::class, 'deleted_by')->withTrashed();
     }
 
     public function getBatchCodeAttribute(): string

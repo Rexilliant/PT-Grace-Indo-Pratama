@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\Rule;
 
 class EmployeeController extends Controller
 {
@@ -80,8 +81,8 @@ class EmployeeController extends Controller
 
             $year = date('Y');
 
-            // ambil nip terakhir di tahun ini
-            $lastEmployee = Employee::where('nip', 'like', $year . '%')
+            // ambil nip terakhir di tahun ini (termasuk yang sudah dihapus agar tidak bentrok)
+            $lastEmployee = Employee::withTrashed()->where('nip', 'like', $year . '%')
                 ->orderBy('nip', 'desc')
                 ->lockForUpdate() // <-- penting untuk mencegah duplicate saat bersamaan
                 ->first();
@@ -102,9 +103,18 @@ class EmployeeController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'birthday' => 'required|date',
-            'email' => 'required|email|unique:employees,email',
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('employees', 'email')->whereNull('deleted_at'),
+            ],
             'position' => 'string|max:255',
-            'phone' => 'required|string|max:20|unique:employees,phone',
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('employees', 'phone')->whereNull('deleted_at'),
+            ],
             'country' => 'required|string',
             'province' => 'required|string',
             'city' => 'required|string',
@@ -112,6 +122,9 @@ class EmployeeController extends Controller
             'address' => 'required|string',
             'profile_image' => 'required|image|mimes:jpg,jpeg,png,webp|max:5048',
             'warehouse_id' => 'nullable|exists:warehouses,id',
+        ], [
+            'email.unique' => 'Email ini sudah digunakan oleh karyawan aktif.',
+            'phone.unique' => 'Nomor HP ini sudah digunakan oleh karyawan aktif.',
         ]);
         try {
             $request->birthday = Carbon::parse($request->birthday)->setTimeZone('Asia/Jakarta')->format('Y-m-d');
@@ -171,9 +184,18 @@ class EmployeeController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'birthday' => 'required|date',
-            'email' => 'required|email|unique:employees,email,' . $id,
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('employees', 'email')->ignore($id)->whereNull('deleted_at'),
+            ],
             'position' => 'string|max:255',
-            'phone' => 'required|string|max:20|unique:employees,phone,' . $id,
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('employees', 'phone')->ignore($id)->whereNull('deleted_at'),
+            ],
             'country' => 'required|string',
             'province' => 'required|string',
             'city' => 'required|string',
@@ -181,6 +203,9 @@ class EmployeeController extends Controller
             'address' => 'required|string',
             'profile_image' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5048',
             'warehouse_id' => 'nullable|exists:warehouses,id',
+        ], [
+            'email.unique' => 'Email ini sudah digunakan oleh karyawan aktif.',
+            'phone.unique' => 'Nomor HP ini sudah digunakan oleh karyawan aktif.',
         ]);
         try {
             $request->birthday = Carbon::parse($request->birthday)->setTimeZone('Asia/Jakarta')->format('Y-m-d');
@@ -261,6 +286,19 @@ class EmployeeController extends Controller
     {
         try {
             $employee = Employee::withTrashed()->findOrFail($id);
+
+            // Periksa apakah email atau nomor HP sudah dipakai karyawan aktif lain
+            $conflict = Employee::where('id', '!=', $id)
+                ->where(function ($query) use ($employee) {
+                    $query->where('email', $employee->email)
+                        ->orWhere('phone', $employee->phone);
+                })
+                ->exists();
+
+            if ($conflict) {
+                return back()->with('error', 'Gagal mengembalikan karyawan. Email atau nomor HP sudah digunakan oleh karyawan aktif lain.');
+            }
+
             $employee->restore();
 
             return redirect()->route('employees')->with('success', 'Data karyawan berhasil dikembalikan.');

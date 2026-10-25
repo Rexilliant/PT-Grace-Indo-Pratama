@@ -144,8 +144,8 @@
                                 <td class="px-6 py-4">
                                     {{ $shipment->shipment_at?->format('d M Y') ?? '-' }}
                                 </td>
-                                <td class="px-6 py-4">{{ $shipment->personResponsible->name }}</td>
-                                <td class="px-6 py-4">{{ $shipment->warehouse->name }}</td>
+                                <td class="px-6 py-4">{{ $shipment->personResponsible?->name ?? '-' }}</td>
+                                <td class="px-6 py-4">{{ $shipment->warehouse?->name ?? '-' }}</td>
                                 {{-- <td class="px-6 py-4"><span
                                         class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">{{ $shipment->status }}</span>
                                 </td> --}}

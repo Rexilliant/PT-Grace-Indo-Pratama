@@ -54,12 +54,12 @@ class Sale extends Model implements HasMedia
 
     public function personResponsible()
     {
-        return $this->belongsTo(User::class, 'person_responsible_id');
+        return $this->belongsTo(User::class, 'person_responsible_id')->withTrashed();
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by')->withTrashed();
     }
 
     public function items()

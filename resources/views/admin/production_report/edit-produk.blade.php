@@ -67,7 +67,7 @@
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
                     <div>
                         <label class="mb-2 block text-sm font-bold text-gray-800">Nama Penerima</label>
-                        <input type="text" value="{{ $personResponsible->name }}" readonly
+                        <input type="text" value="{{ $personResponsible?->name ?? '-' }}" readonly
                             class="{{ $readonlyClass }} cursor-not-allowed" />
                     </div>
 

@@ -53,27 +53,27 @@ class Shipment extends Model implements HasMedia
     //  Relationships
     public function personResponsible()
     {
-        return $this->belongsTo(User::class, 'person_responsible_id');
+        return $this->belongsTo(User::class, 'person_responsible_id')->withTrashed();
     }
 
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by_id');
+        return $this->belongsTo(User::class, 'created_by_id')->withTrashed();
     }
 
     public function approvedBy()
     {
-        return $this->belongsTo(User::class, 'approved_by_id');
+        return $this->belongsTo(User::class, 'approved_by_id')->withTrashed();
     }
 
     public function rejectedBy()
     {
-        return $this->belongsTo(User::class, 'rejected_by_id');
+        return $this->belongsTo(User::class, 'rejected_by_id')->withTrashed();
     }
 
     public function cancelledBy()
     {
-        return $this->belongsTo(User::class, 'cancelled_by_id');
+        return $this->belongsTo(User::class, 'cancelled_by_id')->withTrashed();
     }
 
     public function shipmentItems()
@@ -83,12 +83,12 @@ class Shipment extends Model implements HasMedia
 
     public function warehouse()
     {
-        return $this->belongsTo(Warehouse::class);
+        return $this->belongsTo(Warehouse::class)->withTrashed();
     }
 
     public function deletedBy()
     {
-        return $this->belongsTo(User::class, 'deleted_by');
+        return $this->belongsTo(User::class, 'deleted_by')->withTrashed();
     }
 
     public function getActivitylogOptions(): LogOptions

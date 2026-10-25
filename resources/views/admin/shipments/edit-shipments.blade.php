@@ -157,7 +157,7 @@
 
                     <div>
                         <label class="{{ $labelClass }}">Penanggung Jawab</label>
-                        <input type="text" value="{{ $shipment->personResponsible->name ?? '-' }}" readonly
+                        <input type="text" value="{{ $shipment->personResponsible?->name ?? '-' }}" readonly
                             class="{{ $readonlyClass }}">
                     </div>
 
@@ -174,7 +174,7 @@
 
                     <div>
                         <label class="{{ $labelClass }}">Gudang / Tujuan</label>
-                        <input type="text" value="{{ $shipment->warehouse->name ?? ($shipment->province ?? '-') }}"
+                        <input type="text" value="{{ $shipment->warehouse?->name ?? ($shipment->province ?? '-') }}"
                             readonly class="{{ $readonlyClass }}">
                     </div>
 
