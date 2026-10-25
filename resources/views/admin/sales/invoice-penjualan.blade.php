@@ -49,23 +49,24 @@
 <body class="font-sans text-gray-900">
     @php
         use Carbon\Carbon;
+        use Illuminate\Support\Str;
 
         $invoiceNumber =
             'INV/' . Carbon::parse($sale->report_date)->format('Y/m/') . str_pad($sale->id, 4, '0', STR_PAD_LEFT);
 
-        $companyName = 'PT GRACE INDO PRATAMA';
+        $companyName = 'PT GRACE BORNEO INDONESIA';
         $companyAddress = 'Jl. Industri No. 12, Medan, Sumatera Utara';
         $companyPhone = '(061) 12345678';
-        $companyEmail = 'sales@graceindopratama.co.id';
+        $companyEmail = 'sales@graceborneoindonesia.co.id';
 
         $bankName = 'Transfer Bank';
-        $bankAccountName = 'A/N PT Grace Indo Pratama';
+        $bankAccountName = 'A/N PT Grace Borneo Indonesia';
 
         $invoiceDate = Carbon::parse($sale->report_date)->translatedFormat('d F Y');
         $saleDate = Carbon::parse($sale->sale_date)->translatedFormat('d F Y');
 
         $statusText = strtoupper($sale->status);
-        $statusColor = $sale->status === 'Terhutang' ? 'text-red-700' : 'text-green-700';
+        $statusColor = Str::lower($sale->status) === 'terhutang' ? 'text-red-700' : 'text-green-700';
 
         $customerDisplay = $sale->customer_name ?: '-';
         $customerRegion = trim(

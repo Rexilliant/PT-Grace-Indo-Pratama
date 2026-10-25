@@ -10,8 +10,8 @@
 
         <div class="text-left leading-tight">
             <div class="text-[20px] font-black tracking-wide">PT</div>
-            <div class="text-[10px] font-semibold text-slate-500">GRACE INDO</div>
-            <div class="text-[10px] font-semibold text-slate-500">PRATAMA</div>
+            <div class="text-[10px] font-semibold text-slate-500">GRACE BORNEO</div>
+            <div class="text-[10px] font-semibold text-slate-500">INDONESIA</div>
         </div>
     </div>
 
@@ -353,8 +353,8 @@
 
         <div class="text-right leading-tight">
             <div class="text-[18px] font-black tracking-wide">PT</div>
-            <div class="text-[10px] font-semibold text-slate-500">GRACE INDO</div>
-            <div class="text-[10px] font-semibold text-slate-500">PRATAMA</div>
+            <div class="text-[10px] font-semibold text-slate-500">GRACE BORNEO</div>
+            <div class="text-[10px] font-semibold text-slate-500">INDONESIA</div>
         </div>
     </div>
 
