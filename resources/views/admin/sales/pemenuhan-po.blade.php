@@ -52,7 +52,7 @@
 
         $docNumber =
             'PO-FUL/' . Carbon::parse($sale->report_date)->format('Y/m/') . str_pad($sale->id, 4, '0', STR_PAD_LEFT);
-        $companyName = 'PT GRACE INDO PRATAMA';
+        $companyName = 'PT GRACE BORNEO INDONESIA';
         $companyAddress = 'Jl. Industri No. 12, Medan, Sumatera Utara';
         $companyPhone = '(061) 12345678';
 
