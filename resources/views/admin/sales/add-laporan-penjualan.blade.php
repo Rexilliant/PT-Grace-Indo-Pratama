@@ -224,10 +224,11 @@
                 <div id="blokTerhutang">
                     <label
                         class="block text-xs font-bold @error('down_payment') text-red-600 @else text-gray-800 @enderror mb-2.5">
-                        Down Payment <span class="text-red-600">*</span>
+                        Down Payment
+                        {{-- hapus tanda bintang merah * --}}
                     </label>
                     <input name="down_payment" id="downPayment" value="{{ old('down_payment', 0) }}"
-                        inputmode="numeric" required min="1"
+                        inputmode="numeric"
                         class="w-full rounded-md border @error('down_payment') border-red-500 bg-red-50 @else border-gray-400 @enderror px-3 py-2.5 text-sm font-semibold text-gray-900">
                     @error('down_payment')
                         <p class="text-red-500 text-[10px] mt-1 font-bold">{{ $message }}</p>
@@ -606,11 +607,11 @@
             blokTerhutang.classList.remove('hidden');
             blokTerhutang2.classList.remove('hidden');
             let dp = parseNumber(downPayment?.value || 0);
-            if (dp <= 0) {
-                downPayment.classList.add('border-red-500', 'bg-red-50');
-            } else {
-                downPayment.classList.remove('border-red-500', 'bg-red-50');
-            }
+            // if (dp <= 0) {
+            //     downPayment.classList.add('border-red-500', 'bg-red-50');
+            // } else {
+            //     downPayment.classList.remove('border-red-500', 'bg-red-50');
+            // }
             if (dp > grandTotal) dp = grandTotal;
             if (downPayment) downPayment.value = dp;
             const debt = Math.max(0, grandTotal - dp);

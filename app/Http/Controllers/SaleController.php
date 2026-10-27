@@ -12,11 +12,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Facades\Excel;
+
 
 class SaleController extends Controller
 {
@@ -276,16 +278,9 @@ class SaleController extends Controller
                 'customer_name' => ['required', 'string', 'max:255'],
                 'customer_contact' => ['required', 'string', 'max:255'],
                 'status' => ['required', 'in:Lunas,Terhutang'],
-                'down_payment' => [
-                    'required',
-                    function ($attribute, $value, $fail) use ($request, $dpValue) {
-                        if ($request->status === 'Terhutang' && $dpValue <= 0) {
-                            $fail('Down Payment (DP) wajib diisi lebih dari 0 jika status Terhutang.');
-                        }
-                    },
-                ],
+                'down_payment' => ['nullable'],
                 'notes' => ['nullable', 'string'],
-                'invoice' => ['required', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
+                'invoice' => ['nullable', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:3072'],
                 'items' => ['required', 'array', 'min:1'],
                 'items.*.product_stock_id' => ['required', 'integer', 'exists:product_stocks,id'],
                 'items.*.quantity' => ['required', 'integer', 'min:1'],
@@ -297,11 +292,25 @@ class SaleController extends Controller
                 'customer_name.required' => 'Nama pembeli wajib diisi.',
                 'customer_contact.required' => 'Nomor kontak pembeli wajib diisi.',
                 'customer_address.required' => 'Alamat lengkap wajib diisi.',
-                'invoice.required' => 'Bukti pembayaran wajib diunggah.',
                 'invoice.mimes' => 'Format bukti bayar harus PNG, JPG, JPEG, atau PDF.',
+                'invoice.max' => 'Ukuran bukti pembayaran maksimal 3 MB.',
                 'items.required' => 'Minimal harus ada 1 barang yang terjual.',
             ],
         );
+
+        if (!$request->hasFile('invoice')) {
+            if ($request->status === 'Lunas') {
+                throw ValidationException::withMessages([
+                    'invoice' => 'Bukti pembayaran wajib diunggah jika status Lunas.',
+                ]);
+            }
+
+            if ($dpValue > 0) {
+                throw ValidationException::withMessages([
+                    'invoice' => 'Bukti pembayaran wajib diunggah jika Down Payment diisi.',
+                ]);
+            }
+        }
 
         $itemsInput = collect($request->input('items', []))->values();
         $isPo = $request->stock_type === 'po';
@@ -467,6 +476,14 @@ class SaleController extends Controller
             'invoice.mimes' => 'Bukti pembayaran harus berupa PNG, JPG, JPEG, atau PDF.',
             'invoice.max' => 'Ukuran bukti pembayaran maksimal 3 MB.',
         ]);
+
+        $additionalPayment = $this->parseMoney($request->input('payment_amount'));
+
+        if (!$isPaidOff && $additionalPayment > 0 && !$request->hasFile('invoice')) {
+            throw ValidationException::withMessages([
+                'invoice' => 'Bukti pembayaran wajib diunggah jika mengisi tambahan pembayaran.',
+            ]);
+        }
 
         return DB::transaction(function () use ($request, $sale) {
 

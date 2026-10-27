@@ -55,9 +55,9 @@
             'INV/' . Carbon::parse($sale->report_date)->format('Y/m/') . str_pad($sale->id, 4, '0', STR_PAD_LEFT);
 
         $companyName = 'PT GRACE BORNEO INDONESIA';
-        $companyAddress = 'Jl. Industri No. 12, Medan, Sumatera Utara';
-        $companyPhone = '(061) 12345678';
-        $companyEmail = 'sales@graceborneoindonesia.co.id';
+        $companyAddress = 'Jl. Merawan No.6 RT/RW 031/007, Sawah Lebar, Ratu Agung, Kota Bengkulu';
+        $companyPhone = '(+62) 823-7406-6082';
+        $companyEmail = 'support@graceborneoindonesia.com';
 
         $bankName = 'Transfer Bank';
         $bankAccountName = 'A/N PT Grace Borneo Indonesia';

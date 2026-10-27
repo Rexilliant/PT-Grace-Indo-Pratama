@@ -53,8 +53,9 @@
         $docNumber =
             'PO-FUL/' . Carbon::parse($sale->report_date)->format('Y/m/') . str_pad($sale->id, 4, '0', STR_PAD_LEFT);
         $companyName = 'PT GRACE BORNEO INDONESIA';
-        $companyAddress = 'Jl. Industri No. 12, Medan, Sumatera Utara';
-        $companyPhone = '(061) 12345678';
+        $companyAddress = 'Jl. Merawan No.6 RT/RW 031/007, Sawah Lebar, Ratu Agung, Kota Bengkulu';
+        $companyPhone = '(+62) 823-7406-6082';
+        $companyEmail = 'support@graceborneoindonesia.com';
 
         $saleDate = Carbon::parse($sale->sale_date)->translatedFormat('d F Y');
         $printDate = now()->translatedFormat('d F Y');
@@ -97,8 +98,9 @@
                 <div>
                     <div class="text-[18px] font-extrabold tracking-wide text-[#127a45]">{{ $companyName }}</div>
                     <div class="mt-1 text-[11px] leading-4 text-gray-600">
-                        {{ $companyAddress }}<br>
-                        Telp: {{ $companyPhone }}
+                        <div>{{ $companyAddress }}</div>
+                        <div>Telp: {{ $companyPhone }}</div>
+                        <div>Email: {{ $companyEmail }}</div>
                     </div>
                 </div>
             </div>

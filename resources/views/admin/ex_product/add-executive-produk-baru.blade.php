@@ -21,13 +21,55 @@
         .animate-scale-in {
             animation: scaleIn 0.2s ease-out forwards;
         }
+
+        /* ===== Responsive Table ===== */
+        @media (max-width: 767px) {
+            .product-table thead {
+                display: none;
+            }
+
+            .product-table tbody tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid #e5e7eb;
+                border-radius: 0.75rem;
+                background: #fff;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                padding: 0.75rem;
+            }
+
+            .product-table tbody td {
+                display: block;
+                width: 100% !important;
+                padding: 0.5rem 0 !important;
+                border: none !important;
+                text-align: left !important;
+            }
+
+            .product-table tbody td:before {
+                content: attr(data-label);
+                display: block;
+                font-size: 0.7rem;
+                font-weight: 700;
+                color: #6b7280;
+                text-transform: uppercase;
+                margin-bottom: 0.25rem;
+            }
+
+            .product-table tbody td:last-child {
+                text-align: right !important;
+                padding-top: 0.75rem !important;
+                border-top: 1px solid #f3f4f6 !important;
+                margin-top: 0.5rem;
+            }
+        }
     </style>
 @endsection
 
 @section('content')
 
     <section class="mb-5">
-        <div class="text-xl font-semibold text-gray-700">
+        <div class="text-base sm:text-xl font-semibold text-gray-700 flex flex-wrap items-center gap-x-1 gap-y-1">
             <span>Executive</span>
             <span class="mx-1 text-gray-400">›</span>
             <a href="#" class="hover:underline">Produk</a>
@@ -39,29 +81,29 @@
     <form action="{{ route('admin.add-executive-produk-baru.store') }}" method="POST" class="space-y-4">
         @csrf
 
-        <div class="bg-white p-5 shadow border border-gray-300 rounded-xl space-y-4">
-            <div class="flex justify-between items-center pb-2 border-b">
-                <h2 class="font-bold text-gray-700 text-lg">Daftar Produk Baru</h2>
+        <div class="bg-white p-4 sm:p-5 shadow border border-gray-300 rounded-xl space-y-4">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pb-2 border-b">
+                <h2 class="font-bold text-gray-700 text-base sm:text-lg">Daftar Produk Baru</h2>
                 <button type="button" id="addRowBtn"
-                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+                    class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2">
                     <span>+</span> Tambah Baris
                 </button>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-gray-600">
+            <div class="overflow-x-auto -mx-1 px-1">
+                <table class="w-full text-left text-sm text-gray-600 product-table">
                     <thead class="bg-gray-100 text-gray-700 font-bold uppercase text-xs">
                         <tr>
-                            <th class="p-3">ID / Kode Produk <span class="text-red-500">*</span></th>
-                            <th class="p-3">Nama Produk <span class="text-red-500">*</span></th>
-                            <th class="p-3">Status <span class="text-red-500">*</span></th>
+                            <th class="p-3 min-w-[160px]">ID / Kode Produk <span class="text-red-500">*</span></th>
+                            <th class="p-3 min-w-[180px]">Nama Produk <span class="text-red-500">*</span></th>
+                            <th class="p-3 min-w-[140px]">Status <span class="text-red-500">*</span></th>
                             <th class="p-3 text-center" style="width: 80px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="productContainer" class="divide-y divide-gray-200">
                         {{-- Baris pertama default --}}
                         <tr class="product-row">
-                            <td class="p-3 align-top">
+                            <td class="p-3 align-top" data-label="ID / Kode Produk *">
                                 <input name="products[0][code]" type="text" placeholder="Contoh: BHOSEXT"
                                     value="{{ old('products.0.code') }}"
                                     class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold focus:border-blue-600 focus:ring-0 @error('products.0.code') border-red-500 @enderror">
@@ -69,7 +111,7 @@
                                     <p class="mt-1 text-xs text-red-600 font-semibold">{{ $message }}</p>
                                 @enderror
                             </td>
-                            <td class="p-3 align-top">
+                            <td class="p-3 align-top" data-label="Nama Produk *">
                                 <input name="products[0][name]" type="text" placeholder="Contoh: BHOS Ekstra"
                                     value="{{ old('products.0.name') }}"
                                     class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold focus:border-blue-600 focus:ring-0 @error('products.0.name') border-red-500 @enderror">
@@ -77,7 +119,7 @@
                                     <p class="mt-1 text-xs text-red-600 font-semibold">{{ $message }}</p>
                                 @enderror
                             </td>
-                            <td class="p-3 align-top">
+                            <td class="p-3 align-top" data-label="Status *">
                                 <select name="products[0][status]"
                                     class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold focus:border-blue-600 focus:ring-0 @error('products.0.status') border-red-500 @enderror">
                                     <option value="" disabled {{ old('products.0.status') ? '' : 'selected' }}>Pilih
@@ -91,7 +133,7 @@
                                     <p class="mt-1 text-xs text-red-600 font-semibold">{{ $message }}</p>
                                 @enderror
                             </td>
-                            <td class="p-3 align-top text-center">
+                            <td class="p-3 align-top text-center" data-label="Aksi">
                                 <button type="button"
                                     class="remove-row bg-red-100 text-red-600 hover:bg-red-200 p-2 rounded-lg font-bold text-xs"
                                     title="Hapus Baris">
@@ -146,15 +188,15 @@
             const row = document.createElement('tr');
             row.className = 'product-row';
             row.innerHTML = `
-            <td class="p-3 align-top">
+            <td class="p-3 align-top" data-label="ID / Kode Produk *">
                 <input name="products[${rowIndex}][code]" type="text" placeholder="Contoh: BHOSEXT"
                     class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold focus:border-blue-600 focus:ring-0">
             </td>
-            <td class="p-3 align-top">
+            <td class="p-3 align-top" data-label="Nama Produk *">
                 <input name="products[${rowIndex}][name]" type="text" placeholder="Contoh: BHOS Ekstra"
                     class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold focus:border-blue-600 focus:ring-0">
             </td>
-            <td class="p-3 align-top">
+            <td class="p-3 align-top" data-label="Status *">
                 <select name="products[${rowIndex}][status]"
                     class="w-full rounded-md border border-gray-400 bg-white px-3 py-2 text-sm font-semibold focus:border-blue-600 focus:ring-0">
                     <option value="" disabled selected>Pilih Status</option>
@@ -162,7 +204,7 @@
                     <option value="nonaktif">Inactive</option>
                 </select>
             </td>
-            <td class="p-3 align-top text-center">
+            <td class="p-3 align-top text-center" data-label="Aksi">
                 <button type="button" class="remove-row bg-red-100 text-red-600 hover:bg-red-200 p-2 rounded-lg font-bold text-xs" title="Hapus Baris">
                     ✕
                 </button>
@@ -174,7 +216,7 @@
 
         container.addEventListener('click', function(e) {
             if (e.target.classList.contains('remove-row') || e.target.parentElement.classList.contains(
-                'remove-row')) {
+                    'remove-row')) {
                 const rows = container.querySelectorAll('.product-row');
                 if (rows.length > 1) {
                     e.target.closest('tr').remove();
